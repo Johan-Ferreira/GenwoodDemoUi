@@ -167,9 +167,13 @@ describe('Epic curve-data, Story 2: Curve catalogue filters', () => {
 
     await chooseOption(user, 'Family', 'Real');
 
-    const realRow = await within(screen.getByRole('table')).findByRole('row', {
-      name: /^10Y\b.*0\.5575/,
-    });
+    // The new curve's table loads afresh, so wait for it rather than reading it at once.
+    const realRow = await within(await screen.findByRole('table')).findByRole(
+      'row',
+      {
+        name: /^10Y\b.*0\.5575/,
+      },
+    );
     expect(within(realRow).getByText('0.5575')).toBeInTheDocument();
     expect(within(realRow).queryByText('3.5575')).not.toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Curve' })).toHaveTextContent(

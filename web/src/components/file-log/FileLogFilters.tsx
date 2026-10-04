@@ -2,59 +2,13 @@
 
 import { useId } from 'react';
 
+import { FilterSelect } from '@/components/filter-select/FilterSelect';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ISO_DATE_MESSAGE } from '@/lib/validation/iso-date';
 import { CURVE_FAMILIES, FILE_STATUSES } from '@/types/files';
 
-import {
-  ALL_OPTION,
-  type DateFilterField,
-  type FileLogFiltersState,
-} from './useFileLogFilters';
-
-interface FilterSelectProps {
-  label: string;
-  value: string;
-  allLabel: string;
-  options: readonly string[];
-  onChange: (value: string) => void;
-}
-
-function FilterSelect({
-  label,
-  value,
-  allLabel,
-  options,
-  onChange,
-}: FilterSelectProps) {
-  const id = useId();
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={id} className="focus-ring w-44">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_OPTION}>{allLabel}</SelectItem>
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
+import type { DateFilterField, FileLogFiltersState } from './useFileLogFilters';
 
 interface DateFilterProps {
   label: string;

@@ -11,12 +11,19 @@ import {
   getCurveTenors,
 } from '@/lib/api/endpoints';
 import { curveSubtitle } from '@/lib/curves/curve-format';
+import {
+  filterCurveCatalogue,
+  keepOrFirstCurve,
+  NO_CURVE_FILTERS,
+  type CurveFilters,
+} from '@/lib/curves/curve-filters';
 import type {
   AvailabilityRead,
   CurveRead,
   TenorRead,
 } from '@/types/api-generated';
 
+import { CurveCatalogueFilters } from './CurveCatalogueFilters';
 import { CurveSelect } from './CurveSelect';
 import { NoDataImported, RatesByMaturity } from './RatesByMaturity';
 import { useValuationDate } from './useValuationDate';
@@ -93,23 +100,56 @@ function CurvePanel({
   );
 }
 
-/** Curve select plus everything that depends on the chosen curve. */
+/** Shown in place of the curve when the catalogue filters match nothing. */
+export const NO_CURVES_MATCH = 'No curves match these filters.';
+
+/**
+ * Catalogue filters, the Curve select over the matching curves, and everything
+ * that depends on the chosen curve. When a filter change drops the chosen
+ * curve, the first matching curve (catalogue order) is chosen instead.
+ */
 function CurveExplorer({ curves }: { curves: readonly CurveRead[] }) {
+  const [filters, setFilters] = useState<CurveFilters>(NO_CURVE_FILTERS);
   const [code, setCode] = useState(curves[0]?.Code ?? '');
-  const curve = curves.find((candidate) => candidate.Code === code);
+  const listed = filterCurveCatalogue(curves, filters);
+  const curve = listed.find((candidate) => candidate.Code === code);
+
+  const applyFilters = (next: CurveFilters) => {
+    setFilters(next);
+    setCode((current) =>
+      keepOrFirstCurve(filterCurveCatalogue(curves, next), current),
+    );
+  };
 
   return (
-    <div className="flex flex-wrap items-start gap-4">
-      <CurveSelect curves={curves} value={code} onChange={setCode} />
-      {curve && (
-        <DataState
-          key={code}
-          load={() => loadCurveContext(code)}
-          skeleton={<Skeleton className="mt-6 h-9 w-44" />}
-        >
-          {(context) => <CurvePanel curve={curve} context={context} />}
-        </DataState>
-      )}
+    <div className="flex flex-col gap-4">
+      <CurveCatalogueFilters
+        filters={filters}
+        onChange={applyFilters}
+        onClear={() => applyFilters(NO_CURVE_FILTERS)}
+      />
+      <div className="flex flex-wrap items-start gap-4">
+        <CurveSelect
+          curves={listed}
+          value={curve ? code : ''}
+          onChange={setCode}
+          placeholder="No matching curves"
+        />
+        {listed.length === 0 && (
+          <p role="status" className="basis-full text-muted-foreground">
+            {NO_CURVES_MATCH} Clear the filters to list every curve.
+          </p>
+        )}
+        {curve && (
+          <DataState
+            key={code}
+            load={() => loadCurveContext(code)}
+            skeleton={<Skeleton className="mt-6 h-9 w-44" />}
+          >
+            {(context) => <CurvePanel curve={curve} context={context} />}
+          </DataState>
+        )}
+      </div>
     </div>
   );
 }
