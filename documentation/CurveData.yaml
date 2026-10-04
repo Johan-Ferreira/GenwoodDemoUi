@@ -1,0 +1,1059 @@
+openapi: 3.0.3
+info:
+  title: CurveData
+  version: 1.0.0
+servers:
+- url: http://localhost:10020
+  description: Local Linx server. Operations are served under the CurveDataFrontEndBaseUrl setting (http://localhost:10020/curve-data).
+tags:
+- name: Overview
+- name: File
+- name: Curve
+- name: ProcessInstance
+- name: Import
+paths:
+  /v1/overview:
+    get:
+      tags:
+      - Overview
+      operationId: OverviewGet
+      summary: Get the overview screen data
+      description: Latest valuation date, key rates (10Y nominal and 10Y inflation with change in bp vs prior day), file counts, latest spot curves and the last 5 files.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewRead'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/files:
+    get:
+      tags:
+      - File
+      operationId: FileGetList
+      summary: Get a paged list of files
+      description: Get a paged list of files
+      parameters:
+      - name: Status
+        in: query
+        description: 'Filter by status: Imported, Failed or Processing'
+        required: false
+        schema:
+          type: string
+      - name: CurveFamily
+        in: query
+        description: 'Filter by curve family: Nominal, Real, Inflation or OIS'
+        required: false
+        schema:
+          type: string
+      - name: ReceivedFrom
+        in: query
+        description: Received from date (YYYY-MM-DD, UTC)
+        required: false
+        schema:
+          type: string
+          example: '2026-09-01'
+      - name: ReceivedTo
+        in: query
+        description: Received to date (YYYY-MM-DD, UTC)
+        required: false
+        schema:
+          type: string
+          example: '2026-09-30'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/files/{Id}:
+    get:
+      tags:
+      - File
+      operationId: FileGetById
+      summary: Get a specific file by Id
+      description: Get a specific file by Id. Returns 404 with a Message body ("File not found") when the record does not exist; this is a deliberate exception to the 200/401/500 standard.
+      parameters:
+      - name: Id
+        in: path
+        description: Unique Id of File
+        required: true
+        schema:
+          type: integer
+          example: '1'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDetailRead'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/files/{Id}/original:
+    get:
+      tags:
+      - File
+      operationId: FileOriginalDownload
+      summary: Download the backed-up source file
+      description: Download the backed-up source file. Returns 404 with a Message body ("File not found") when the record does not exist; this is a deliberate exception to the 200/401/500 standard.
+      parameters:
+      - name: Id
+        in: path
+        description: Unique Id of File
+        required: true
+        schema:
+          type: integer
+          example: '1'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves:
+    get:
+      tags:
+      - Curve
+      operationId: CurveGetList
+      summary: Get the curve catalogue
+      description: Get the curve catalogue
+      parameters:
+      - name: Family
+        in: query
+        description: 'Filter by curve family: Nominal, Real, Inflation or OIS'
+        required: false
+        schema:
+          type: string
+      - name: RateType
+        in: query
+        description: 'Filter by rate type: Spot or Forward'
+        required: false
+        schema:
+          type: string
+      - name: Segment
+        in: query
+        description: 'Filter by segment: ShortEnd or Long'
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurveReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/{Code}/tenors:
+    get:
+      tags:
+      - Curve
+      operationId: CurveTenorGetList
+      summary: Get the tenors of a curve
+      description: Get the tenors of a curve
+      parameters:
+      - $ref: '#/components/parameters/CurveCode'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenorReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/{Code}/rates:
+    get:
+      tags:
+      - Curve
+      operationId: CurveRateGetList
+      summary: Get the rates of a curve for one observation date
+      description: One row per tenor. An unknown date returns 200 with an empty Rates array so the UI can show "no data imported".
+      parameters:
+      - $ref: '#/components/parameters/CurveCode'
+      - $ref: '#/components/parameters/ObservationDate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/{Code}/rate-matrix:
+    get:
+      tags:
+      - Curve
+      operationId: CurveRateMatrixGet
+      summary: Get the by-date matrix for a curve
+      description: Observation dates as rows and the requested tenors as columns.
+      parameters:
+      - $ref: '#/components/parameters/CurveCode'
+      - name: ObservationDateFrom
+        in: query
+        description: From date (YYYY-MM-DD, UTC)
+        required: false
+        schema:
+          type: string
+          example: '2026-09-01'
+      - name: ObservationDateTo
+        in: query
+        description: To date (YYYY-MM-DD, UTC)
+        required: false
+        schema:
+          type: string
+          example: '2026-09-30'
+      - name: Tenors
+        in: query
+        description: Comma-separated tenor labels
+        required: false
+        schema:
+          type: string
+          example: 1Y,5Y,10Y
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateMatrixRead'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/{Code}/availability:
+    get:
+      tags:
+      - Curve
+      operationId: CurveAvailabilityGet
+      summary: Get the available observation dates for a curve
+      description: Get the available observation dates for a curve
+      parameters:
+      - $ref: '#/components/parameters/CurveCode'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityRead'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/compare:
+    get:
+      tags:
+      - Curve
+      operationId: CurveCompareGet
+      summary: Get chart series comparing curves across dates or families
+      description: 'Across dates: one code, many dates. Across families: many codes, one date. Returns one series per code/date combination.'
+      parameters:
+      - name: Codes
+        in: query
+        description: Comma-separated curve codes
+        required: false
+        schema:
+          type: string
+          example: GlcNominalSpotCurve,GlcRealSpotCurve
+      - name: ObservationDates
+        in: query
+        description: Comma-separated observation dates (YYYY-MM-DD, UTC)
+        required: false
+        schema:
+          type: string
+          example: 2026-09-29,2026-09-30
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurveCompareRead'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/curves/{Code}/rates.csv:
+    get:
+      tags:
+      - Curve
+      operationId: CurveRatesDownload
+      summary: Export the rates of a curve as CSV
+      description: Export the rates of a curve as CSV
+      parameters:
+      - $ref: '#/components/parameters/CurveCode'
+      - $ref: '#/components/parameters/ObservationDate'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/process-instances:
+    get:
+      tags:
+      - ProcessInstance
+      operationId: ProcessInstanceGetList
+      summary: Get a paged list of process instances
+      description: Get a paged list of process instances
+      parameters:
+      - name: Status
+        in: query
+        description: Filter by current status
+        required: false
+        schema:
+          type: string
+      - name: ProcessName
+        in: query
+        description: Filter by process name
+        required: false
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessInstanceReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/process-instances/{Id}:
+    get:
+      tags:
+      - ProcessInstance
+      operationId: ProcessInstanceGetById
+      summary: Get a process instance with its steps
+      description: Get a process instance with its steps. Returns 404 with a Message body ("Process instance not found") when the record does not exist; this is a deliberate exception to the 200/401/500
+        standard.
+      parameters:
+      - name: Id
+        in: path
+        description: Unique Id of ProcessInstance
+        required: true
+        schema:
+          type: string
+          example: 6645057045ca4ce59a9827c6f5138246
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessInstanceDetailRead'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/process-instances/{Id}/execution-logs:
+    get:
+      tags:
+      - ProcessInstance
+      operationId: ProcessInstanceExecutionLogGetList
+      summary: Get the execution logs of a process instance
+      description: Get the execution logs of a process instance
+      parameters:
+      - name: Id
+        in: path
+        description: Unique Id of ProcessInstance
+        required: true
+        schema:
+          type: string
+          example: 6645057045ca4ce59a9827c6f5138246
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionLogReadList'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /v1/imports/{Woid}:
+    get:
+      tags:
+      - Import
+      operationId: ImportGetByWoid
+      summary: Trace published data back to its source import
+      description: Returns the file log entry, the workflow instance and the counts of rates and curves produced. Returns 404 with a Message body ("Import not found") when the record does not exist; this
+        is a deliberate exception to the 200/401/500 standard.
+      parameters:
+      - name: Woid
+        in: path
+        description: Work object Id (WOID) of the import
+        required: true
+        schema:
+          type: string
+          example: 0d41a44498814111bcce69d60f7a823a
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportRead'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+components:
+  parameters:
+    Page:
+      name: Page
+      in: query
+      description: Page number (1-based)
+      required: false
+      schema:
+        type: integer
+        example: 1
+    Size:
+      name: Size
+      in: query
+      description: Page size
+      required: false
+      schema:
+        type: integer
+        example: 50
+    CurveCode:
+      name: Code
+      in: path
+      description: Curve code
+      required: true
+      schema:
+        type: string
+        example: GlcNominalSpotCurve
+    ObservationDate:
+      name: ObservationDate
+      in: query
+      description: Observation date (YYYY-MM-DD, UTC). An unknown date returns an empty list.
+      required: true
+      schema:
+        type: string
+        example: '2026-09-30'
+  schemas:
+    Message:
+      type: object
+      properties:
+        Message:
+          type: string
+    FileRead:
+      type: object
+      properties:
+        Id:
+          type: integer
+          example: '101'
+        FileName:
+          type: string
+          example: GLC Nominal daily data current month.xlsx
+        CurveFamily:
+          type: string
+          description: Nominal, Real, Inflation or OIS. Derived by matching the import setting name to YieldCurve.Code
+          example: Nominal
+        ReceivedAt:
+          type: string
+          example: '2026-09-30 18:02:11'
+        SizeBytes:
+          type: string
+          description: Underlying type is number (nullable). Rendered as string in this API to permit null/missing values via the codegen.
+          x-original-type: number
+          example: '350925'
+        RecordCount:
+          type: integer
+          example: '26'
+        RecordsInserted:
+          type: string
+          description: Underlying type is integer (nullable). Rendered as string in this API to permit null/missing values via the codegen.
+          x-original-type: integer
+          example: '26'
+        Woid:
+          type: string
+          description: Work object Id (WOID)
+          example: 0d41a44498814111bcce69d60f7a823a
+        Status:
+          type: string
+          description: 'Derived, not stored: Imported, Failed or Processing'
+          example: Imported
+        IsCurrent:
+          type: boolean
+          example: true
+    FileDetailRead:
+      type: object
+      properties:
+        Id:
+          type: integer
+          example: '101'
+        FileName:
+          type: string
+          example: GLC Nominal daily data current month.xlsx
+        CurveFamily:
+          type: string
+          description: Nominal, Real, Inflation or OIS. Derived by matching the import setting name to YieldCurve.Code
+          example: Nominal
+        ReceivedAt:
+          type: string
+          example: '2026-09-30 18:02:11'
+        SizeBytes:
+          type: string
+          description: Underlying type is number (nullable). Rendered as string in this API to permit null/missing values via the codegen.
+          x-original-type: number
+          example: '350925'
+        RecordCount:
+          type: integer
+          example: '26'
+        RecordsInserted:
+          type: string
+          description: Underlying type is integer (nullable). Rendered as string in this API to permit null/missing values via the codegen.
+          x-original-type: integer
+          example: '26'
+        Woid:
+          type: string
+          description: Work object Id (WOID)
+          example: 0d41a44498814111bcce69d60f7a823a
+        Status:
+          type: string
+          description: 'Derived, not stored: Imported, Failed or Processing'
+          example: Imported
+        IsCurrent:
+          type: boolean
+          example: true
+        WorkflowInstanceId:
+          type: string
+          description: Sourced from RequestingWorkflowId
+          example: 6645057045ca4ce59a9827c6f5138246
+        InboxLocation:
+          type: string
+          example: C:/DigiataFiles/DigiataApps/ImportPro/Inbox/BankOfEngland/
+        BackupFileName:
+          type: string
+          example: 0d41a44498814111bcce69d60f7a823a_GLC Nominal daily data current month.xlsx
+        Sha256:
+          type: string
+          description: Sourced from FileContentKey
+          example: d141ba24a0612efa459ec3e824d0d57eecc422cff2f722e312bb7995a4841906
+        ExceptionNote:
+          type: string
+          example: 'Row 12: invalid rate'
+        CreatedBy:
+          type: string
+          example: John Doe
+    FileReadList:
+      type: object
+      properties:
+        Files:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileRead'
+        TotalItems:
+          type: integer
+          example: '57'
+        Page:
+          type: integer
+          example: '1'
+        Size:
+          type: integer
+          example: '50'
+    KeyRateItem:
+      type: object
+      properties:
+        CurveCode:
+          type: string
+          example: GlcNominalSpotCurve
+        Name:
+          type: string
+          example: 10Y Nominal
+        Family:
+          type: string
+          example: Nominal
+        RateType:
+          type: string
+          example: Spot
+        TenorLabel:
+          type: string
+          example: 10Y
+        RatePercent:
+          type: number
+          description: Rate in percent
+          example: '10.4521'
+        ChangeBp:
+          type: string
+          description: Underlying type is number (nullable). Rendered as string in this API to permit null/missing values via the codegen.
+          x-original-type: number
+          example: '1.5'
+    FileCountsItem:
+      type: object
+      properties:
+        Total:
+          type: integer
+          example: '120'
+        Current:
+          type: integer
+          example: '110'
+        Failed:
+          type: integer
+          example: '3'
+    CurvePointItem:
+      type: object
+      properties:
+        TenorYears:
+          type: number
+          example: '10'
+        RatePercent:
+          type: number
+          example: '3.55752926323083'
+    SpotCurveItem:
+      type: object
+      properties:
+        CurveCode:
+          type: string
+          example: GlcNominalSpotCurve
+        CurveName:
+          type: string
+          example: UK nominal spot curve
+        RateType:
+          type: string
+          description: Spot or Forward
+          example: Spot
+        Family:
+          type: string
+          description: Nominal, Real or Inflation
+          example: Nominal
+        Segment:
+          type: string
+          description: ShortEnd or Long
+          example: Long
+        ObservationDate:
+          type: string
+          example: '2026-09-30'
+        Points:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurvePointItem'
+    OverviewRead:
+      type: object
+      properties:
+        LatestValuationDate:
+          type: string
+          example: '2026-09-30'
+        KeyRates:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyRateItem'
+        FileCounts:
+          $ref: '#/components/schemas/FileCountsItem'
+        SpotCurves:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotCurveItem'
+        RecentFiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/FileRead'
+    CurveRead:
+      type: object
+      properties:
+        Id:
+          type: integer
+          example: '1'
+        Code:
+          type: string
+          example: GlcNominalSpotCurve
+        Name:
+          type: string
+          example: UK nominal spot curve
+        Family:
+          type: string
+          description: Nominal, Real, Inflation or OIS
+          example: Nominal
+        RateType:
+          type: string
+          description: Spot or Forward
+          example: Spot
+        Segment:
+          type: string
+          description: ShortEnd or Long
+          example: Long
+        RateUnit:
+          type: string
+          example: Percent
+        Provider:
+          type: string
+          example: Bank of England
+    CurveReadList:
+      type: object
+      properties:
+        Curves:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurveRead'
+    TenorRead:
+      type: object
+      properties:
+        TenorId:
+          type: integer
+          example: '1'
+        Label:
+          type: string
+          example: 10Y
+        Years:
+          type: number
+          example: '10'
+        Months:
+          type: integer
+          example: '120'
+        SourceColumn:
+          type: string
+          example: Years10
+    TenorReadList:
+      type: object
+      properties:
+        Tenors:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenorRead'
+    RateRead:
+      type: object
+      properties:
+        TenorLabel:
+          type: string
+          example: 10Y
+        TenorYears:
+          type: number
+          example: '10'
+        RatePercent:
+          type: number
+          example: '3.55752926323083'
+        SourceRowId:
+          type: integer
+          example: '26'
+        Woid:
+          type: string
+          description: Work object Id (WOID)
+          example: 0d41a44498814111bcce69d60f7a823a
+    RateReadList:
+      type: object
+      properties:
+        Rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateRead'
+    RateMatrixCellItem:
+      type: object
+      properties:
+        TenorLabel:
+          type: string
+          example: 10Y
+        RatePercent:
+          type: number
+          example: '3.55752926323083'
+    RateMatrixRowItem:
+      type: object
+      properties:
+        ObservationDate:
+          type: string
+          example: '2026-09-30'
+        Rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateMatrixCellItem'
+    RateMatrixRead:
+      type: object
+      properties:
+        Tenors:
+          type: array
+          items:
+            type: string
+            example: 10Y
+        Rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateMatrixRowItem'
+    AvailabilityRead:
+      type: object
+      properties:
+        MinDate:
+          type: string
+          example: '2020-01-02'
+        MaxDate:
+          type: string
+          example: '2026-09-30'
+        Dates:
+          type: array
+          items:
+            type: string
+            example: '2026-09-30'
+    CurveCompareSeriesItem:
+      type: object
+      properties:
+        Code:
+          type: string
+          example: GlcNominalSpotCurve
+        Name:
+          type: string
+          example: UK nominal spot curve
+        ObservationDate:
+          type: string
+          example: '2026-09-30'
+        Points:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurvePointItem'
+    CurveCompareRead:
+      type: object
+      properties:
+        Series:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurveCompareSeriesItem'
+    ProcessInstanceRead:
+      type: object
+      properties:
+        ProcessInstanceId:
+          type: string
+          example: 6645057045ca4ce59a9827c6f5138246
+        ProcessName:
+          type: string
+          example: ImportCurveFile
+        ContextId:
+          type: string
+          description: The WOID
+          example: 0d41a44498814111bcce69d60f7a823a
+        CurrentStatus:
+          type: string
+          example: Finished
+        CreatedAt:
+          type: string
+          example: '2026-09-30 18:02:12'
+        LastExecutedAt:
+          type: string
+          example: '2026-09-30 18:02:40'
+        FinishedAt:
+          type: string
+          example: '2026-09-30 18:02:41'
+        CancelledAt:
+          type: string
+        FaultedAt:
+          type: string
+        LastExecutedActivityName:
+          type: string
+          example: PublishRates
+    ProcessInstanceStepItem:
+      type: object
+      properties:
+        Name:
+          type: string
+          example: PublishRates
+        State:
+          type: string
+          example: Completed
+    ProcessInstanceDetailRead:
+      type: object
+      properties:
+        ProcessInstanceId:
+          type: string
+          example: 6645057045ca4ce59a9827c6f5138246
+        ProcessName:
+          type: string
+          example: ImportCurveFile
+        ContextId:
+          type: string
+          description: The WOID
+          example: 0d41a44498814111bcce69d60f7a823a
+        CurrentStatus:
+          type: string
+          example: Finished
+        CreatedAt:
+          type: string
+          example: '2026-09-30 18:02:12'
+        LastExecutedAt:
+          type: string
+          example: '2026-09-30 18:02:40'
+        FinishedAt:
+          type: string
+          example: '2026-09-30 18:02:41'
+        CancelledAt:
+          type: string
+        FaultedAt:
+          type: string
+        LastExecutedActivityName:
+          type: string
+          example: PublishRates
+        Steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessInstanceStepItem'
+    ProcessInstanceReadList:
+      type: object
+      properties:
+        ProcessInstances:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessInstanceRead'
+        TotalItems:
+          type: integer
+          example: '57'
+        Page:
+          type: integer
+          example: '1'
+        Size:
+          type: integer
+          example: '50'
+    ExecutionLogRead:
+      type: object
+      properties:
+        Timestamp:
+          type: string
+          example: '2026-09-30 18:02:20'
+        ActivityName:
+          type: string
+          example: PublishRates
+        EventName:
+          type: string
+          example: Completed
+        Message:
+          type: string
+          example: Published 250 rates
+    ExecutionLogReadList:
+      type: object
+      properties:
+        ExecutionLogs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExecutionLogRead'
+    ImportRead:
+      type: object
+      properties:
+        File:
+          $ref: '#/components/schemas/FileDetailRead'
+        ProcessInstance:
+          $ref: '#/components/schemas/ProcessInstanceDetailRead'
+        RatesCount:
+          type: integer
+          example: '200'
+        CurvesCount:
+          type: integer
+          example: '5'

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/colors.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/typography.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/effects.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/tokens/base.css">
+<link rel="stylesheet" href="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/styles.css">
+<script src="_ds/genwood-design-system-cb120d2a-18de-4e17-998e-10b49cca8e6e/_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--surface-page);font-family:'IBM Plex Sans',sans-serif;color:var(--fg-1)}a{color:var(--fg-link)}a:hover{color:var(--fg-link-hover)}</style>
+</helmet>
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<div style="min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:var(--surface-page)">
+  <div style="background:var(--gw-forest-800);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between;min-height:100vh;box-sizing:border-box">
+    <img src="assets/genwood-logo.png" alt="Genwood" style="height:52px;width:auto;align-self:flex-start">
+    <div style="max-width:440px">
+      <div style="font-size:36px;font-weight:600;line-height:1.15">Yield curve data, governed from receipt to publication.</div>
+      <div style="margin-top:16px;font-size:16px;color:var(--gw-forest-200);line-height:1.5">Bank of England nominal, real, inflation and OIS curves, with a full audit trail for every file.</div>
+    </div>
+    <div style="font-size:12px;color:var(--gw-forest-300)">Demonstration environment</div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;padding:32px">
+    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:20px">
+      <div>
+        <div style="font-size:28px;font-weight:600">Sign in</div>
+        <div style="margin-top:6px;font-size:14px;color:var(--fg-3)">Use your Genwood single sign-on account.</div>
+      </div>
+      <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" icon="log-in" size="lg" fullWidth="{{ true }}" onClick="{{ login }}" hint-size="100%,44px">Sign in with Genwood SSO</x-import>
+      <div style="font-size:12px;color:var(--fg-3);line-height:1.5">Demo only: no credentials are checked. You will be signed in as Demo user.</div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:flex;flex-direction:column">
+  <header style="height:56px;flex:none;background:var(--gw-forest-800);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:#fff">
+    <div style="display:flex;align-items:center;gap:16px">
+      <img src="assets/genwood-logo.png" alt="Genwood" style="height:36px;width:auto">
+      <span style="font-size:14px;color:var(--gw-forest-200);border-left:1px solid rgba(255,255,255,.2);padding-left:16px">Yield curve data</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:13px;color:var(--gw-forest-100)">
+      <span>Demo user</span>
+      <button onClick="{{ logout }}" style="background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:4px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer" style-hover="background:rgba(255,255,255,.2)">Sign out</button>
+    </div>
+  </header>
+  <div style="flex:1;display:flex;min-height:0">
+    <aside style="width:232px;flex:none;background:#fff;border-right:1px solid var(--border-default)">
+      <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.SideNav" items="{{ navItems }}" value="{{ view }}" onChange="{{ setView }}" hint-size="232px,400px"></x-import>
+    </aside>
+    <main style="flex:1;min-width:0;padding:28px 32px;box-sizing:border-box">
+    <div style="max-width:1280px;display:flex;flex-direction:column;gap:20px">
+
+      <sc-if value="{{ vOverview }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:28px;font-weight:600">Overview</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">{{ asOfText }}</div></div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" hint-size="100%,110px"><x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Stat" label="Latest valuation date" value="{{ latestDate }}" hint-size="100%,70px"></x-import></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" hint-size="100%,110px"><x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Stat" label="10Y nominal spot" value="{{ nom10 }}" unit="%" delta="{{ nom10Delta }}" tone="{{ nom10Tone }}" hint-size="100%,70px"></x-import></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" hint-size="100%,110px"><x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Stat" label="10Y implied inflation" value="{{ inf10 }}" unit="%" delta="{{ inf10Delta }}" tone="{{ inf10Tone }}" hint-size="100%,70px"></x-import></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" hint-size="100%,110px"><x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Stat" label="Files received" value="{{ fileCount }}" delta="{{ failedText }}" tone="{{ failedTone }}" hint-size="100%,70px"></x-import></x-import>
+          </div>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Spot curves on latest valuation date" subtitle="Nominal, real and implied inflation, long end" hint-size="100%,380px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.YieldCurveChart" series="{{ overviewSeries }}" height="280" xLabel="Maturity (years)" yLabel="Spot rate (%)" xTicks="{{ longTicks }}" yDecimals="{{ 3 }}" hint-size="100%,280px"></x-import>
+          </x-import>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Recent loads" flush="{{ true }}" hint-size="100%,300px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ fileCols }}" rows="{{ recentFiles }}" onRowClick="{{ openFile }}" hint-size="100%,260px"></x-import>
+          </x-import>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vFiles }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div><div style="font-size:28px;font-weight:600">File log</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">Every file received from the Bank of England, with its import outcome.</div></div>
+            <div style="display:flex;align-items:flex-end;gap:12px">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" options="{{ statusOptions }}" value="{{ statusFilter }}" onChange="{{ setStatusFilter }}" hint-size="180px,36px"></x-import>
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="primary" icon="upload" onClick="{{ openImport }}" hint-size="auto,36px">Import file</x-import>
+            </div>
+          </div>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" flush="{{ true }}" footer="Source: Bank of England yield curves, picked up from the Inbox folder." hint-size="100%,320px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ fileCols }}" rows="{{ filteredFiles }}" selectedKey="{{ selFile }}" onRowClick="{{ openFile }}" hint-size="100%,260px"></x-import>
+          </x-import>
+          <sc-if value="{{ hasSelFile }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="{{ fileDetail.title }}" subtitle="{{ fileDetail.subtitle }}" hint-size="100%,300px">
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <sc-if value="{{ fileDetail.hasError }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:var(--status-danger-bg);border:1px solid var(--status-danger-border);color:var(--status-danger-fg);border-radius:6px;padding:12px 16px;font-size:14px;line-height:1.5">
+                    <div style="font-weight:600">{{ fileDetail.error }}</div>
+                    <div>Fix the source file or re-import once the Bank of England republishes it.</div>
+                  </div>
+                </sc-if>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 32px">
+                  <sc-for list="{{ fileDetail.kv }}" as="kv" hint-placeholder-count="6">
+                    <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-subtle);font-size:13px"><div style="width:150px;flex:none;color:var(--fg-3)">{{ kv.k }}</div><div style="min-width:0;word-break:break-all;font-family:'IBM Plex Mono',monospace;font-size:12px">{{ kv.v }}</div></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="secondary" icon="workflow" onClick="{{ gotoWorkflow }}" hint-size="auto,36px">Open workflow</x-import>
+                  <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="secondary" icon="table" disabled="{{ fileDetail.noData }}" onClick="{{ gotoData }}" hint-size="auto,36px">View data</x-import>
+                  <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="ghost" icon="download" onClick="{{ downloadToast }}" hint-size="auto,36px">Download original</x-import>
+                </div>
+              </div>
+            </x-import>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vData }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:28px;font-weight:600">Curve data</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">Published rates by curve, valuation date and maturity.</div></div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" label="Curve" options="{{ curveOptions }}" value="{{ curveCode }}" onChange="{{ setCurve }}" hint-size="380px,60px"></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Input" type="date" mono="{{ true }}" label="Valuation date" value="{{ date }}" onChange="{{ setDate }}" hint-size="170px,60px"></x-import>
+            <div style="display:flex;gap:4px;margin-left:auto">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="{{ tabTenorVar }}" onClick="{{ tabTenor }}" hint-size="auto,36px">By maturity</x-import>
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="{{ tabDateVar }}" onClick="{{ tabDate }}" hint-size="auto,36px">By date</x-import>
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="secondary" icon="download" onClick="{{ exportToast }}" hint-size="auto,36px">Export CSV</x-import>
+            </div>
+          </div>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="{{ curve.name }}" subtitle="{{ curveSubtitle }}" flush="{{ true }}" footer="{{ dataFooter }}" hint-size="100%,500px">
+            <sc-if value="{{ tabIsTenor }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ rateCols }}" rows="{{ rateRows }}" dense="{{ true }}" stickyHeader="{{ true }}" maxHeight="{{ 520 }}" hint-size="100%,400px"></x-import>
+            </sc-if>
+            <sc-if value="{{ tabIsDate }}" hint-placeholder-val="{{ false }}">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ matrixCols }}" rows="{{ matrixRows }}" dense="{{ true }}" stickyHeader="{{ true }}" maxHeight="{{ 520 }}" selectedKey="{{ date }}" rowKey="date" hint-size="100%,400px"></x-import>
+            </sc-if>
+          </x-import>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vCurves }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:28px;font-weight:600">Yield curves</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">Compare a curve across dates, or curve families on one date.</div></div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" label="Curve" options="{{ longCurveOptions }}" value="{{ curveCode }}" onChange="{{ setCurve }}" hint-size="380px,60px"></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Input" type="date" mono="{{ true }}" label="Valuation date" value="{{ date }}" onChange="{{ setDate }}" hint-size="170px,60px"></x-import>
+            <sc-if value="{{ modeDates }}" hint-placeholder-val="{{ true }}">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Input" type="date" mono="{{ true }}" label="Compare with" value="{{ cmpDate }}" onChange="{{ setCmp }}" hint-size="170px,60px"></x-import>
+            </sc-if>
+            <div style="display:flex;gap:4px;margin-left:auto">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="{{ modeDatesVar }}" onClick="{{ setModeDates }}" hint-size="auto,36px">Across dates</x-import>
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="{{ modeFamVar }}" onClick="{{ setModeFam }}" hint-size="auto,36px">Across families</x-import>
+            </div>
+          </div>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="{{ chartTitle }}" subtitle="{{ chartSubtitle }}" hint-size="100%,440px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.YieldCurveChart" series="{{ chartSeries }}" height="340" xLabel="Maturity (years)" yLabel="{{ yLabel }}" xTicks="{{ chartTicks }}" yDecimals="{{ 3 }}" hint-size="100%,340px"></x-import>
+          </x-import>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vProcess }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:28px;font-weight:600">Workflow monitor</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">Each import runs as a workflow instance. Select one to trace it from receipt to publication.</div></div>
+          <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Process instances" flush="{{ true }}" hint-size="100%,260px">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ procCols }}" rows="{{ procRows }}" selectedKey="{{ selProc }}" onRowClick="{{ openProc }}" hint-size="100%,220px"></x-import>
+          </x-import>
+          <sc-if value="{{ hasProc }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="{{ proc.title }}" subtitle="{{ proc.subtitle }}" hint-size="100%,200px">
+                <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px">
+                  <sc-for list="{{ proc.steps }}" as="s" hint-placeholder-count="7">
+                    <div style="border:1px solid {{ s.border }};background:{{ s.bg }};color:{{ s.fg }};border-radius:6px;padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0">
+                      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">{{ s.n }} · {{ s.state }}</div>
+                      <div style="font-size:13px;font-weight:600;line-height:1.3">{{ s.name }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </x-import>
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Execution log" subtitle="From ProcessExecutionLogsView" flush="{{ true }}" hint-size="100%,300px">
+                <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ logCols }}" rows="{{ proc.logs }}" dense="{{ true }}" hint-size="100%,260px"></x-import>
+              </x-import>
+              <div style="display:flex;gap:8px">
+                <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Button" variant="secondary" icon="file-spreadsheet" onClick="{{ procToFile }}" hint-size="auto,36px">Open file log entry</x-import>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ vApi }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div><div style="font-size:28px;font-weight:600">API</div><div style="font-size:14px;color:var(--fg-3);margin-top:4px">The same governed data is available to actuarial models. Illustrative contract for the demo; no authorisation required.</div></div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" label="Curve" options="{{ curveOptions }}" value="{{ curveCode }}" onChange="{{ setCurve }}" hint-size="380px,60px"></x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Input" type="date" mono="{{ true }}" label="Valuation date" value="{{ date }}" onChange="{{ setDate }}" hint-size="170px,60px"></x-import>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:20px;align-items:start">
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Endpoints" flush="{{ true }}" hint-size="100%,300px">
+              <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Table" columns="{{ apiCols }}" rows="{{ apiRows }}" hint-size="100%,220px"></x-import>
+            </x-import>
+            <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Card" title="Example request and response" subtitle="{{ apiPath }}" hint-size="100%,420px">
+              <pre style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;background:var(--surface-sunken);border:1px solid var(--border-default);border-radius:6px;padding:14px 16px;max-height:420px;overflow:auto">{{ apiJson }}</pre>
+            </x-import>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+    </main>
+  </div>
+</div>
+
+<x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Dialog" open="{{ importOpen }}" title="Import file" description="Simulates a file arriving in the Inbox folder. The workflow then runs on its own." onClose="{{ closeImport }}" footer="{{ importFooter }}" hint-size="0,0">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" label="Source file" options="{{ impFileOptions }}" value="{{ impFile }}" onChange="{{ setImpFile }}" hint-size="100%,60px"></x-import>
+    <x-import component-from-global-scope="GenwoodDesignSystem_cb120d.Select" label="File condition" options="{{ impScenarioOptions }}" value="{{ impScenario }}" onChange="{{ setImpScenario }}" hint="Choose a faulty file to see the controlled failure path." hint-size="100%,80px"></x-import>
+  </div>
+</x-import>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;right:24px;bottom:24px;background:var(--gw-forest-900);color:#fff;font-size:14px;padding:12px 16px;border-radius:6px;box-shadow:var(--shadow-md);max-width:380px;z-index:50">{{ toast }}</div>
+</sc-if>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { authed: false, view: 'overview', curveCode: 'GlcNominalSpotCurve', date: '2026-09-29', cmpDate: '2026-09-28', tab: 'tenor', mode: 'dates',
+    statusFilter: 'all', selFile: null, selProc: null, importOpen: false, impFile: 'GLC Nominal daily data current month.xlsx', impScenario: 'valid', toast: '',
+    files: null, procs: null };
+
+  static CURVES = [
+    [1,'GlcNominalSpotCurve','UK nominal spot curve','Nominal','Spot','Long'],[2,'GlcNominalSpotShortEnd','UK nominal spot curve, short end','Nominal','Spot','ShortEnd'],
+    [3,'GlcNominalFwdCurve','UK instantaneous nominal forward curve','Nominal','Forward','Long'],[4,'GlcNominalFwdsShortEnd','UK instantaneous nominal forward curve, short end','Nominal','Forward','ShortEnd'],
+    [5,'GlcRealSpotCurve','UK implied real spot curve','Real','Spot','Long'],[6,'GlcRealSpotShortEnd','UK implied real spot curve, short end','Real','Spot','ShortEnd'],
+    [7,'GlcRealFwdCurve','UK instantaneous implied real forward curve','Real','Forward','Long'],[8,'GlcRealFwdsShortEnd','UK instantaneous implied forward real rates, short end','Real','Forward','ShortEnd'],
+    [9,'GlcInflationSpotCurve','UK implied inflation spot curve','Inflation','Spot','Long'],[10,'GlcInflationSpotShortEnd','UK implied inflation spot curve, short end','Inflation','Spot','ShortEnd'],
+    [11,'GlcInflationFwdCurve','UK instantaneous implied inflation forward curve','Inflation','Forward','Long'],[12,'GlcInflationFwdsShortEnd','UK instantaneous implied forward inflation rates, short end','Inflation','Forward','ShortEnd'],
+    [13,'OisSpotCurve','UK OIS spot curve','OIS','Spot','Long'],[14,'OisSpotShortEnd','UK OIS spot curve, short end','OIS','Spot','ShortEnd'],
+    [15,'OisFwdCurve','UK instantaneous OIS forward curve','OIS','Forward','Long'],[16,'OisFwdsShortEnd','UK instantaneous OIS forward curve, short end','OIS','Forward','ShortEnd']
+  ].map(a => ({ id: a[0], code: a[1], name: a[2], family: a[3], type: a[4], segment: a[5] }));
+
+  static FILES = [
+    { id: 1, woid: '8c1e5f0a47d24b39a6f2d3b1c9e07a54', wf: '3f9a2b7c1d8e4a60b5c4e2d1a7f89036', name: 'GLC Nominal daily data current month.xlsx', family: 'Nominal', size: 244580, at: '2026-10-02 08:52:03', fail: 3, err: 'Sheet \u20184. spot curve\u2019 not found in workbook.', cur: false },
+    { id: 2, woid: '0d41a44498814111bcce69d60f7a823a', wf: '6645057045ca4ce59a9827c6f5138246', name: 'GLC Inflation daily data current month.xlsx', family: 'Inflation', size: 351932, at: '2026-10-02 09:09:20', hash: 'd141ba24a0612efa459ec3e824d0d57eecc422cff2f722e312bb7995a4841906', cur: true },
+    { id: 3, woid: '53db02d7da07407bb0876a705e77330a', wf: 'bce2c0fc0f864774b73a81a063e676b2', name: 'GLC Nominal daily data current month.xlsx', family: 'Nominal', size: 244580, at: '2026-10-02 09:16:20', hash: '9683a9bde714632c91f748fb247e3f20603d78674028b393d9665cbc21e06d05', cur: true },
+    { id: 4, woid: 'bae14d2591a94321bee3ca4f300fdbca', wf: '511bdf60d5f14c52abdc4a49a1a9c4e4', name: 'GLC Real daily data current month.xlsx', family: 'Real', size: 350925, at: '2026-10-02 09:27:20', hash: 'a4c8857a9f491f7a8b0bd36b57a70b10ace476542993ecd1773ea4d54408d603', cur: true },
+    { id: 5, woid: '00309badaf4348f19727144b032553e8', wf: '6011381c172440248d50af3160749f6c', name: 'OIS daily data current month.xlsx', family: 'OIS', size: 105439, at: '2026-10-02 09:27:23', hash: '192686a1bc0cdc4d8dd5e78a49eb9dc63debc29af055f4f998035d441c733b55', cur: true }
+  ];
+  static FAMFILE = { Nominal: 'GLC Nominal daily data current month.xlsx', Real: 'GLC Real daily data current month.xlsx', Inflation: 'GLC Inflation daily data current month.xlsx', OIS: 'OIS daily data current month.xlsx' };
+  static STEPS = ['Receive file', 'Register in file log', 'Validate workbook structure', 'Validate values', 'Transform to tenor and rate', 'Persist yield curve rates', 'Publish to API'];
+  static N_RATES = 5460;
+
+  dates() {
+    if (this._dates) return this._dates;
+    const d = [], t = new Date(Date.UTC(2026, 8, 1));
+    while (t.getUTCDate() <= 29 && t.getUTCMonth() === 8) { const w = t.getUTCDay(); if (w > 0 && w < 6) d.push(t.toISOString().slice(0, 10)); t.setUTCDate(t.getUTCDate() + 1); }
+    return (this._dates = d);
+  }
+  curve(code) { return Component.CURVES.find(c => c.code === code) || Component.CURVES[0]; }
+  tenors(c) {
+    this._ten = this._ten || {};
+    if (this._ten[c.id]) return this._ten[c.id];
+    const out = [], long = c.segment === 'Long', n = long ? (c.type === 'Spot' ? 80 : 60) : 60;
+    for (let i = 1; i <= n; i++) {
+      if (long) { const y = i / 2; out.push({ label: y + 'Y', years: y, months: i * 6, col: 'Years' + String(y).replace('.', '_') }); }
+      else out.push({ label: i < 12 ? i + 'M' : (i % 12 === 0 ? i / 12 + 'Y' : i + 'M'), years: i / 12, months: i, col: 'Months' + i });
+    }
+    const base = Component.CURVES.slice(0, c.id - 1).reduce((a, k) => a + (k.segment === 'Long' && k.type === 'Spot' ? 80 : 60), 0);
+    out.forEach((t, i) => t.id = base + i + 1);
+    return (this._ten[c.id] = out);
+  }
+  spot(fam, t, di) {
+    const S = (f, t) => {
+      const sh = (0.14 * Math.sin(di * 0.7 + f.length) + 0.06 * Math.sin(di * 1.9) + 0.012 * di - 0.12) * (0.4 + 0.6 * Math.exp(-t / 12));
+      if (f === 'Nominal') return 3.78 + 1.35 * (1 - Math.exp(-t / 5)) + 0.18 * Math.sin(t / 9) * Math.exp(-t / 25) + sh;
+      if (f === 'Real') return 0.35 + 1.1 * (1 - Math.exp(-t / 7)) + 0.4 * sh;
+      if (f === 'OIS') return 3.62 + 1.1 * (1 - Math.exp(-t / 5)) + 0.1 * Math.sin(t / 7) * Math.exp(-t / 20) + sh;
+      return 0;
+    };
+    if (fam === 'Inflation') return ((1 + S('Nominal', t) / 100) / (1 + S('Real', t) / 100) - 1) * 100;
+    return S(fam, t);
+  }
+  rate(c, y, date) {
+    const di = this.dates().indexOf(date), h = 0.01;
+    if (c.type === 'Spot') return this.spot(c.family, y, di);
+    return this.spot(c.family, y, di) + y * (this.spot(c.family, y + h, di) - this.spot(c.family, Math.max(y - h, 0.001), di)) / (y + h - Math.max(y - h, 0.001));
+  }
+  f4(n) { return n.toFixed(4); }
+  fam(c) { const f = this.allFiles().filter(x => x.family === c.family && !x.fail && x.cur); return f[f.length - 1]; }
+  allFiles() { return this.state.files || Component.FILES.map(f => ({ ...f })); }
+  allProcs() { return this.state.procs || Component.FILES.map(f => this.buildProc(f)); }
+  tsAdd(ts, s) { return new Date(new Date(ts.replace(' ', 'T') + 'Z').getTime() + s * 1000).toISOString().slice(0, 19).replace('T', ' '); }
+  buildProc(f) {
+    const msgs = [
+      `File ${f.name} received (${(f.size / 1024).toFixed(1)} KB)`,
+      `File log entry created; SHA-256 recorded; copy saved to Backup/BankOfEngland`,
+      `Expected sheets and header row found; 26 source rows detected`,
+      `26 rows checked; all rates within -10 to 25 %; 0 rows rejected`,
+      `Mapped source columns to 260 tenors across 4 curves and 21 valuation dates`,
+      `${Component.N_RATES.toLocaleString('en-GB')} rates written under WOID ${f.woid.slice(0, 8)}; prior versions closed`,
+      `Curves published at /yield-curves/v1; run marked complete`
+    ];
+    const offs = [0, 1, 2, 4, 5, 8, 9], logs = [];
+    let k = 1;
+    Component.STEPS.forEach((n, i) => {
+      if (f.fail != null && i > f.fail) return;
+      logs.push({ id: k++, ts: this.tsAdd(f.at, offs[i]), act: n, ev: 'ActivityStarted', msg: '' });
+      if (f.fail === i) logs.push({ id: k++, ts: this.tsAdd(f.at, offs[i] + 1), act: n, ev: 'ActivityFaulted', msg: f.err });
+      else logs.push({ id: k++, ts: this.tsAdd(f.at, offs[i] + 1), act: n, ev: 'ActivityCompleted', msg: msgs[i] });
+    });
+    const last = logs[logs.length - 1];
+    return { id: f.wf, fileId: f.id, ctx: f.woid, name: 'BoE yield curve import', status: f.fail != null ? 'Faulted' : (f.running ? 'Running' : 'Finished'), created: f.at, last: last.ts, lastAct: last.act, fail: f.fail, logs };
+  }
+  toast(t) { this.setState({ toast: t }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
+  badge(status) {
+    const tone = { Imported: 'success', Finished: 'success', Failed: 'danger', Faulted: 'danger', Processing: 'info', Running: 'info' }[status] || 'neutral';
+    return React.createElement(GenwoodDesignSystem_cb120d.Badge, { tone }, status);
+  }
+  runImport = () => {
+    const sc = this.state.impScenario, name = this.state.impFile, files = this.allFiles(), procs = this.allProcs();
+    const fam = Object.keys(Component.FAMFILE).find(k => Component.FAMFILE[k] === name);
+    const rnd = () => Array.from({ length: 32 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+    const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const f = { id: files.length + 1, woid: rnd(), wf: rnd(), name, family: fam, size: 244580 + Math.floor(Math.random() * 90000), at: now, cur: false, hash: rnd() + rnd(), running: true };
+    const errs = { missing: [2, 'Sheet \u20184. spot curve\u2019 not found in workbook.'], range: [3, 'Row 14, column Years12: value -999 is outside the accepted range of -10 to 25 %.'] };
+    if (errs[sc]) { f.finalFail = errs[sc][0]; f.finalErr = errs[sc][1]; }
+    const nf = [...files, f], np = [...procs, this.buildProc({ ...f })];
+    this.setState({ files: nf, procs: np, importOpen: false, view: 'files', selFile: f.id, statusFilter: 'all' });
+    this.toast('File received. Workflow started.');
+    setTimeout(() => {
+      const fin = { ...f, running: false };
+      if (f.finalFail != null) { fin.fail = f.finalFail; fin.err = f.finalErr; fin.cur = false; }
+      else fin.cur = true;
+      const nf2 = this.allFiles().map(x => x.id === f.id ? fin : (fin.cur && x.family === f.family && x.name === f.name ? { ...x, cur: false } : x));
+      const np2 = this.allProcs().map(p => p.fileId === f.id ? this.buildProc(fin) : p);
+      this.setState({ files: nf2, procs: np2 });
+      this.toast(fin.fail != null ? 'Import failed. See the file log for details.' : 'Import complete.');
+    }, 2200);
+  };
+
+  renderVals() {
+    const s = this.state, E = React.createElement, DS = GenwoodDesignSystem_cb120d;
+    const dates = this.dates(), latest = dates[dates.length - 1], prev = dates[dates.length - 2];
+    const files = this.allFiles(), procs = this.allProcs();
+    const c = this.curve(s.curveCode);
+    const status = f => f.running ? 'Processing' : (f.fail != null ? 'Failed' : 'Imported');
+    const mono = { fontFamily: "'IBM Plex Mono',monospace", fontSize: 12 };
+    const short = w => w.slice(0, 8);
+
+    const fileRows = [...files].reverse().map(f => ({ id: f.id, name: f.name, family: f.family, at: f.at, size: (f.size / 1024).toFixed(1) + ' KB', status: status(f), records: f.fail != null || f.running ? '0' : '26', woid: short(f.woid), cur: f.cur }));
+    const fileCols = [
+      { key: 'id', header: 'ID', mono: true, muted: true, width: 56 },
+      { key: 'name', header: 'File', mono: true },
+      { key: 'family', header: 'Curve family' },
+      { key: 'at', header: 'Received', mono: true },
+      { key: 'size', header: 'Size', align: 'right', mono: true },
+      { key: 'records', header: 'Records inserted', align: 'right', mono: true },
+      { key: 'woid', header: 'WOID', mono: true, muted: true },
+      { key: 'status', header: 'Status', render: v => this.badge(v) }
+    ];
+    const filtered = fileRows.filter(r => s.statusFilter === 'all' || r.status === s.statusFilter);
+    const sf = files.find(f => f.id === s.selFile);
+    let fileDetail = {};
+    if (sf) {
+      const st = status(sf);
+      fileDetail = { title: sf.name, subtitle: `File log entry ${sf.id} · ${st}${sf.cur ? ' · current' : ''}`, hasError: sf.fail != null, error: sf.err || '', noData: sf.fail != null || !!sf.running,
+        kv: [['WOID', sf.woid], ['Workflow instance', sf.wf], ['Received', sf.at], ['Size', sf.size.toLocaleString('en-GB') + ' bytes'], ['Inbox location', 'C:/DigiataFiles/DigiataApps/ImportPro/Inbox/BankOfEngland/'], ['Backup file', sf.woid + '_' + sf.name], ['SHA-256', sf.hash || 'Not recorded'], ['Record count', sf.fail != null ? '0' : '26'], ['Records inserted', sf.fail != null ? '0' : '26'], ['Created by', 'System']].map(a => ({ k: a[0], v: a[1] })) };
+    }
+    const curveOpts = Component.CURVES.map(x => ({ value: x.code, label: x.name }));
+    const longOpts = Component.CURVES.filter(x => x.segment === 'Long').map(x => ({ value: x.code, label: x.name }));
+    const dateOpts = [...dates].reverse().map(d => ({ value: d, label: d }));
+    const cmpOpts = dateOpts.filter(o => o.value !== s.date);
+
+    // curve data
+    const ten = this.tenors(c), cf = this.fam(c);
+    const hasD = dates.includes(s.date), hasC = dates.includes(s.cmpDate);
+    const rateRows = !hasD ? [] : ten.map(t => ({ id: t.id, label: t.label, years: t.years.toFixed(4), months: t.months, col: t.col, rate: this.f4(this.rate(c, t.years, s.date)), src: (dates.indexOf(s.date) + 6), woid: cf ? short(cf.woid) : '' }));
+    const rateCols = [
+      { key: 'label', header: 'Tenor', mono: true }, { key: 'years', header: 'Years', mono: true, align: 'right' }, { key: 'months', header: 'Months', mono: true, align: 'right' },
+      { key: 'col', header: 'Source column', mono: true, muted: true },
+      { key: 'rate', header: 'Rate (%)', mono: true, align: 'right', render: v => E('strong', { style: { fontWeight: 600 } }, v) },
+      { key: 'src', header: 'Source row', mono: true, muted: true, align: 'right' },
+      { key: 'woid', header: 'Source import (WOID)', render: (v, r) => cf ? E('a', { href: '#', style: mono, onClick: e => { e.preventDefault(); this.setState({ view: 'files', selFile: cf.id }); } }, v) : '' }
+    ];
+    const keyLabels = c.segment === 'Long' ? ['1Y', '2Y', '5Y', '10Y', '20Y', '30Y'] : ['1M', '3M', '6M', '1Y', '2Y', '5Y'];
+    const keyT = keyLabels.map(l => ten.find(t => t.label === l)).filter(Boolean);
+    const matrixRows = [...dates].reverse().map(d => { const r = { date: d, id: d }; keyT.forEach(t => r['t' + t.id] = this.f4(this.rate(c, t.years, d))); return r; });
+    const matrixCols = [{ key: 'date', header: 'Valuation date', mono: true }, ...keyT.map(t => ({ key: 't' + t.id, header: t.label + ' (%)', mono: true, align: 'right' }))];
+
+    // charts
+    const longTicks = [0, 5, 10, 15, 20, 25, 30, 35, 40], shortTicks = [0, 1, 2, 3, 4, 5];
+    const curvePts = (cc, d) => this.tenors(cc).map(t => [t.years, +this.rate(cc, t.years, d).toFixed(5)]);
+    const find = (fam, type, seg) => Component.CURVES.find(x => x.family === fam && x.type === type && x.segment === seg);
+    const overviewSeries = ['Nominal', 'Real', 'Inflation'].map(f => ({ name: f + ' spot', points: curvePts(find(f, 'Spot', 'Long'), latest) }));
+    let chartSeries, chartTitle, chartSubtitle;
+    if (s.mode === 'dates') {
+      chartSeries = [hasD && { name: s.date, points: curvePts(c, s.date) }, hasC && { name: s.cmpDate, points: curvePts(c, s.cmpDate), dashed: true }].filter(Boolean);
+      chartTitle = c.name; chartSubtitle = `${s.date} compared with ${s.cmpDate}`;
+    } else {
+      chartSeries = !hasD ? [] : ['Nominal', 'Real', 'Inflation', 'OIS'].map(f => { const cc = find(f, c.type, c.segment); return { name: f, points: curvePts(cc, s.date) }; });
+      chartTitle = `${c.type} curves by family`; chartSubtitle = `${s.date}, ${c.segment === 'Long' ? 'long end' : 'short end'}`;
+    }
+    const missing = [s.mode === 'dates' ? (!hasD && s.date) : false, s.mode === 'dates' ? (!hasC && s.cmpDate) : (!hasD && s.date)].filter(Boolean);
+    if (missing.length) chartSubtitle = `No data has been imported for ${c.name} on ${missing.join(' or ')}.`;
+    const nav = (id, label, icon) => ({ id, label, icon });
+    const navItems = [nav('overview', 'Overview', 'layout-dashboard'), { section: 'Data' }, nav('files', 'File log', 'file-spreadsheet'), nav('data', 'Curve data', 'table'), nav('curves', 'Yield curves', 'chart-line'), { section: 'Governance' }, nav('process', 'Workflow monitor', 'workflow'), nav('api', 'API', 'code')];
+
+    // overview stats
+    const t10 = (fam, d) => this.rate(find(fam, 'Spot', 'Long'), 10, d);
+    const dl = fam => { const dv = (t10(fam, latest) - t10(fam, prev)) * 100; return { delta: (dv >= 0 ? '+' : '\u2212') + Math.abs(dv).toFixed(1) + ' bp vs prior day', tone: dv >= 0 ? 'up' : 'down' }; };
+    const nd = dl('Nominal'), id_ = dl('Inflation');
+    const failed = files.filter(f => f.fail != null).length;
+    const cfile = files.filter(f => !f.fail && f.cur).length;
+
+    // process
+    const pRows = [...procs].reverse().map(p => ({ id: p.id, name: p.name, ctx: short(p.ctx), status: p.status, created: p.created, last: p.last, lastAct: p.lastAct }));
+    const procCols = [
+      { key: 'id', header: 'Instance ID', mono: true, muted: true, render: v => v.slice(0, 12) + '\u2026' }, { key: 'name', header: 'Process' },
+      { key: 'ctx', header: 'Context (WOID)', mono: true, muted: true }, { key: 'created', header: 'Created', mono: true }, { key: 'last', header: 'Last executed', mono: true },
+      { key: 'lastAct', header: 'Last activity' }, { key: 'status', header: 'Status', render: v => this.badge(v) }
+    ];
+    const sp = procs.find(p => p.id === s.selProc);
+    let proc = {};
+    if (sp) {
+      const sf2 = files.find(f => f.id === sp.fileId);
+      const steps = Component.STEPS.map((n, i) => {
+        let state = 'Not run', bg = 'var(--surface-sunken)', fg = 'var(--gw-stone-700)', border = 'var(--border-default)';
+        const done = sp.logs.some(l => l.act === n && l.ev === 'ActivityCompleted'), flt = sp.logs.some(l => l.act === n && l.ev === 'ActivityFaulted');
+        if (done) { state = 'Done'; bg = 'var(--status-success-bg)'; fg = 'var(--status-success-fg)'; border = 'var(--status-success-border)'; }
+        else if (flt) { state = 'Faulted'; bg = 'var(--status-danger-bg)'; fg = 'var(--status-danger-fg)'; border = 'var(--status-danger-border)'; }
+        else if (sp.logs.some(l => l.act === n)) { state = 'Running'; bg = 'var(--status-info-bg)'; fg = 'var(--status-info-fg)'; border = 'var(--status-info-border)'; }
+        return { n: i + 1, name: n, state, bg, fg, border };
+      });
+      proc = { title: sp.name, subtitle: `${sp.id} · ${sp.status} · ${sf2 ? sf2.name : ''}`, steps, logs: sp.logs };
+    }
+    const logCols = [
+      { key: 'ts', header: 'Timestamp', mono: true, width: 170 }, { key: 'act', header: 'Activity', width: 220 },
+      { key: 'ev', header: 'Event', render: v => E(DS.Badge, { tone: v === 'ActivityFaulted' ? 'danger' : v === 'ActivityCompleted' ? 'success' : 'neutral' }, v.replace('Activity', '')) , width: 120 },
+      { key: 'msg', header: 'Message', wrap: true }
+    ];
+
+    // api
+    const apiBase = 'https://api.genwood-demo.example/yield-curves/v1';
+    const apiRows = [
+      { id: 1, m: 'GET', p: '/curves' }, { id: 2, m: 'GET', p: '/curves/{code}/tenors' }, { id: 3, m: 'GET', p: '/curves/{code}/rates' }, { id: 4, m: 'GET', p: '/imports/{woid}' }
+    ];
+    const apiCols = [{ key: 'm', header: 'Method', mono: true, width: 80 }, { key: 'p', header: 'Path', mono: true }];
+    const apiPath = `GET ${apiBase}/curves/${c.code}/rates?observationDate=${s.date}`;
+    const samp = ten.filter(t => ['1Y', '5Y', '10Y'].includes(t.label) || (c.segment === 'ShortEnd' && t.label === '3M'));
+    const apiJson = JSON.stringify({ curve: { code: c.code, name: c.name, family: c.family, rateType: c.type, rateUnit: 'Percent' }, observationDate: s.date, source: { provider: 'Bank of England', woid: cf ? cf.woid : null },
+      rates: (!hasD ? [] : samp).map(t => ({ tenorLabel: t.label, tenorYears: +t.years.toFixed(4), rate: +this.rate(c, t.years, s.date).toFixed(8) })), count: hasD ? ten.length : 0, note: hasD ? 'Sample of ' + samp.length + ' of ' + ten.length + ' tenors shown' : 'No data has been imported for this curve and observation date' }, null, 2);
+
+    const q = v => (a, b) => v;
+    return {
+      isLogin: !s.authed, isApp: s.authed, view: s.view,
+      login: () => this.setState({ authed: true }), logout: () => this.setState({ authed: false, view: 'overview' }),
+      navItems, setView: id => this.setState({ view: id }),
+      vOverview: s.view === 'overview', vFiles: s.view === 'files', vData: s.view === 'data', vCurves: s.view === 'curves', vProcess: s.view === 'process', vApi: s.view === 'api',
+      asOfText: `Latest valuation date ${latest}. Source: Bank of England, ${c.provider || 'daily estimated UK yield curves'}.`,
+      latestDate: latest, nom10: this.f4(t10('Nominal', latest)), nom10Delta: nd.delta, nom10Tone: nd.tone, inf10: this.f4(t10('Inflation', latest)), inf10Delta: id_.delta, inf10Tone: id_.tone,
+      fileCount: String(files.length), failedText: failed ? `${failed} failed, ${cfile} current` : `${cfile} current`, failedTone: 'neutral',
+      overviewSeries, longTicks, fileCols, recentFiles: fileRows.slice(0, 5),
+      openFile: r => this.setState({ view: 'files', selFile: r.id }),
+      statusOptions: [{ value: 'all', label: 'All statuses' }, { value: 'Imported', label: 'Imported' }, { value: 'Failed', label: 'Failed' }, { value: 'Processing', label: 'Processing' }],
+      statusFilter: s.statusFilter, setStatusFilter: e => this.setState({ statusFilter: e.target.value }),
+      filteredFiles: filtered, selFile: s.selFile, hasSelFile: !!sf, fileDetail,
+      gotoWorkflow: () => this.setState({ view: 'process', selProc: sf.wf }),
+      gotoData: () => { const cc = Component.CURVES.find(x => x.family === sf.family && x.type === 'Spot' && x.segment === 'Long'); this.setState({ view: 'data', curveCode: cc.code }); },
+      downloadToast: () => this.toast('Original file downloaded from the Backup folder.'), exportToast: () => this.toast('CSV export prepared.'),
+      openImport: () => this.setState({ importOpen: true }), closeImport: () => this.setState({ importOpen: false }), importOpen: s.importOpen,
+      importFooter: E('div', { style: { display: 'flex', gap: 8 } }, E(DS.Button, { variant: 'secondary', onClick: () => this.setState({ importOpen: false }) }, 'Cancel'), E(DS.Button, { variant: 'primary', icon: 'upload', onClick: this.runImport }, 'Import file')),
+      impFile: s.impFile, impFileOptions: Object.values(Component.FAMFILE).map(n => ({ value: n, label: n })), setImpFile: e => this.setState({ impFile: e.target.value }),
+      impScenario: s.impScenario, impScenarioOptions: [{ value: 'valid', label: 'Valid file' }, { value: 'missing', label: 'Faulty: sheet missing from workbook' }, { value: 'range', label: 'Faulty: rate outside accepted range' }], setImpScenario: e => this.setState({ impScenario: e.target.value }),
+      curveOptions: curveOpts, longCurveOptions: longOpts, dateOptions: dateOpts, cmpOptions: cmpOpts, curveCode: s.curveCode, date: s.date, cmpDate: s.cmpDate,
+      setCurve: e => this.setState({ curveCode: e.target.value }), setDate: e => this.setState({ date: e.target.value }), setCmp: e => this.setState({ cmpDate: e.target.value }),
+      tabTenor: () => this.setState({ tab: 'tenor' }), tabDate: () => this.setState({ tab: 'date' }), tabTenorVar: s.tab === 'tenor' ? 'primary' : 'secondary', tabDateVar: s.tab === 'date' ? 'primary' : 'secondary', tabIsTenor: s.tab === 'tenor', tabIsDate: s.tab === 'date',
+      curve: c, curveSubtitle: `${c.family} · ${c.type.toLowerCase()} · ${c.segment === 'Long' ? 'long end' : 'short end'} · ${c.code}`,
+      rateCols, rateRows, matrixCols, matrixRows,
+      dataFooter: s.tab === 'tenor' && !hasD ? `No data has been imported for ${c.name} on ${s.date || 'the selected date'}. Choose another valuation date or import a file.` : cf ? `${s.tab === 'tenor' ? 'Valuation date ' + s.date + '. ' : ''}Source import ${cf.id}: ${cf.name}, received ${cf.at}. Rates in percent.` : 'No current import for this curve family.',
+      modeDates: s.mode === 'dates', setModeDates: () => this.setState({ mode: 'dates' }), setModeFam: () => this.setState({ mode: 'fam' }), modeDatesVar: s.mode === 'dates' ? 'primary' : 'secondary', modeFamVar: s.mode === 'fam' ? 'primary' : 'secondary',
+      chartSeries, chartTitle, chartSubtitle, chartTicks: c.segment === 'Long' ? longTicks : shortTicks, yLabel: c.type === 'Spot' ? 'Spot rate (%)' : 'Forward rate (%)',
+      procCols, procRows: pRows, selProc: s.selProc, openProc: r => this.setState({ selProc: r.id }), hasProc: !!sp, proc, logCols,
+      procToFile: () => this.setState({ view: 'files', selFile: sp.fileId }),
+      apiCols, apiRows, apiPath, apiJson,
+      hasToast: !!s.toast, toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{font:var(--type-body);color:var(--fg-1);background:var(--surface-page);-webkit-font-smoothing:antialiased}
+a{color:var(--fg-link);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+a:hover{color:var(--fg-link-hover)}
+::selection{background:var(--gw-forest-200)}
+.gw-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}

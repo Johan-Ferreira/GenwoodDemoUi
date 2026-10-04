@@ -1,0 +1,21 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Forms — Input, Select, Checkbox, Radio, Switch" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script></head><body style="padding:20px;background:#fff"><div id="root"></div>
+<script type="text/babel">
+const { Input, Select, Checkbox, RadioGroup, Switch } = window.GenwoodDesignSystem_cb120d;
+function App() { return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+  <Input label="Search files" icon="search" placeholder="File name or date" />
+  <Input label="Maturity" suffix="yrs" mono defaultValue="10.0" />
+  <Input label="Valuation date" error="Date must be a business day" defaultValue="2026-10-03" mono />
+  <Select label="Curve" options={['Nominal spot','Real spot','Inflation spot','Nominal forward']} />
+  <Select label="Status" options={['All statuses','Imported','Warnings','Failed']} />
+  <Input label="Disabled" disabled placeholder="Read only" hint="Set by administrator" />
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}><Checkbox label="Nominal" defaultChecked /><Checkbox label="Real" /><Checkbox label="Select all" indeterminate /></div>
+  <RadioGroup options={['Daily','Month end','Custom range']} />
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}><Switch label="Auto-import" defaultChecked /><Switch label="Show gridlines" /><Switch label="Disabled" disabled /></div>
+</div>; }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

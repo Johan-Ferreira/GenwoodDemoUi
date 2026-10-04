@@ -1,0 +1,27 @@
+<!-- @dsCard group="Components" viewport="700x400" name="Display — Card, Stat, Badge, Tag, Table" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script></head><body style="padding:20px;background:#fff"><div id="root"></div>
+<script type="text/babel">
+const { Card, Stat, Badge, Tag, Table, Button } = window.GenwoodDesignSystem_cb120d;
+const rows = [
+  { id: 1, file: 'GLC Nominal daily data_2026-10-01.xlsx', received: '01 Oct 07:42', rows: '1,180', status: 'success', label: 'Imported' },
+  { id: 2, file: 'GLC Real daily data_2026-10-01.xlsx', received: '01 Oct 07:43', rows: '1,062', status: 'warning', label: '3 warnings' },
+  { id: 3, file: 'GLC Inflation daily data_2026-10-01.xlsx', received: '01 Oct 07:43', rows: '—', status: 'danger', label: 'Failed' },
+];
+function App() { return <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+    <Badge tone="success">Imported</Badge><Badge tone="warning">Warnings</Badge><Badge tone="danger">Failed</Badge><Badge tone="info">Processing</Badge><Badge tone="neutral">Queued</Badge>
+    <span style={{ width: 12 }} /><Tag selected onClick={() => {}}>10Y</Tag><Tag onClick={() => {}}>20Y</Tag><Tag color="var(--chart-1)" onRemove={() => {}}>Nominal</Tag><Tag color="var(--chart-2)" onRemove={() => {}}>Real</Tag>
+  </div>
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.4fr', gap: 14 }}>
+    <Card padding={16}><div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}><Stat label="10Y nominal spot" value="4.312" unit="%" delta="+2.1 bp vs prior day" tone="up" /><Stat label="Files today" value="3" delta="1 failed" tone="down" /></div></Card>
+    <Card title="Recent imports" subtitle="Bank of England · yield curve files" actions={<Button size="sm" variant="secondary" icon="refresh-cw">Refresh</Button>} flush>
+      <Table dense selectedKey={1} onRowClick={() => {}} rows={rows} columns={[{ key: 'file', header: 'File', mono: true }, { key: 'received', header: 'Received', mono: true, muted: true }, { key: 'rows', header: 'Rows', align: 'right', mono: true }, { key: 'label', header: 'Status', render: (v, r) => <Badge tone={r.status}>{v}</Badge> }]} />
+    </Card>
+  </div>
+</div>; }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

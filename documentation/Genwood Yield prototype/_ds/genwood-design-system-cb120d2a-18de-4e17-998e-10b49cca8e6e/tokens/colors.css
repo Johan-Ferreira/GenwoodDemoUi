@@ -1,0 +1,33 @@
+:root{
+/* Brand — sampled from the Genwood logo */
+--gw-forest-950:#001f15;--gw-forest-900:#002a1c;--gw-forest-800:#003926;--gw-forest-700:#0d4a34;--gw-forest-600:#1f5e45;--gw-forest-500:#3a7559;--gw-forest-400:#6a9580;--gw-forest-300:#9cb8a8;--gw-forest-200:#c8d8cd;--gw-forest-100:#e3ece5;--gw-forest-50:#f1f6f2;
+--gw-leaf:#00d400; /* logo tree — brand mark only, never UI */
+--gw-moss-700:#3f6b2a;--gw-moss-600:#557f38;--gw-moss-500:#6e9447;--gw-moss-300:#a9c28a;--gw-moss-100:#e6eedb;
+/* Earthy complements */
+--gw-ochre-700:#7f5c1e;--gw-ochre-600:#9a7128;--gw-ochre-500:#b88a3e;--gw-ochre-300:#dcc08a;--gw-ochre-100:#f4ead5;
+--gw-clay-700:#86412d;--gw-clay-600:#9e5238;--gw-clay-500:#b56a4f;--gw-clay-300:#dba792;--gw-clay-100:#f5e3db;
+--gw-slate-700:#344e5a;--gw-slate-600:#45636f;--gw-slate-500:#5b7a86;--gw-slate-300:#a3b8c0;--gw-slate-100:#e2eaed;
+/* Neutrals — warm stone */
+--gw-stone-950:#1a1d1a;--gw-stone-900:#262a26;--gw-stone-800:#383d38;--gw-stone-700:#4f554f;--gw-stone-600:#676d66;--gw-stone-500:#868b83;--gw-stone-400:#a7aaa1;--gw-stone-300:#c9c9bf;--gw-stone-200:#dedcd2;--gw-stone-150:#e8e6dd;--gw-stone-100:#f0eee7;--gw-stone-50:#f7f6f1;--gw-white:#ffffff;
+
+/* Semantic — text */
+--fg-1:var(--gw-stone-950);--fg-2:var(--gw-stone-700);--fg-3:var(--gw-stone-600);--fg-disabled:var(--gw-stone-400);
+--fg-on-brand:#ffffff;--fg-on-brand-muted:var(--gw-forest-200);--fg-brand:var(--gw-forest-800);--fg-link:var(--gw-forest-600);--fg-link-hover:var(--gw-forest-800);
+/* Semantic — surfaces */
+--surface-page:var(--gw-stone-50);--surface-card:var(--gw-white);--surface-sunken:var(--gw-stone-100);--surface-hover:var(--gw-stone-100);--surface-selected:var(--gw-forest-50);
+--surface-brand:var(--gw-forest-800);--surface-brand-strong:var(--gw-forest-900);--surface-overlay:rgba(0,31,21,.45);
+/* Semantic — borders */
+--border-subtle:var(--gw-stone-150);--border-default:var(--gw-stone-200);--border-strong:var(--gw-stone-300);--border-focus:var(--gw-forest-500);
+/* Semantic — actions */
+--action-primary:var(--gw-forest-800);--action-primary-hover:var(--gw-forest-700);--action-primary-press:var(--gw-forest-900);
+--action-secondary:var(--gw-white);--action-secondary-hover:var(--gw-stone-100);
+/* Semantic — status */
+--status-success-fg:var(--gw-moss-700);--status-success-bg:var(--gw-moss-100);--status-success-border:var(--gw-moss-300);
+--status-warning-fg:var(--gw-ochre-700);--status-warning-bg:var(--gw-ochre-100);--status-warning-border:var(--gw-ochre-300);
+--status-danger-fg:var(--gw-clay-700);--status-danger-bg:var(--gw-clay-100);--status-danger-border:var(--gw-clay-300);
+--status-info-fg:var(--gw-slate-700);--status-info-bg:var(--gw-slate-100);--status-info-border:var(--gw-slate-300);
+--status-neutral-fg:var(--gw-stone-700);--status-neutral-bg:var(--gw-stone-100);--status-neutral-border:var(--gw-stone-200);
+/* Data visualisation — yield curves (ordered) */
+--chart-1:var(--gw-forest-600);--chart-2:var(--gw-ochre-500);--chart-3:var(--gw-slate-500);--chart-4:var(--gw-clay-500);--chart-5:var(--gw-moss-500);--chart-6:var(--gw-stone-500);
+--chart-grid:var(--gw-stone-150);--chart-axis:var(--gw-stone-300);--chart-label:var(--gw-stone-600);
+}

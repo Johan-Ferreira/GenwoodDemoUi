@@ -1,0 +1,26 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Feedback — Dialog, Toast, Tooltip" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script></head><body style="padding:20px;background:#fff"><div id="root"></div>
+<script type="text/babel">
+const { Toast, Tooltip, IconButton, Button } = window.GenwoodDesignSystem_cb120d;
+function App() { return <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 20 }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <Toast tone="success" title="Import complete" message="1,180 rows from GLC Nominal daily data." onClose={() => {}} />
+    <Toast tone="warning" title="Imported with 3 warnings" message="Missing values at 39.5–40Y maturities." action={<Button size="sm" variant="ghost" style={{ marginLeft: -10 }}>View log</Button>} />
+    <Toast tone="danger" title="Import failed" message="Sheet ‘4. spot curve’ not found." onClose={() => {}} />
+  </div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ position: 'relative', height: 200, background: 'var(--surface-overlay)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#fff', borderRadius: 10, boxShadow: 'var(--shadow-lg)', width: '100%' }}>
+        <div style={{ padding: '16px 18px 0' }}><div style={{ font: 'var(--type-h3)' }}>Re-import file?</div><div style={{ font: 'var(--type-caption)', color: 'var(--fg-2)', marginTop: 4 }}>Rows for 1 Oct 2026 will be replaced.</div></div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '12px 18px', borderTop: '1px solid var(--border-subtle)', marginTop: 14 }}><Button size="sm" variant="secondary">Cancel</Button><Button size="sm">Re-import</Button></div>
+      </div>
+    </div>
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingTop: 30 }}><Tooltip content="Re-run import"><IconButton icon="rotate-ccw" label="" variant="secondary" /></Tooltip><span style={{ font: 'var(--type-caption)', color: 'var(--fg-3)' }}>← hover for Tooltip</span></div>
+  </div>
+</div>; }
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

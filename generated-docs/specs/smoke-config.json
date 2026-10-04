@@ -1,0 +1,13 @@
+{
+  "attempt": 1,
+  "baseUrl": "http://localhost:10020/curve-data",
+  "method": "GET",
+  "path": "/v1/overview",
+  "headers": [],
+  "body": null,
+  "envFile": "web/.env.local",
+  "timeoutMs": 10000,
+  "reachabilityOnly": false,
+  "writeShellArtifact": "generated-docs/specs/api-smoke-test.sh",
+  "bodyExcerptLimit": 500
+}
