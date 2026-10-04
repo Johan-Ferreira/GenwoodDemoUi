@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "app-shell-and-sign-in",
+    "name": "App frame and sign-in",
+    "createdAt": "2026-10-04T11:57:13.389Z",
+    "dependsOn": [],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-04T11:57:13.389Z"
+}
