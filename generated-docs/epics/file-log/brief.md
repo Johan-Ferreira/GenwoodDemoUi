@@ -100,8 +100,8 @@ Authoritative source: `documentation/CurveData.yaml` (OpenAPI 3.0.3), served und
    2. Change page size, page, sort column or filters.
    3. When filters match nothing, use "Clear all" to restore the list.
 5. **See an import finish.**
-   1. Stay on the file log while a file is Processing.
-   2. The list checks the service at intervals and shows "Import complete." or the failure message when the status changes.
+   1. Keep the file log open (a newly dropped file appears in the list by itself).
+   2. The list checks the service every 10 s while the tab is visible and shows "Import complete." or the failure message when a file it saw as Processing changes status.
 
 ---
 
@@ -130,7 +130,7 @@ Authoritative source: `documentation/CurveData.yaml` (OpenAPI 3.0.3), served und
 ## Notes & Caveats
 
 - **Sorting scope.** Because the API has no sort parameter and returns pages, browser sorting can only order the rows of the page currently loaded. Sort order therefore does not span pages. Confirm at the stories approval whether this is acceptable, or whether the epic should load all files (the volume is small) and page, filter and sort in the browser.
-- **Polling interval (R19, R20).** The requirements say the list "checks the service at intervals" but give no interval. Propose a modest default (for example 10 s) and stop polling when no file is Processing or the tab is hidden. The transition must be detected by comparing against the previously seen status, so the message does not repeat on every poll or on first load.
+- **Polling interval (R19, R20).** The requirements say the list "checks the service at intervals" but give no interval. Use 10 s. Polling continues for as long as the File log is visible, whether or not any file is Processing, so newly dropped files appear without a manual refresh (user decision at manual test, 2026-10-04); it pauses while the tab is hidden and refreshes immediately when visible again. A file that newly appears never raises a notice. The transition must be detected by comparing against the previously seen status, so the message does not repeat on every poll or on first load.
 - **Date-range semantics.** Verified against the live service during BUILD: both `ReceivedFrom` and `ReceivedTo` are inclusive of the whole day (files received 2026-10-02 at 09:09–09:27 are returned by `ReceivedTo=2026-10-02` and by `ReceivedFrom=ReceivedTo=2026-10-02`, and not by `ReceivedTo=2026-10-01`). A malformed date (e.g. `04/10/2026`) makes the service fail with an error, so the app never sends one.
 - **"Clear all" and invalid dates.** An invalid date entry blocks the request and shows the inline message. It is not sent to the service.
 - **Nullable text numbers.** `SizeBytes` and `RecordsInserted` arrive as strings. Parse them, format size as a human-readable value (for example "238.8 KB") in the list and as bytes with thousands separators in the details, and handle null explicitly.

@@ -19,27 +19,32 @@
  *   "Fix the source file or re-import once the Bank of England republishes it.";
  *   files whose Status is not Failed show neither, even if a note is present (BR5).
  * - "Download original" is a button that calls `downloadFile` from
- *   `@/lib/api/download` (`/v1/files/{Id}/original`). Success shows the toast
- *   "Original file downloaded from the Backup folder." via `useToast()`.
+ *   `@/lib/api/download` (`/v1/files/{Id}/original`). The live service sends NO
+ *   Content-Disposition header on that endpoint (only application/octet-stream),
+ *   so the file must be saved under the file's own `FileName` (e.g.
+ *   "OIS daily data current month.xlsx") — never the endpoint's last segment
+ *   ("original"). The service's own Content-Disposition name still wins when sent.
+ *   Success shows the toast "Original file downloaded from the Backup folder."
+ *   via `useToast()`.
  *   A 404 ServiceError shows "File not found" (not the generic description);
  *   any other failure shows a persistent `role="alert"` message carrying the
  *   error description and a "Retry" button that re-runs the download (BR6).
  *
- * Mocks: only the API boundary (`@/lib/api/client` `get`, `@/lib/api/download`
- * `downloadFile`) and Next navigation hooks. Payloads come from the shared
- * project-wide factories in `@/mocks/data/`.
+ * Mocks: only the API boundary (`@/lib/api/client` `get` and `requestFromService`)
+ * and Next navigation hooks. The real `downloadFile` runs; the saved filename is
+ * observed where the browser saves it (the download anchor's `download` name).
+ * Payloads come from the shared project-wide factories in `@/mocks/data/`.
  *
  * These tests WILL FAIL until implemented (TDD red).
  */
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import FileLogPage from '@/app/(app)/file-log/page';
 import { ToastContainer } from '@/components/toast/ToastContainer';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { get } from '@/lib/api/client';
-import { downloadFile } from '@/lib/api/download';
+import { get, requestFromService } from '@/lib/api/client';
 import { ServiceError } from '@/lib/api/service-error';
 import {
   createFailedFileDetail,
@@ -53,7 +58,6 @@ vi.mock('@/lib/api/client', () => ({
   get: vi.fn(),
   requestFromService: vi.fn(),
 }));
-vi.mock('@/lib/api/download', () => ({ downloadFile: vi.fn() }));
 
 let currentSearch = '';
 vi.mock('next/navigation', () => ({
@@ -69,7 +73,21 @@ vi.mock('next/navigation', () => ({
 }));
 
 const mockGet = get as ReturnType<typeof vi.fn>;
-const mockDownloadFile = downloadFile as ReturnType<typeof vi.fn>;
+const mockRequestFromService = requestFromService as ReturnType<typeof vi.fn>;
+
+/**
+ * The original file exactly as the live service sends it: binary body,
+ * application/octet-stream, and NO Content-Disposition header.
+ */
+function originalWithoutFilenameHeader(): Response {
+  return new Response(new Blob(['xlsx-bytes']), {
+    status: 200,
+    headers: { 'content-type': 'application/octet-stream' },
+  });
+}
+
+/** Names the browser was asked to save files under, in order. */
+let savedNames: string[] = [];
 
 const GUIDANCE =
   'Fix the source file or re-import once the Bank of England republishes it.';
@@ -117,6 +135,20 @@ describe('Epic file-log, Story 3: file details and original download', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentSearch = '';
+    savedNames = [];
+    // jsdom has no object-URL support — supply inert stand-ins.
+    URL.createObjectURL = () => 'blob:mock-download';
+    URL.revokeObjectURL = () => undefined;
+    // Record the name each file is saved under instead of navigating.
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      if (this.download) savedNames.push(this.download);
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   // AC-2
@@ -179,12 +211,14 @@ describe('Epic file-log, Story 3: file details and original download', () => {
   });
 
   // AC-6
-  it('shows "File not found" when the original is missing, and a persistent error with Retry for any other download failure', async () => {
+  it('shows "File not found" when the original is missing, and a persistent error with Retry that then saves the file under its own name', async () => {
     const user = userEvent.setup();
-    const detail = createFileDetail();
+    const detail = createFileDetail({
+      FileName: 'OIS daily data current month.xlsx',
+    });
     serveFile(detail);
 
-    mockDownloadFile.mockRejectedValueOnce(
+    mockRequestFromService.mockRejectedValueOnce(
       new ServiceError({
         status: 404,
         description:
@@ -205,12 +239,13 @@ describe('Epic file-log, Story 3: file details and original download', () => {
       screen.queryByText(/could not complete the request \(404 Not Found\)/),
     ).not.toBeInTheDocument();
     expect(screen.queryByText(DOWNLOADED)).not.toBeInTheDocument();
+    expect(savedNames).toEqual([]);
 
     first.unmount();
 
     const serverFailure =
       'The data service could not complete the request (500 Internal Server Error).';
-    mockDownloadFile
+    mockRequestFromService
       .mockRejectedValueOnce(
         new ServiceError({
           status: 500,
@@ -219,7 +254,8 @@ describe('Epic file-log, Story 3: file details and original download', () => {
           kind: 'service-error',
         }),
       )
-      .mockResolvedValueOnce('GLC Nominal daily data current month.xlsx');
+      // The retry succeeds, but — like the live service — names no file.
+      .mockResolvedValueOnce(originalWithoutFilenameHeader());
 
     renderFileLog(detail.Id);
 
@@ -239,5 +275,9 @@ describe('Epic file-log, Story 3: file details and original download', () => {
     expect(
       await within(notifications).findByText(DOWNLOADED),
     ).toBeInTheDocument();
+
+    // With no filename header, the original is saved under the file's own name
+    // (not the endpoint's last path segment, "original").
+    expect(savedNames).toEqual(['OIS daily data current month.xlsx']);
   });
 });

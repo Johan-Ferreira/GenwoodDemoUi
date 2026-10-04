@@ -9,13 +9,13 @@ import type { FileRow } from '@/types/files';
 export const IMPORT_COMPLETE = 'Import complete.';
 export const IMPORT_FAILED = 'Import failed. See the file log for details.';
 
-/** Re-check every 10 s while any loaded file is Processing; otherwise stop. */
-export function fileStatusRefreshDelay(
-  files: readonly FileRow[],
-): number | null {
-  return files.some((file) => file.status === 'Processing')
-    ? FILE_STATUS_POLL_MS
-    : null;
+/**
+ * Re-check every 10 s for as long as the File log is visible, whatever the
+ * loaded statuses — so a file newly dropped into the Inbox appears by itself.
+ * (useDataState pauses it while the tab is hidden.)
+ */
+export function fileStatusRefreshDelay(): number {
+  return FILE_STATUS_POLL_MS;
 }
 
 /**

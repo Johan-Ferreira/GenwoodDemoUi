@@ -24,3 +24,7 @@
 ## Manual-test fix: layout
 - After manual testing, the page content now lines up on the left right beside the side menu and uses the full screen width, instead of sitting centred in a 1280px column. This applies to every signed-in page. The file log table was tightened (smaller padding, slightly smaller monospace text) so every column, including Status, fits without sideways scrolling on a normal desktop screen. Very long file names are cut short with "…" and the full name shows when you hover over it.
 - Both changes were the user's decisions that differ from the design, recorded in the design digest under "Your Decisions".
+
+## Manual-test fix: download name and automatic refresh
+- Download original now saves the file under its real name (for example "GLC Nominal daily data current month.xlsx"). The service doesn't send a file name for this download, so the browser was saving it as "original". The app now uses the name it already shows in the file details.
+- The File log now checks for updates every 10 seconds the whole time it's open, not only while a file is Processing. A file dropped into the Inbox shows up by itself within about 10 seconds. Checking pauses while the browser tab is hidden and runs immediately when you come back. A newly arrived file shows as a new row with no message; "Import complete." or "Import failed. See the file log for details." still appears only when a file the page already saw as Processing finishes. This replaces the earlier behaviour (polling stopped once nothing was Processing) — a user decision from manual testing.

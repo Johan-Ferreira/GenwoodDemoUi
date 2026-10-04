@@ -96,14 +96,19 @@ type DownloadState =
   | { status: 'error'; error: ServiceErrorShape };
 
 /** "Download original": transient toast on success, specific 404, persistent error with Retry. */
-function useOriginalDownload(fileId: number) {
+function useOriginalDownload(fileId: number, fileName?: string | null) {
   const { showToast } = useToast();
   const [state, setState] = useState<DownloadState>({ status: 'idle' });
 
   const download = async () => {
     setState({ status: 'downloading' });
     try {
-      await downloadFile(`/v1/files/${fileId}/original`);
+      // The service sends no Content-Disposition here, so name it after the file.
+      await downloadFile(
+        `/v1/files/${fileId}/original`,
+        undefined,
+        fileName ?? undefined,
+      );
       setState({ status: 'idle' });
       showToast({ variant: 'success', title: ORIGINAL_DOWNLOADED });
     } catch (error) {
@@ -164,7 +169,10 @@ function FileDetails({
   fileId: number;
 }) {
   const titleId = useId();
-  const { state: downloadState, download } = useOriginalDownload(fileId);
+  const { state: downloadState, download } = useOriginalDownload(
+    fileId,
+    detail.FileName,
+  );
   const id = detail.Id ?? fileId;
   const status = text(detail.Status);
   const failed = detail.Status === 'Failed';

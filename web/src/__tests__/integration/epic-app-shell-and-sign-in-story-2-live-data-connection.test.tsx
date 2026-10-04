@@ -21,9 +21,11 @@
  *     kind 'service-error', retryable true. The description carries the service's
  *     own `Message` (spec Message schema: `{ "Message": string }`) so the cause is
  *     never hidden (BR6).
- * - `@/lib/api/download` — `downloadFile(endpoint, params?)` fetches via GET through
- *   the same proxy and saves the body with the filename from the response's
- *   `Content-Disposition` header (anchor with `download` attribute + object URL).
+ * - `@/lib/api/download` — `downloadFile(endpoint, params?, fallbackFilename?)`
+ *   fetches via GET through the same proxy and saves the body with the filename
+ *   from the response's `Content-Disposition` header (anchor with `download`
+ *   attribute + object URL). When the response names no file, the optional
+ *   `fallbackFilename` is used (the service's own name always wins when sent).
  * - `@/lib/api/nullable-number` — `parseNullableNumber(raw)` returns a finite
  *   number, or `null` as the explicit "no value" state, for SizeBytes /
  *   RecordsInserted / ChangeBp.
@@ -168,6 +170,45 @@ describe('Epic app-shell-and-sign-in, Story 2: live data connection', () => {
     expect(savedNames).toEqual([
       'GLC Nominal daily data current month.xlsx',
       'GlcNominalSpotCurve_2026-09-30.csv',
+    ]);
+
+    // The live service sends no Content-Disposition on /v1/files/{Id}/original —
+    // the caller's fallback name (the file's own FileName) is used instead of the
+    // endpoint's last path segment ("original").
+    mockFetch.mockResolvedValueOnce(
+      new Response(new Blob(['xlsx-bytes']), {
+        status: 200,
+        headers: { 'content-type': 'application/octet-stream' },
+      }),
+    );
+    await downloadFile(
+      '/v1/files/101/original',
+      undefined,
+      'OIS daily data current month.xlsx',
+    );
+
+    // When the service does name the file, its name still wins over the fallback.
+    mockFetch.mockResolvedValueOnce(
+      new Response(new Blob(['xlsx-bytes']), {
+        status: 200,
+        headers: {
+          'content-type': 'application/octet-stream',
+          'content-disposition':
+            'attachment; filename="GLC Nominal daily data current month.xlsx"',
+        },
+      }),
+    );
+    await downloadFile(
+      '/v1/files/101/original',
+      undefined,
+      'OIS daily data current month.xlsx',
+    );
+
+    expect(savedNames).toEqual([
+      'GLC Nominal daily data current month.xlsx',
+      'GlcNominalSpotCurve_2026-09-30.csv',
+      'OIS daily data current month.xlsx',
+      'GLC Nominal daily data current month.xlsx',
     ]);
   });
 

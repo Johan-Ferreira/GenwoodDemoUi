@@ -14,7 +14,8 @@
  *     - GET /v1/files/{Id}       → the shared FileDetail factories; unknown Id →
  *                                  404 `{ "Message": "File not found" }`
  *     - GET /v1/files/{Id}/original → binary body (application/octet-stream) with
- *                                  `Content-Disposition: attachment; filename="..."`
+ *                                  NO Content-Disposition header (matches the
+ *                                  live service, found at manual test)
  *     - anything else            → aborted (never reaches the live service)
  *   - Auth is the client-only demo session (project.md: custom); sign-in is the
  *     "Sign in with Genwood SSO" button, no credentials, no userinfo endpoint.
@@ -31,8 +32,9 @@
  *   - The key/value grid is a description list (`<dl>` with `<dt>`/`<dd>`) in the
  *     story's order: WOID, Workflow instance, Received, Size, Inbox location,
  *     Backup file, SHA-256, Record count, Records inserted, Created by.
- *   - "Download original" saves the file under the name from Content-Disposition
- *     (downloadFile in web/src/lib/api/download.ts) and shows the toast.
+ *   - "Download original" saves the file under the file's own FileName (the
+ *     service sends no Content-Disposition; its name is preferred only when sent)
+ *     via downloadFile in web/src/lib/api/download.ts, and shows the toast.
  *   - A 404 from /v1/files/{Id} shows "File not found" and a link back to the file
  *     list (link name contains "file list"), not the generic error with Retry.
  * - If the implementation diverges from these assumptions, this spec will not pass.
@@ -126,12 +128,10 @@ async function mockFileService(page: Page): Promise<void> {
       if (!detail) {
         return route.fulfill({ status: 404, json: { Message: NOT_FOUND } });
       }
+      // Exactly what the live service sends: octet-stream, NO Content-Disposition.
       return route.fulfill({
         status: 200,
         contentType: 'application/octet-stream',
-        headers: {
-          'content-disposition': `attachment; filename="${present(detail.FileName, 'FileName')}"`,
-        },
         body: 'mock original xlsx bytes',
       });
     }

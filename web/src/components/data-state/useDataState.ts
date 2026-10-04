@@ -41,7 +41,8 @@ const INITIAL_LOADING = { status: 'loading', phase: 'hidden' } as const;
 export interface DataStateRefreshOptions<T> {
   /**
    * Re-check in the background every N ms after each successful load, while
-   * the tab is visible; return `null` to stop (e.g. nothing left pending).
+   * the tab is visible (with an immediate re-check when it becomes visible
+   * again); return `null` to stop.
    */
   refreshEvery?: (data: T) => number | null;
   /**
@@ -111,13 +112,22 @@ export function useDataState<T>(
   }, [refreshKey, run]);
 
   // Silent background re-check after each successful load, while visible.
+  // Paused while the tab is hidden; on becoming visible again it re-checks
+  // straight away, then resumes the normal interval.
   const visible = usePageVisible();
+  const wasVisible = useRef(visible);
   const refreshDelay =
     state.status === 'success' && refreshEvery
       ? refreshEvery(state.data)
       : null;
   useEffect(() => {
+    const resumed = visible && !wasVisible.current;
+    wasVisible.current = visible;
     if (refreshDelay === null || !visible) return;
+    if (resumed) {
+      run();
+      return;
+    }
     const timer = setTimeout(run, refreshDelay);
     return () => clearTimeout(timer);
   }, [refreshDelay, visible, state, run]);

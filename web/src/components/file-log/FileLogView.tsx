@@ -116,8 +116,9 @@ function FileLogTableCard({
 }
 
 /**
- * Every received file matching the filters, loaded once per filter change
- * (newest first), then sorted and paged in the browser over the whole list.
+ * Every received file matching the filters, loaded on each filter change
+ * (newest first) and re-checked silently every 10 s while the tab is visible,
+ * then sorted and paged in the browser over the whole list.
  */
 export function FileLogView() {
   const filterState = useFileLogFilters();
