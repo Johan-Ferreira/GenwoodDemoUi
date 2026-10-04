@@ -9,11 +9,44 @@
       "file-log"
     ],
     "introducesSharedSurface": false,
-    "unverifiedAssumptions": [],
+    "unverifiedAssumptions": [
+      "Verify the Months and Source column values are filled in on the by-maturity table: rates are matched to maturities by tenor label (e.g. '10Y'); if the formats differ those columns will show dashes.",
+      "Verify a date offered as available actually shows rates: the overview came back empty at intake, so the default date may open on 'No data imported'.",
+      "Verify clicking a rate's source import opens a real trace: the app assumes the rate's WOID is the one the import trace looks up; if not, every link shows 'Import not found'."
+    ],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "4": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
   "halt": null,
-  "lastUpdated": "2026-10-04T16:22:30.670Z"
+  "lastUpdated": "2026-10-04T17:05:04.033Z"
 }
