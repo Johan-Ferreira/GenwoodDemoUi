@@ -8,11 +8,21 @@
       "app-shell-and-sign-in"
     ],
     "introducesSharedSurface": false,
-    "unverifiedAssumptions": [],
+    "unverifiedAssumptions": [
+      "Verify the newest file is at the top on first load: the app sorts by received time itself, but if the service returns a different order or limits the page size, an older file could appear above a newer one.",
+      "Verify the received-date range includes the end day: the app assumes a Received to date of 2026-10-04 includes files received any time on 4 October. If the service stops at the start of that day, files received on the end date will be missing from the filtered list.",
+      "Verify the finished/failed notice appears: the app assumes a file's status in the file list changes from Processing to Imported or Failed as the import runs. If the service only updates the status later, the notice won't appear even though the import worked."
+    ],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "1": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "2": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "5": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }
+  },
   "halt": null,
-  "lastUpdated": "2026-10-04T13:08:36.744Z"
+  "lastUpdated": "2026-10-04T13:30:00.000Z"
 }
