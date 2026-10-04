@@ -1,4 +1,5 @@
 import { StatusChip } from '@/components/status-chip/StatusChip';
+import { SortableTableHead } from '@/components/table-sort/SortableTableHead';
 import {
   Table,
   TableBody,
@@ -13,31 +14,68 @@ import {
   formatFileSize,
   shortWoid,
 } from '@/lib/files/file-format';
+import type { FileSort, FileSortKey } from '@/lib/files/file-sort';
 import type { FileRow } from '@/types/files';
 
 const HEAD_CLASS =
   'h-9 px-3 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
 const CELL_CLASS = 'px-3 py-2.5';
 
+const COLUMNS: ReadonlyArray<{
+  key: FileSortKey;
+  label: string;
+  className?: string;
+}> = [
+  { key: 'id', label: 'ID', className: 'w-14' },
+  { key: 'fileName', label: 'File' },
+  { key: 'curveFamily', label: 'Curve family' },
+  { key: 'receivedAt', label: 'Received' },
+  { key: 'sizeBytes', label: 'Size', className: 'text-right' },
+  {
+    key: 'recordsInserted',
+    label: 'Records inserted',
+    className: 'text-right',
+  },
+  { key: 'woid', label: 'WOID' },
+  { key: 'status', label: 'Status' },
+];
+
+export interface FileTableProps {
+  rows: readonly FileRow[];
+  /** Active sort, shown on its header. Omit (with `onSortChange`) for plain headers. */
+  sort?: FileSort | null;
+  /** When given, every header is a sort button that reports its column. */
+  onSortChange?: (key: FileSortKey) => void;
+}
+
 /**
  * The file-log columns (ID, File, Curve family, Received, Size, Records
  * inserted, WOID, Status) for the given rows, in the order supplied.
  */
-export function FileTable({ rows }: { rows: readonly FileRow[] }) {
+export function FileTable({ rows, sort = null, onSortChange }: FileTableProps) {
   return (
     <Table>
       <TableHeader className="bg-muted">
         <TableRow className="hover:bg-transparent">
-          <TableHead className={`${HEAD_CLASS} w-14`}>ID</TableHead>
-          <TableHead className={HEAD_CLASS}>File</TableHead>
-          <TableHead className={HEAD_CLASS}>Curve family</TableHead>
-          <TableHead className={HEAD_CLASS}>Received</TableHead>
-          <TableHead className={`${HEAD_CLASS} text-right`}>Size</TableHead>
-          <TableHead className={`${HEAD_CLASS} text-right`}>
-            Records inserted
-          </TableHead>
-          <TableHead className={HEAD_CLASS}>WOID</TableHead>
-          <TableHead className={HEAD_CLASS}>Status</TableHead>
+          {COLUMNS.map((column) => {
+            const className = column.className
+              ? `${HEAD_CLASS} ${column.className}`
+              : HEAD_CLASS;
+            return onSortChange ? (
+              <SortableTableHead
+                key={column.key}
+                label={column.label}
+                sortKey={column.key}
+                sort={sort}
+                onSortChange={onSortChange}
+                className={className}
+              />
+            ) : (
+              <TableHead key={column.key} className={className}>
+                {column.label}
+              </TableHead>
+            );
+          })}
         </TableRow>
       </TableHeader>
       <TableBody>

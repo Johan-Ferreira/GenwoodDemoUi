@@ -10,17 +10,18 @@
     "introducesSharedSurface": false,
     "unverifiedAssumptions": [
       "Verify the newest file is at the top on first load: the app sorts by received time itself, but if the service returns a different order or limits the page size, an older file could appear above a newer one.",
-      "Verify the received-date range includes the end day: the app assumes a Received to date of 2026-10-04 includes files received any time on 4 October. If the service stops at the start of that day, files received on the end date will be missing from the filtered list.",
       "Verify the finished/failed notice appears: the app assumes a file's status in the file list changes from Processing to Imported or Failed as the import runs. If the service only updates the status later, the notice won't appear even though the import worked.",
       "The live service holds only 4 files, so loading everything at once was tested at that volume only. Confirm File log still shows every file when there are many.",
-      "The paging controls sit in the table card's footer next to the source note, because the design has no paging. Check this placement looks right."
+      "The paging controls sit in the table card's footer next to the source note, because the design has no paging. Check this placement looks right.",
+      "Filter labels (Status, Curve family, Received from, Received to) sit above each control in a row above the table; the design's single status filter had no visible label. Check this layout looks right.",
+      "Sorting a column keeps you on the current page; changing a filter goes back to page 1. Check this is what you want."
     ],
     "manualTestResults": []
   },
   "phase": "BUILD",
   "stories": {
     "1": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T14:10:00.000Z", "completedAt": "2026-10-04T14:22:00.000Z" },
-    "2": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "2": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T14:25:00.000Z", "completedAt": "2026-10-04T14:38:00.000Z" },
     "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
     "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
     "5": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }

@@ -29,7 +29,7 @@ export interface TablePaginationProps {
   itemLabel?: string;
 }
 
-/** "Rows per page" select, the shown range and Previous / Next buttons. */
+/** "Rows per page" select, the shown range and Previous / Next page buttons. */
 export function TablePagination({
   page,
   pageCount,
@@ -78,7 +78,7 @@ export function TablePagination({
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeft aria-hidden="true" />
-          Previous
+          Previous<span className="sr-only"> page</span>
         </Button>
         <Button
           type="button"
@@ -87,7 +87,7 @@ export function TablePagination({
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
         >
-          Next
+          Next<span className="sr-only"> page</span>
           <ChevronRight aria-hidden="true" />
         </Button>
       </div>

@@ -7,6 +7,10 @@
 export const FILE_STATUSES = ['Imported', 'Failed', 'Processing'] as const;
 export type FileStatus = (typeof FILE_STATUSES)[number];
 
+/** The curve families a file belongs to (the `CurveFamily` filter values). */
+export const CURVE_FAMILIES = ['Nominal', 'Real', 'Inflation', 'OIS'] as const;
+export type CurveFamily = (typeof CURVE_FAMILIES)[number];
+
 /** A file-log row with nullable-text numbers already parsed. */
 export interface FileRow {
   id: number;

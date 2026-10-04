@@ -25,10 +25,15 @@
 | `QueryParams`, `ServiceErrorShape`, `ServiceErrorKind`, `ServiceMessage` | `web/src/types/api.ts` | Shared data-service API types |
 | Typed endpoint functions (`getFiles`, `getFile`, `getOverview`, `getImport`, …) and `api-generated` types | `web/src/lib/api/endpoints.ts`, `web/src/types/api-generated.ts` | Generated from `documentation/CurveData.yaml`; import, don't redefine |
 | `getAllFiles`, `toFileRow`, `compareNewestFirst`, `FileFilters` | `web/src/lib/api/files.ts` | Loads every matching file (large `Size`, follows pages until `TotalItems`), normalised to `FileRow`, newest first |
-| `FileRow`, `FileStatus`, `FILE_STATUSES` | `web/src/types/files.ts` | App-side file-log row (nullable numbers parsed) and the three service statuses |
+| `FileRow`, `FileStatus`, `FILE_STATUSES`, `CurveFamily`, `CURVE_FAMILIES` | `web/src/types/files.ts` | App-side file-log row (nullable numbers parsed), the three service statuses and the four curve families |
+| `sortBy`, `nextSort`, `compareSortValues`, `SortState`, `SortDirection`, `SortValue` | `web/src/lib/utils/sort.ts` | In-browser column sort: new column ascending, same column flips; numbers numeric, text locale/numeric-aware; missing values last in both directions; stable |
+| `SortableTableHead` | `web/src/components/table-sort/SortableTableHead.tsx` | `<TableHead>` whose label is a button; active column gets `aria-sort` + direction arrow |
+| `sortFileRows`, `fileSortValue`, `FileSort`, `FileSortKey` | `web/src/lib/files/file-sort.ts` | Sorts `FileRow`s by any of the eight file-log columns |
+| `isIsoDate`, `ISO_DATE_MESSAGE` | `web/src/lib/validation/iso-date.ts` | Real calendar date in `YYYY-MM-DD`; the inline "Enter the date as YYYY-MM-DD." message |
+| `FileLogFilters`, `useFileLogFilters` | `web/src/components/file-log/` | File-log filter bar (Status / Curve family Selects, Received from/to text dates applied on blur or Enter) → `FileFilters` query params, active-filter list, `clearAll` |
 | `formatFileSize`, `formatCount`, `shortWoid`, `fileStatusTone`, `FILE_STATUS_TONE`, `NO_VALUE` | `web/src/lib/files/file-format.ts` | Size "342.7 KB" (1024-based, 1 dp), counts, 8-char WOID, status → tone (Imported success / Failed danger / Processing info), "—" placeholder |
-| `FileTable` | `web/src/components/files/FileTable.tsx` | The eight file-log columns (ID … Status) for given `FileRow`s, in the order supplied |
-| `TablePagination`, `useClientPagination`, `PAGE_SIZE_OPTIONS`, `DEFAULT_PAGE_SIZE` | `web/src/components/table-pagination/` | In-browser paging of a list: "Rows per page" select (5/10/20/50, default 20), range line, Previous/Next; page clamps when the list shrinks |
+| `FileTable` | `web/src/components/files/FileTable.tsx` | The eight file-log columns (ID … Status) for given `FileRow`s, in the order supplied; optional `sort` + `onSortChange` make every header a sort button |
+| `TablePagination`, `useClientPagination`, `PAGE_SIZE_OPTIONS`, `DEFAULT_PAGE_SIZE` | `web/src/components/table-pagination/` | In-browser paging of a list: "Rows per page" select (5/10/20/50, default 20), range line, Previous/Next buttons (accessible names "Previous page"/"Next page"); page clamps when the list shrinks |
 
 ## Conventions
 - Signed-in views live under `web/src/app/(app)/<route>/page.tsx`; routes: `/overview`, `/file-log`, `/curve-data`, `/yield-curves`, `/workflow-monitor`, `/api-reference` (not `/api`). `/` redirects to `/overview`.
@@ -37,6 +42,7 @@
 - Data-service calls go to the browser-facing base `NEXT_PUBLIC_API_BASE_URL` (default `/curve-data`, `CURVE_DATA_PROXY_PATH` in `constants.ts`); `next.config.ts` rewrites `/curve-data/v1/:path*` to server-side `CURVE_DATA_SERVICE_URL` (default `http://localhost:10020/curve-data`). Never call the service address from the browser; never issue non-GET requests.
 - Interactive controls use the `focus-ring` utility (white gap + Forest 400 ring); Shadcn `Button` already applies it.
 - Fonts: IBM Plex Sans/Mono via `next/font/google` (self-hosted) exposed as `font-sans` / `font-mono`; `font-mono` gets tabular figures. Icons: `lucide-react` with `aria-hidden="true"` when decorative.
+- Filtered lists re-key `DataState` by the applied filters, so a filter change reloads and returns to page 1; sorting and paging run in the browser over the whole loaded list.
 - Every read in a view goes through `DataState` (never a hand-rolled spinner or silent empty fallback); status labels use `StatusChip`; icon-only buttons use `IconButton`.
 - Shadcn CLI output must import `cn` from `@/lib/utils` and `Slot` from `@radix-ui/react-slot`; the CLI currently emits `from "cn"` / `from "radix-ui"` and adds those packages — fix the imports and revert `package.json`.
 
