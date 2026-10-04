@@ -1,6 +1,10 @@
 /** Inline message for a date not entered as YYYY-MM-DD (R3). */
 export const ISO_DATE_MESSAGE = 'Enter the date as YYYY-MM-DD.';
 
+/** Inline message for an observation (valuation) date not entered as YYYY-MM-DD. */
+export const OBSERVATION_DATE_MESSAGE =
+  'Enter the observation date as YYYY-MM-DD.';
+
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /**

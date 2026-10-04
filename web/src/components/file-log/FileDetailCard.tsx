@@ -20,6 +20,7 @@ import { isServiceError } from '@/lib/api/service-error';
 import {
   formatByteCount,
   formatCount,
+  importTracePath,
   NO_VALUE,
 } from '@/lib/files/file-format';
 import type { ServiceErrorShape } from '@/types/api';
@@ -32,11 +33,6 @@ export const ORIGINAL_DOWNLOADED =
   'Original file downloaded from the Backup folder.';
 const HASH_NOT_RECORDED = 'Not recorded';
 const FILE_LIST_PATH = '/file-log';
-
-/** The import trace page for a file's WOID. */
-export function importTracePath(woid: string): string {
-  return `/file-log/imports/${encodeURIComponent(woid)}`;
-}
 
 function text(value: string | undefined): string {
   return value && value.trim() !== '' ? value : NO_VALUE;
