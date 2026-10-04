@@ -21,41 +21,43 @@
       "Check the default By date columns on a short-end curve against the real service: default key maturities are matched by month count, so a short-end curve whose service labels are \"12M\" may show \"12M (%)\" headings rather than \"1Y (%)\".",
       "The By date footer reads \"{n} valuation dates. Rates in percent.\" and the empty-range hint is \"Choose another date range or import a file.\" The design gives no exact wording; confirm it is acceptable.",
       "Check that the exported CSV comes from the live service with the expected columns (tenor label, tenor years, rate in percent), and whether the service names the file itself (if so, that name is used instead of \"{curve code}-{date}.csv\").",
-      "Export CSV is not available in the By date view. Confirm you do not also want to export the multi-date table from there."
+      "Export CSV is not available in the By date view. Confirm you do not also want to export the multi-date table from there.",
+      "In the Valuation date calendar, dates with imported data are marked with a small dot and a bolder number, with a legend. Check this is clear enough to see which days have data.",
+      "The calendar will not go before the curve's earliest date or after its latest date; days in between with no data can still be picked and show \"No data imported\". Confirm that is the behaviour you want."
     ],
     "manualTestResults": []
   },
-  "phase": "EPIC-END",
+  "phase": "BUILD",
   "stories": {
     "1": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-04T17:38:19.509Z",
-      "completedAt": "2026-10-04T17:47:16.810Z"
+      "completedAt": "2026-10-04T18:19:59.132Z"
     },
     "2": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-04T17:47:59.829Z",
       "completedAt": "2026-10-04T17:51:49.434Z"
     },
     "3": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-04T17:52:13.622Z",
       "completedAt": "2026-10-04T17:57:11.336Z"
     },
     "4": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-04T17:57:36.160Z",
       "completedAt": "2026-10-04T17:59:38.705Z"
     }
   },
   "halt": null,
-  "lastUpdated": "2026-10-04T17:59:38.705Z"
+  "lastUpdated": "2026-10-04T18:19:59.132Z"
 }

@@ -22,3 +22,18 @@ export function isIsoDate(value: string): boolean {
     date.getUTCDate() === day
   );
 }
+
+/**
+ * The UTC-midnight instant of a YYYY-MM-DD date, or `null` when `value` is not
+ * a real YYYY-MM-DD date. UTC throughout, so no local time zone shifts the day.
+ */
+export function isoDateToUtc(value: string): Date | null {
+  if (!isIsoDate(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+/** The YYYY-MM-DD calendar day of `date` in UTC. */
+export function utcToIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}

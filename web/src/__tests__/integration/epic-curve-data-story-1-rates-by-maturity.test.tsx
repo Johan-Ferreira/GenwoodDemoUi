@@ -14,8 +14,10 @@
  *   in web/src/lib/api/endpoints.ts.
  * - "Valuation date" is a TEXT input (typed YYYY-MM-DD; not type="date") that
  *   starts at the availability MaxDate. Its accessible description
- *   (aria-describedby) names the earliest and latest dates, and its `list`
- *   attribute points to a <datalist> offering every available date.
+ *   (aria-describedby) names the earliest and latest dates. A "Choose
+ *   valuation date" button opens a "Valuation date calendar" dialog (UTC
+ *   days) bounded by MinDate/MaxDate; days with data have "data imported" in
+ *   their accessible name; picking a day applies it at once and closes it.
  * - An invalid date (isIsoDate false) shows "Enter the observation date as
  *   YYYY-MM-DD." and no GET .../rates request is made for it.
  * - The by-maturity table has one body row per service tenor (never a hard-coded
@@ -149,6 +151,28 @@ function valuationDateInput(): HTMLInputElement {
   }) as HTMLInputElement;
 }
 
+/** Open the Valuation date calendar and return its dialog. */
+async function openValuationCalendar(
+  user: ReturnType<typeof userEvent.setup>,
+): Promise<HTMLElement> {
+  await user.click(
+    screen.getByRole('button', { name: 'Choose valuation date' }),
+  );
+  return screen.findByRole('dialog', { name: 'Valuation date calendar' });
+}
+
+/** A September 2026 day in the open calendar, by day of the month. */
+function calendarDay(calendar: HTMLElement, day: number): HTMLElement {
+  return within(calendar).getByRole('button', {
+    name: new RegExp(`^\\w+, ${day} September 2026`),
+  });
+}
+
+/** The day of the month in a calendar day's accessible name. */
+function dayOfMonth(name: string): number {
+  return Number(/(\d+) September 2026/.exec(name)?.[1]);
+}
+
 /** Observation dates GET .../rates was asked for, in call order. */
 function requestedRateDates(): unknown[] {
   return mockGet.mock.calls
@@ -231,15 +255,49 @@ describe('Epic curve-data, Story 1: Rates by maturity', () => {
       new RegExp(`${AVAILABLE_DATES[0]}.*${CANONICAL_OBSERVATION_DATE}`),
     );
 
-    const listId = input.getAttribute('list');
-    expect(listId).toBeTruthy();
-    const offered = Array.from(
-      document.getElementById(String(listId))?.querySelectorAll('option') ?? [],
-    ).map((option) => option.value);
-    expect([...offered].sort()).toEqual([...AVAILABLE_DATES].sort());
-
     expect(await screen.findByRole('row', { name: /^10Y\s/ })).toBeVisible();
     expect(screen.queryByText('No data imported')).not.toBeInTheDocument();
+
+    // The calendar opens on the latest date's month and marks every date with
+    // data in it; days without data inside the range can still be picked.
+    const calendar = await openValuationCalendar(userEvent.setup());
+    const markedDays = within(calendar)
+      .getAllByRole('button', { name: /data imported/ })
+      .map((day) => day.getAttribute('aria-label') ?? '');
+    expect(markedDays.map(dayOfMonth)).toEqual(
+      AVAILABLE_DATES.filter((date) => date.startsWith('2026-09')).map((date) =>
+        Number(date.slice(8)),
+      ),
+    );
+    expect(calendarDay(calendar, 30)).toHaveAccessibleName(/selected/);
+    expect(calendarDay(calendar, 27)).toBeEnabled();
+    // Nothing after the latest date: the calendar cannot move past its month.
+    expect(
+      within(calendar).getByRole('button', { name: /next month/i }),
+    ).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  // Regression: a date with data other than the latest can be picked.
+  it('picks an earlier date with data from the calendar and loads its rates', async () => {
+    const user = userEvent.setup();
+    const EARLIER_DATE = '2026-09-28';
+    mockService((date) =>
+      date === EARLIER_DATE ? createRateList() : createEmptyRates(),
+    );
+
+    renderCurveData();
+    expect(await screen.findByText('No data imported')).toBeInTheDocument();
+
+    const calendar = await openValuationCalendar(user);
+    await user.click(calendarDay(calendar, 28));
+
+    expect(
+      screen.queryByRole('dialog', { name: 'Valuation date calendar' }),
+    ).not.toBeInTheDocument();
+    expect(valuationDateInput()).toHaveValue(EARLIER_DATE);
+    expect(await screen.findByRole('row', { name: /^10Y\s/ })).toBeVisible();
+    expect(screen.queryByText('No data imported')).not.toBeInTheDocument();
+    expect(requestedRateDates()).toContain(EARLIER_DATE);
   });
 
   // AC-3

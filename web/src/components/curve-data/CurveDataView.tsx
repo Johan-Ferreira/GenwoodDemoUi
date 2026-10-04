@@ -143,9 +143,11 @@ function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
         <ValuationDateField
           availability={context.availability}
           draft={date.draft}
+          applied={date.applied}
           invalid={date.invalid}
           onType={date.type}
           onCommit={date.commit}
+          onPick={date.pick}
         />
       )}
       <div className="ml-auto flex items-start gap-2">

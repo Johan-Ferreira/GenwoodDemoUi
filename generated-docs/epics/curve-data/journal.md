@@ -22,3 +22,7 @@
 ## Story 4: Export rates as CSV
 
 - The Curve data page now has an Export CSV button next to the By maturity / By date switch. It downloads a real CSV file for the shown curve and valuation date. The service sends no filename, so the file is saved as '{curve code}-{date}.csv'. A 'CSV export prepared.' notice then appears briefly in the bottom-right. If the export fails, an error stays on screen with a Retry button and no confirmation is shown. The button can't be clicked in the By date view or while the valuation date isn't a valid YYYY-MM-DD date.
+
+## Story 1 (manual-test fix): Valuation date picker
+
+- The Valuation date dropdown only ever offered the latest date, because the browser filters its suggestions by what is already typed. It is now a calendar picker: the field can still be typed in as YYYY-MM-DD, and a calendar button next to it opens a month view limited to the curve's earliest and latest dates. Days with imported data are marked with a dot. Picking any day, with or without data, shows its rates straight away.
