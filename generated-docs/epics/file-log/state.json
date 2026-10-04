@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "file-log",
+    "name": "File log",
+    "createdAt": "2026-10-04T13:08:36.744Z",
+    "dependsOn": [
+      "app-shell-and-sign-in"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-04T13:08:36.744Z"
+}
