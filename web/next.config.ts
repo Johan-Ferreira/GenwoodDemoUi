@@ -34,10 +34,19 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
-    return PROTECTED_PATHS.map((source) => ({
-      source,
-      headers: [{ key: 'Cache-Control', value: 'no-store, must-revalidate' }],
-    }));
+    const noStore = [
+      { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+    ];
+    // Each view and everything beneath it (e.g. `/file-log/123`). `/` is the
+    // root only; its sub-routes are the views listed here.
+    return PROTECTED_PATHS.flatMap((path) =>
+      path === '/'
+        ? [{ source: '/', headers: noStore }]
+        : [
+            { source: path, headers: noStore },
+            { source: `${path}/:path*`, headers: noStore },
+          ],
+    );
   },
 };
 

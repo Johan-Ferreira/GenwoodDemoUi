@@ -30,6 +30,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # ARG NEXT_PUBLIC_API_BASE_URL
 # ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 
+# The /curve-data/v1/* proxy rewrite in next.config.ts is resolved at `next build`
+# (it is frozen into the routes manifest), so the data-service address must be
+# supplied here too; setting it only at `docker run` has no effect.
+ARG CURVE_DATA_SERVICE_URL
+ENV CURVE_DATA_SERVICE_URL=$CURVE_DATA_SERVICE_URL
+
 RUN npm run build
 
 # ============================================

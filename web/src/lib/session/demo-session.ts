@@ -17,8 +17,6 @@ export interface DemoSession {
   displayName: string;
   /** Epoch milliseconds of sign-in. */
   signedInAt: number;
-  /** Epoch milliseconds of the last recorded activity. */
-  lastActivityAt: number;
 }
 
 type Listener = () => void;
@@ -43,8 +41,7 @@ function isDemoSession(value: unknown): value is DemoSession {
   const candidate = value as Record<string, unknown>;
   return (
     typeof candidate.displayName === 'string' &&
-    typeof candidate.signedInAt === 'number' &&
-    typeof candidate.lastActivityAt === 'number'
+    typeof candidate.signedInAt === 'number'
   );
 }
 
@@ -77,7 +74,6 @@ export function signInDemo(now: number = Date.now()): DemoSession {
   const session: DemoSession = {
     displayName: DEMO_DISPLAY_NAME,
     signedInAt: now,
-    lastActivityAt: now,
   };
   getStorage()?.setItem(DEMO_SESSION_STORAGE_KEY, JSON.stringify(session));
   notify();

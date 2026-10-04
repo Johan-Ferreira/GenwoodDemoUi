@@ -262,6 +262,35 @@ describe('Story 3: shared loading, error and message patterns', () => {
     ).not.toBeInTheDocument();
   });
 
+  // AC-4 (code-review fix): a message waiting on the user is not pushed out by newer ones
+  it('keeps a persistent message on screen when more completed-action messages arrive than fit', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: ToastHarness });
+
+    act(() => {
+      result.current.showToast({
+        variant: 'warning',
+        title: 'The file could not be saved. Choose a folder and try again.',
+        persistent: true,
+      });
+    });
+    act(() => {
+      result.current.showToast({ variant: 'success', title: 'Export 1 done.' });
+      result.current.showToast({ variant: 'success', title: 'Export 2 done.' });
+      result.current.showToast({ variant: 'success', title: 'Export 3 done.' });
+    });
+
+    const region = screen.getByRole('region', { name: 'Notifications' });
+    expect(
+      within(region).getByText(
+        'The file could not be saved. Choose a folder and try again.',
+      ),
+    ).toBeInTheDocument();
+    expect(within(region).getByText('Export 3 done.')).toBeInTheDocument();
+    expect(
+      within(region).queryByText('Export 1 done.'),
+    ).not.toBeInTheDocument();
+  });
+
   // AC-5
   it('always shows a text label on status chips, with the tone carried for each intent', () => {
     vi.useRealTimers();

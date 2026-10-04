@@ -96,13 +96,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       // Add new toast and enforce max limit
       setToasts((prevToasts) => {
         const updatedToasts = [...prevToasts, newToast];
+        const overflow = updatedToasts.length - TOAST_DEFAULTS.MAX_TOASTS;
+        if (overflow <= 0) return updatedToasts;
 
-        // If we exceed the maximum, remove the oldest toast(s)
-        if (updatedToasts.length > TOAST_DEFAULTS.MAX_TOASTS) {
-          return updatedToasts.slice(-TOAST_DEFAULTS.MAX_TOASTS);
-        }
+        // Over the limit: evict the oldest non-persistent toasts first (a
+        // persistent toast is waiting on the user), then the oldest persistent
+        // ones only if that is not enough. The new toast is never evicted.
+        const candidates = prevToasts.filter((toast) => !toast.persistent);
+        const evictionOrder = [
+          ...candidates,
+          ...prevToasts.filter((toast) => toast.persistent),
+        ];
+        const evictedIds = new Set(
+          evictionOrder.slice(0, overflow).map((toast) => toast.id),
+        );
 
-        return updatedToasts;
+        // Evicted toasts no longer need their auto-dismiss timers.
+        evictedIds.forEach((evictedId) => {
+          const timeoutId = timeoutRefs.current.get(evictedId);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutRefs.current.delete(evictedId);
+          }
+        });
+
+        return updatedToasts.filter((toast) => !evictedIds.has(toast.id));
       });
 
       // Set up auto-dismiss timer if duration is specified

@@ -8,6 +8,7 @@ import {
   useDemoSession,
 } from '@/lib/session/demo-session';
 import { SIGN_IN_PATH } from '@/lib/navigation/nav-items';
+import { isSessionExpiredNow } from '@/lib/session/session-limits';
 import { SessionTimer } from '@/components/session/SessionTimer';
 import { AppHeader } from './AppHeader';
 import { SideNav } from './SideNav';
@@ -20,19 +21,30 @@ import { SideNav } from './SideNav';
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const session = useDemoSession();
   const router = useRouter();
+  // A stored session past its time limit counts as signed out: the view must
+  // not render (or fetch) before the timer gets a chance to end it.
+  const expired = session !== null && isSessionExpiredNow(session.signedInAt);
 
   useEffect(() => {
+    if (expired) {
+      signOutDemo();
+      router.replace(SIGN_IN_PATH);
+      return;
+    }
     // Read storage directly: during hydration the hook still reports the server
     // snapshot (signed out), which must not trigger a redirect on its own.
     if (!session && !readDemoSession()) {
       router.replace(SIGN_IN_PATH);
     }
-  }, [session, router]);
+  }, [session, expired, router]);
 
   useEffect(() => {
     // Back/forward cache restore after sign-out: re-check before showing the page.
     const onPageShow = (event: PageTransitionEvent) => {
-      if (event.persisted && !readDemoSession()) {
+      if (!event.persisted) return;
+      const stored = readDemoSession();
+      if (!stored || isSessionExpiredNow(stored.signedInAt)) {
+        if (stored) signOutDemo();
         router.replace(SIGN_IN_PATH);
       }
     };
@@ -45,7 +57,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
     router.replace(SIGN_IN_PATH);
   }, [router]);
 
-  if (!session) return null;
+  if (!session || expired) return null;
 
   return (
     <div className="flex min-h-screen flex-col">

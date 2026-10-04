@@ -54,7 +54,8 @@ function saveBlob(blob: Blob, filename: string): void {
     anchor.click();
   } finally {
     anchor.remove();
-    URL.revokeObjectURL(objectUrl);
+    // Revoking in the same tick can cancel the download in Firefox/Safari.
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
   }
 }
 

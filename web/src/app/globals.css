@@ -243,7 +243,8 @@
 @utility focus-ring {
   outline: none;
   &:focus-visible {
-    outline: none;
+    /* Transparent (not none) so Windows forced-colors mode still shows a ring. */
+    outline: 2px solid transparent;
     box-shadow:
       0 0 0 2px var(--gw-white),
       0 0 0 4px var(--ring);

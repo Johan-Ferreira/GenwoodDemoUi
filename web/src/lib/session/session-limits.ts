@@ -11,6 +11,11 @@ export function isSessionExpired(signedInAt: number, now: number): boolean {
   return now - signedInAt >= SESSION_ABSOLUTE_LIMIT_MS;
 }
 
+/** True when a session signed in at `signedInAt` has already reached its limit. */
+export function isSessionExpiredNow(signedInAt: number): boolean {
+  return isSessionExpired(signedInAt, Date.now());
+}
+
 /** Milliseconds left before the session ends (never negative). */
 export function msUntilSessionExpiry(signedInAt: number, now: number): number {
   return Math.max(0, signedInAt + SESSION_ABSOLUTE_LIMIT_MS - now);

@@ -5,11 +5,11 @@
 ## Shared utilities & components
 | Export | Location | Capability |
 |---|---|---|
-| `useDemoSession`, `readDemoSession`, `signInDemo`, `signOutDemo`, `DemoSession` | `web/src/lib/session/demo-session.ts` | Client-only demo session in sessionStorage (`displayName`, `signedInAt`, `lastActivityAt`); hook re-renders on sign-in/out |
+| `useDemoSession`, `readDemoSession`, `signInDemo`, `signOutDemo`, `DemoSession` | `web/src/lib/session/demo-session.ts` | Client-only demo session in sessionStorage (`displayName`, `signedInAt`); hook re-renders on sign-in/out |
 | `NAV_GROUPS`, `isNavItemActive`, `OVERVIEW_PATH`, `SIGN_IN_PATH` | `web/src/lib/navigation/nav-items.ts` | The six destinations, their routes, icons and groups; active-item matching |
-| `SESSION_ABSOLUTE_LIMIT_MS`, `isSessionExpired`, `msUntilSessionExpiry` | `web/src/lib/session/session-limits.ts` | The single 8-hour absolute session limit (no idle limit) and expiry checks |
+| `SESSION_ABSOLUTE_LIMIT_MS`, `isSessionExpired`, `isSessionExpiredNow`, `msUntilSessionExpiry` | `web/src/lib/session/session-limits.ts` | The single 8-hour absolute session limit (no idle limit) and expiry checks |
 | `SessionTimer` | `web/src/components/session/SessionTimer.tsx` | `<SessionTimer signedInAt onExpire />`: at the absolute limit calls `onExpire` then `router.replace('/sign-in')`; new `signedInAt` restarts; re-checks on tab visible; renders nothing |
-| `AppFrame` | `web/src/components/app-shell/AppFrame.tsx` | Signed-in frame (header, side nav, padded `<main>`); redirects to `/sign-in` with no session; mounts `SessionTimer` (sign-out on expiry); mounted by `app/(app)/layout.tsx` |
+| `AppFrame` | `web/src/components/app-shell/AppFrame.tsx` | Signed-in frame (header, side nav, padded `<main>`); redirects to `/sign-in` with no session or an expired one (renders nothing first); mounts `SessionTimer` (sign-out on expiry); mounted by `app/(app)/layout.tsx` |
 | `AppHeader`, `SideNav`, `GenwoodLogo` | `web/src/components/app-shell/` | Forest header with Sign out; 232px nav with `aria-current="page"`; logo at 36px/52px (Forest surfaces only) |
 | `PageHeader` | `web/src/components/app-shell/PageHeader.tsx` | A view's `<h1>` title with optional subtitle and right-aligned actions |
 | `get`, `requestFromService` | `web/src/lib/api/client.ts` | Read-only (GET-only) data-service client via the same-origin proxy; query params (arrays repeat, `undefined` dropped); rejects with `ServiceError` |
@@ -18,7 +18,7 @@
 | `parseNullableNumber` | `web/src/lib/api/nullable-number.ts` | Nullable-text numbers (`SizeBytes`, `RecordsInserted`, `ChangeBp`) → finite number or `null` ("no value") |
 | `DataState`, `ServiceErrorMessage`, `NotAuthorisedMessage` | `web/src/components/data-state/DataState.tsx` | `<DataState load={() => get<T>(...)}>{(data) => ...}</DataState>`: loading thresholds (nothing 300 ms → skeleton in `role="status"` "Loading" → + "taking longer than usual" at 3 s), persistent service-error alert with Retry, not-authorised alert with request-access path, optional `isEmpty`/`empty`, custom `skeleton` |
 | `useDataState`, `toServiceErrorShape`, `DataLoadState` | `web/src/components/data-state/useDataState.ts` | Hook behind `DataState` (`{ state, retry }`); any rejection becomes a `ServiceErrorShape` |
-| `ToastProvider`, `useToast`, `ToastContainer` | `web/src/contexts/ToastContext.tsx`, `web/src/components/toast/` | `showToast({ variant, title, message?, persistent? })`; bottom-right (`data-position`), Forest 900, max 380px; auto-dismiss 2600 ms (`TOAST_SETTINGS`); `persistent` stays until dismissed; mounted in `app/layout.tsx` |
+| `ToastProvider`, `useToast`, `ToastContainer` | `web/src/contexts/ToastContext.tsx`, `web/src/components/toast/` | `showToast({ variant, title, message?, persistent? })`; bottom-right (`data-position`), Forest 900, max 380px; auto-dismiss 2600 ms (`TOAST_SETTINGS`); `persistent` stays until dismissed and is evicted last when over the max; mounted in `app/layout.tsx` |
 | `StatusChip`, `StatusTone` | `web/src/components/status-chip/StatusChip.tsx` | Pill label with `tone` success/warning/danger/info/neutral (`data-tone`); text always shown |
 | `IconButton` | `web/src/components/icon-button/IconButton.tsx` | Icon-only Shadcn button; required `label` → `aria-label` + `title`; ghost/icon by default |
 | `LOADING_THRESHOLDS`, `TOAST_SETTINGS` | `web/src/lib/utils/constants.ts` | 300 ms / 3000 ms loading thresholds; toast duration and max visible |

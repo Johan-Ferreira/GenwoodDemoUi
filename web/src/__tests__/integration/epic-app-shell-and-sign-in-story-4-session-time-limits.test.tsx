@@ -22,13 +22,21 @@
  *     restarts the 8-hour window.
  * - The (app) layout mounts `<SessionTimer>` with the session's sign-in time and
  *   the session's sign-out action.
+ * - `AppFrame` treats a stored session already past the limit as signed out: it
+ *   renders nothing, ends the session and goes to `/sign-in`.
  *
  * Fake timers are used because the timer is component-local and the story has no
  * route of its own (orchestrator instruction). Accessibility is not asserted here.
  */
 import { act, render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { AppFrame } from '@/components/app-shell/AppFrame';
 import { SessionTimer } from '@/components/session/SessionTimer';
+import {
+  readDemoSession,
+  signInDemo,
+  signOutDemo,
+} from '@/lib/session/demo-session';
 import {
   SESSION_ABSOLUTE_LIMIT_MS,
   isSessionExpired,
@@ -78,6 +86,7 @@ describe('Session time limit', () => {
   });
 
   afterEach(() => {
+    signOutDemo();
     vi.useRealTimers();
   });
 
@@ -158,6 +167,36 @@ describe('Session time limit', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(onExpire).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalledWith('/sign-in');
+  });
+
+  // AC-1 (code-review fix): a session already past its limit never shows the view
+  it('sends a visitor whose stored session is older than 8 hours to sign-in without showing the view', () => {
+    signInDemo(SIGNED_IN_AT);
+    vi.setSystemTime(SIGNED_IN_AT + EIGHT_HOURS_MS + ONE_MINUTE_MS);
+
+    render(
+      <AppFrame>
+        <p>Curve data view</p>
+      </AppFrame>,
+    );
+
+    expect(screen.queryByText('Curve data view')).not.toBeInTheDocument();
+    expect(mockReplace).toHaveBeenCalledWith('/sign-in');
+    expect(readDemoSession()).toBeNull();
+  });
+
+  it('shows the view for a stored session still inside its 8 hours', () => {
+    signInDemo(SIGNED_IN_AT);
+    vi.setSystemTime(SIGNED_IN_AT + EIGHT_HOURS_MS - ONE_MINUTE_MS);
+
+    render(
+      <AppFrame>
+        <p>Curve data view</p>
+      </AppFrame>,
+    );
+
+    expect(screen.getByText('Curve data view')).toBeInTheDocument();
     expect(mockReplace).not.toHaveBeenCalledWith('/sign-in');
   });
 
