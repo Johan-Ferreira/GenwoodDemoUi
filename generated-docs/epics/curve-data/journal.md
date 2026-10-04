@@ -18,3 +18,7 @@
 - Added the 'By date' view to Curve data. You switch with a 'By maturity' / 'By date' pair of buttons. By date has From and To fields, which start at the first and last dates the curve has data for, and a Tenors field. Each field takes effect when you leave it or press Enter. The table shows one row per valuation date, newest first, and one column per maturity headed '{label} (%)'. Each rate goes under the column with its own maturity label, never by position, and a missing rate shows a dash.
 - When the Tenors field is empty, the By date view uses the key maturities: 1Y, 2Y, 5Y, 10Y, 20Y, 30Y for long-end curves and 1M, 3M, 6M, 1Y, 2Y, 5Y for short-end curves. These are matched to the curve's own maturities by length in months, so a short-end curve that calls one year '12M' still gets that column.
 - A date range with no data shows 'No data imported' with the hint 'Choose another date range or import a file.' instead of an error.
+
+## Story 4: Export rates as CSV
+
+- The Curve data page now has an Export CSV button next to the By maturity / By date switch. It downloads a real CSV file for the shown curve and valuation date. The service sends no filename, so the file is saved as '{curve code}-{date}.csv'. A 'CSV export prepared.' notice then appears briefly in the bottom-right. If the export fails, an error stays on screen with a Retry button and no confirmation is shown. The button can't be clicked in the By date view or while the valuation date isn't a valid YYYY-MM-DD date.

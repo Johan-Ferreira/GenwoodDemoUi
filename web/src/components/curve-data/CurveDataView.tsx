@@ -18,6 +18,7 @@ import {
   NO_CURVE_FILTERS,
   type CurveFilters,
 } from '@/lib/curves/curve-filters';
+import { isIsoDate } from '@/lib/validation/iso-date';
 import type {
   AvailabilityRead,
   CurveRead,
@@ -25,6 +26,7 @@ import type {
 } from '@/types/api-generated';
 
 import { CurveCatalogueFilters } from './CurveCatalogueFilters';
+import { ExportCsvButton, ExportCsvFailure, useCsvExport } from './ExportCsv';
 import { CurveSelect } from './CurveSelect';
 import { RatesByDate } from './RatesByDate';
 import { RatesByDateFields } from './RatesByDateFields';
@@ -97,6 +99,17 @@ function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
   const enteredTenors = byDate.tenors.applied;
   const matrixTenors = enteredTenors.length > 0 ? enteredTenors : keyTenors;
 
+  // Export the shown By maturity table; unavailable in By date and while the
+  // typed valuation date is not a real YYYY-MM-DD date.
+  const csv = useCsvExport();
+  const exportDate =
+    view === 'maturity' && code && isIsoDate(date.draft.trim())
+      ? date.applied
+      : null;
+  const runExport = () => {
+    if (code && exportDate) void csv.exportCsv(code, exportDate);
+  };
+
   let table: ReactNode;
   if (!code) {
     table = <NoDataImported />;
@@ -135,9 +148,19 @@ function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
           onCommit={date.commit}
         />
       )}
-      <div className="ml-auto">
+      <div className="ml-auto flex items-start gap-2">
         <RatesViewTabs baseId={baseId} value={view} onChange={onViewChange} />
+        <div className="self-start sm:mt-6">
+          <ExportCsvButton
+            disabled={!exportDate}
+            exporting={csv.state.status === 'exporting'}
+            onExport={runExport}
+          />
+        </div>
       </div>
+      {csv.state.status === 'error' && (
+        <ExportCsvFailure error={csv.state.error} onRetry={runExport} />
+      )}
       <CurveCard curve={curve}>
         <div
           role="tabpanel"
