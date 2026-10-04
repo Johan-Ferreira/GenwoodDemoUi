@@ -14,7 +14,8 @@ Next.js 16 frontend application with TypeScript, React 19, Tailwind CSS 4 and Sh
    Create a `.env.local` file:
 
    ```env
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:8042
+   NEXT_PUBLIC_API_BASE_URL=/curve-data
+   CURVE_DATA_SERVICE_URL=http://localhost:10020/curve-data
    ```
 
 3. **Run development server**

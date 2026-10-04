@@ -1,31 +1,6 @@
 /**
- * API Type Definitions Template
- *
- * Generic type definitions for API communication
- * Customize these based on your API's response format
+ * Data-service API type definitions shared by the client layer.
  */
-
-/**
- * DefaultResponse - Standard API response structure
- * Customize this based on your API's response format
- * Common in REST APIs for mutation endpoints (POST, PUT, DELETE)
- */
-export interface DefaultResponse {
-  Id: number;
-  MessageType: string;
-  Messages: string[];
-}
-
-/**
- * APIError - Standardized error object for API failures
- * Used throughout the application for consistent error handling
- */
-export interface APIError {
-  message: string;
-  statusCode?: number;
-  details?: string[];
-  endpoint?: string;
-}
 
 export type QueryParamScalar = string | number | boolean;
 export type QueryParams = Record<
@@ -34,57 +9,25 @@ export type QueryParams = Record<
 >;
 
 /**
- * APIRequestConfig - Configuration options for API requests
- * Extends standard fetch RequestInit with additional options
+ * Error body the data service returns on 404/500 (spec schema `Message`).
  */
-export interface APIRequestConfig extends RequestInit {
-  params?: QueryParams;
-  /**
-   * When true, the client injects an auth header from getAuthHeader() (env-var
-   * driven, populated by api-connectivity-agent during INTAKE Step 4b). Caller-
-   * supplied headers always win — set headers explicitly to override.
-   */
-  requiresAuth?: boolean;
-  lastChangedUser?: string; // For audit trails - remove if not needed
-  isBinaryResponse?: boolean; // Flag to indicate response should be treated as binary data
+export interface ServiceMessage {
+  Message: string;
 }
 
 /**
- * APIResponse - Generic wrapper for successful API responses
- * Provides type-safe response handling
+ * How a failed request is presented: a not-authorised refusal (401/403) gets
+ * the access message; everything else gets the persistent service-error message.
  */
-export interface APIResponse<T> {
-  data: T;
+export type ServiceErrorKind = 'not-authorised' | 'service-error';
+
+/**
+ * Shape of a failed data-service request as seen by the UI.
+ * `status` is 0 when the service could not be reached at all.
+ */
+export interface ServiceErrorShape {
   status: number;
-  statusText: string;
+  description: string;
+  retryable: boolean;
+  kind: ServiceErrorKind;
 }
-
-/**
- * API Message Type enum values
- * Customize based on your API's message types
- */
-export const APIMessageType = {
-  SUCCESS: 'SUCCESS',
-  ERROR: 'ERROR',
-  WARNING: 'WARNING',
-  INFO: 'INFO',
-} as const;
-
-export type APIMessageTypeValue =
-  (typeof APIMessageType)[keyof typeof APIMessageType];
-
-/**
- * HTTP Status Codes - Common status codes used in the application
- */
-export const HTTPStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
-} as const;
-
-export type HTTPStatusCode = (typeof HTTPStatus)[keyof typeof HTTPStatus];

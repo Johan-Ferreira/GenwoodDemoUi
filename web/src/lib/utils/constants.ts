@@ -6,12 +6,18 @@
  */
 
 /**
- * API base URL - Retrieved from environment variable
- * Set NEXT_PUBLIC_API_BASE_URL in your .env.local file
- * Default: http://localhost:8042 (adjust as needed)
+ * Same-origin proxy path the browser uses for every data-service call.
+ * next.config.ts rewrites it to the real service (CURVE_DATA_SERVICE_URL,
+ * server-side), so the browser never calls the service address directly.
+ */
+export const CURVE_DATA_PROXY_PATH = '/curve-data';
+
+/**
+ * API base URL - browser-facing, from NEXT_PUBLIC_API_BASE_URL.
+ * Defaults to the same-origin proxy path.
  */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8042';
+  process.env.NEXT_PUBLIC_API_BASE_URL || CURVE_DATA_PROXY_PATH;
 
 /**
  * Default pagination settings

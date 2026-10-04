@@ -33,7 +33,7 @@ function setupEnvironment() {
       envCreated = true;
       log('✅ Created .env.local from .env.example');
     } else {
-      const basicEnv = `NEXT_PUBLIC_API_BASE_URL=http://localhost:8042\n`;
+      const basicEnv = `NEXT_PUBLIC_API_BASE_URL=/curve-data\nCURVE_DATA_SERVICE_URL=http://localhost:10020/curve-data\n`;
       fs.writeFileSync(ENV_LOCAL_PATH, basicEnv);
       envCreated = true;
       log('✅ Created .env.local');
