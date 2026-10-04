@@ -26,9 +26,9 @@ import type { TenorRead } from '@/types/api-generated';
 export const NO_DATA_IMPORTED = 'No data imported';
 export const NO_DATA_HINT = 'Choose another valuation date or import a file.';
 
-const HEAD_CLASS =
+export const HEAD_CLASS =
   'sticky top-0 z-10 h-9 bg-card px-3 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
-const CELL_CLASS = 'px-3 py-2 font-mono text-xs';
+export const CELL_CLASS = 'px-3 py-2 font-mono text-xs';
 const MUTED_CELL_CLASS = `${CELL_CLASS} text-muted-foreground`;
 
 const COLUMNS: ReadonlyArray<{ label: string; numeric?: boolean }> = [
@@ -110,7 +110,8 @@ function MaturityTable({ rows }: { rows: readonly MaturityRow[] }) {
   );
 }
 
-function Footer({ children }: { children: ReactNode }) {
+/** The muted footer under a curve table. */
+export function TableFooter({ children }: { children: ReactNode }) {
   return (
     <div className="border-t bg-muted px-3 py-2.5 text-muted-foreground">
       {children}
@@ -119,16 +120,17 @@ function Footer({ children }: { children: ReactNode }) {
 }
 
 /** "No data imported" with what to do next (BR1: never an error). */
-export function NoDataImported() {
+export function NoDataImported({ hint = NO_DATA_HINT }: { hint?: string }) {
   return (
-    <Footer>
+    <TableFooter>
       <p className="font-medium text-foreground">{NO_DATA_IMPORTED}</p>
-      <p>{NO_DATA_HINT}</p>
-    </Footer>
+      <p>{hint}</p>
+    </TableFooter>
   );
 }
 
-function MaturitySkeleton() {
+/** Placeholder rows while a curve table loads. */
+export function TableSkeleton() {
   return (
     <div className="flex flex-col gap-2 p-3">
       <Skeleton className="h-6 w-full" />
@@ -154,7 +156,7 @@ export function RatesByMaturity({ code, tenors, date }: RatesByMaturityProps) {
     <DataState
       key={`${code}|${date}`}
       load={() => getCurveRates(code, { ObservationDate: date })}
-      skeleton={<MaturitySkeleton />}
+      skeleton={<TableSkeleton />}
     >
       {(list) => {
         const rows = joinRatesToTenors(tenors, list.Rates ?? []);
@@ -164,9 +166,9 @@ export function RatesByMaturity({ code, tenors, date }: RatesByMaturityProps) {
             {rows.length === 0 ? (
               <NoDataImported />
             ) : (
-              <Footer>
+              <TableFooter>
                 <p>Valuation date {date}. Rates in percent.</p>
-              </Footer>
+              </TableFooter>
             )}
           </>
         );

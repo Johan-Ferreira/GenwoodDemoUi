@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 
 import { DataState } from '@/components/data-state/DataState';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import {
   getCurveTenors,
 } from '@/lib/api/endpoints';
 import { curveSubtitle } from '@/lib/curves/curve-format';
+import { keyTenorLabels } from '@/lib/curves/rate-matrix';
 import {
   filterCurveCatalogue,
   keepOrFirstCurve,
@@ -25,7 +26,16 @@ import type {
 
 import { CurveCatalogueFilters } from './CurveCatalogueFilters';
 import { CurveSelect } from './CurveSelect';
+import { RatesByDate } from './RatesByDate';
+import { RatesByDateFields } from './RatesByDateFields';
 import { NoDataImported, RatesByMaturity } from './RatesByMaturity';
+import {
+  ratesViewPanelId,
+  ratesViewTabId,
+  RatesViewTabs,
+  type RatesView,
+} from './RatesViewTabs';
+import { useRatesByDateInputs } from './useRatesByDateInputs';
 import { useValuationDate } from './useValuationDate';
 import { ValuationDateField } from './ValuationDateField';
 
@@ -64,37 +74,78 @@ function CurveCard({
   );
 }
 
-/**
- * The chosen curve's valuation date and rates. Renders flex items of the
- * filter row (the date field, then the full-width table card).
- */
-function CurvePanel({
-  curve,
-  context,
-}: {
+interface CurvePanelProps {
   curve: CurveRead;
   context: CurveContext;
-}) {
+  view: RatesView;
+  onViewChange: (view: RatesView) => void;
+}
+
+/**
+ * The chosen curve's inputs, view switch and rates. Renders flex items of the
+ * filter row (the active view's fields, the By maturity / By date tabs, then
+ * the full-width table card). Both views' inputs live here, so switching
+ * views keeps what was entered.
+ */
+function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
+  const baseId = useId();
   const date = useValuationDate(context.availability);
+  const byDate = useRatesByDateInputs(context.availability);
+  const keyTenors = keyTenorLabels(curve, context.tenors);
+  const code = curve.Code;
+
+  const enteredTenors = byDate.tenors.applied;
+  const matrixTenors = enteredTenors.length > 0 ? enteredTenors : keyTenors;
+
+  let table: ReactNode;
+  if (!code) {
+    table = <NoDataImported />;
+  } else if (view === 'date') {
+    table = (
+      <RatesByDate
+        code={code}
+        from={byDate.from.applied}
+        to={byDate.to.applied}
+        tenors={matrixTenors}
+        selectedDate={date.applied}
+      />
+    );
+  } else {
+    table = date.applied ? (
+      <RatesByMaturity
+        code={code}
+        tenors={context.tenors}
+        date={date.applied}
+      />
+    ) : (
+      <NoDataImported />
+    );
+  }
+
   return (
     <>
-      <ValuationDateField
-        availability={context.availability}
-        draft={date.draft}
-        invalid={date.invalid}
-        onType={date.type}
-        onCommit={date.commit}
-      />
+      {view === 'date' ? (
+        <RatesByDateFields inputs={byDate} keyTenors={keyTenors} />
+      ) : (
+        <ValuationDateField
+          availability={context.availability}
+          draft={date.draft}
+          invalid={date.invalid}
+          onType={date.type}
+          onCommit={date.commit}
+        />
+      )}
+      <div className="ml-auto">
+        <RatesViewTabs baseId={baseId} value={view} onChange={onViewChange} />
+      </div>
       <CurveCard curve={curve}>
-        {date.applied && curve.Code ? (
-          <RatesByMaturity
-            code={curve.Code}
-            tenors={context.tenors}
-            date={date.applied}
-          />
-        ) : (
-          <NoDataImported />
-        )}
+        <div
+          role="tabpanel"
+          id={ratesViewPanelId(baseId)}
+          aria-labelledby={ratesViewTabId(baseId, view)}
+        >
+          {table}
+        </div>
       </CurveCard>
     </>
   );
@@ -111,6 +162,7 @@ export const NO_CURVES_MATCH = 'No curves match these filters.';
 function CurveExplorer({ curves }: { curves: readonly CurveRead[] }) {
   const [filters, setFilters] = useState<CurveFilters>(NO_CURVE_FILTERS);
   const [code, setCode] = useState(curves[0]?.Code ?? '');
+  const [view, setView] = useState<RatesView>('maturity');
   const listed = filterCurveCatalogue(curves, filters);
   const curve = listed.find((candidate) => candidate.Code === code);
 
@@ -146,7 +198,14 @@ function CurveExplorer({ curves }: { curves: readonly CurveRead[] }) {
             load={() => loadCurveContext(code)}
             skeleton={<Skeleton className="mt-6 h-9 w-44" />}
           >
-            {(context) => <CurvePanel curve={curve} context={context} />}
+            {(context) => (
+              <CurvePanel
+                curve={curve}
+                context={context}
+                view={view}
+                onViewChange={setView}
+              />
+            )}
           </DataState>
         )}
       </div>

@@ -12,3 +12,9 @@
 - The Curve data view now has Family, Rate type and Segment filters above the Curve picker. Each starts at 'All' and they combine. If the curve you're viewing no longer matches, the first matching curve is picked and its rates load. If nothing matches, the Curve picker is disabled and a message reads 'No curves match these filters. Clear the filters to list every curve.' A single 'Clear filters' button shows whenever any filter is set.
 - The filters work on the full list of curves that's already loaded, so changing a filter doesn't call the service again.
 - The file log and the curve data view now share one filter-dropdown component, so the two views' filters look and behave the same.
+
+## Story 3: Rates by date across a date range
+
+- Added the 'By date' view to Curve data. You switch with a 'By maturity' / 'By date' pair of buttons. By date has From and To fields, which start at the first and last dates the curve has data for, and a Tenors field. Each field takes effect when you leave it or press Enter. The table shows one row per valuation date, newest first, and one column per maturity headed '{label} (%)'. Each rate goes under the column with its own maturity label, never by position, and a missing rate shows a dash.
+- When the Tenors field is empty, the By date view uses the key maturities: 1Y, 2Y, 5Y, 10Y, 20Y, 30Y for long-end curves and 1M, 3M, 6M, 1Y, 2Y, 5Y for short-end curves. These are matched to the curve's own maturities by length in months, so a short-end curve that calls one year '12M' still gets that column.
+- A date range with no data shows 'No data imported' with the hint 'Choose another date range or import a file.' instead of an error.
