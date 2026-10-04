@@ -17,3 +17,6 @@
 
 ## Story 4: Trace a file to its import
 - Added the import trace page. From a file's details, "Trace import" opens /file-log/imports/{WOID}. It shows the file's log entry, the workflow instance that processed it (with its status and timestamps), and how many rates and curves it published. An unknown WOID shows "Import not found" with a link back to the file list; any other failure shows the usual error with Retry. The step-by-step pipeline is left for the Workflow monitor epic.
+
+## Story 5: Import finished and failed notices
+- The File log now checks for updates on its own every 10 seconds while any file on screen is still Processing. It stops when nothing is Processing or the browser tab is hidden. When a file it saw as Processing turns Imported or Failed, you get a short "Import complete." or "Import failed. See the file log for details." message, once. If that file's details are open, they update too. Opening the page never shows these messages for files that were already finished.

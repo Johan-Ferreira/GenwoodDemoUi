@@ -21,6 +21,10 @@ import type { FileRow } from '@/types/files';
 import { FileDetailCard, FileNotFound } from './FileDetailCard';
 import { FileLogFilters } from './FileLogFilters';
 import { useFileLogFilters, type ActiveFilter } from './useFileLogFilters';
+import {
+  fileStatusRefreshDelay,
+  useImportStatusNotices,
+} from './useImportStatusNotices';
 import { useSelectedFile } from './useSelectedFile';
 
 const EMPTY_MESSAGE = 'No files have been received yet.';
@@ -122,6 +126,7 @@ export function FileLogView() {
   const [sort, setSort] = useState<FileSort | null>(null);
   const { selection, select } = useSelectedFile();
   const selectedId = selection.kind === 'file' ? selection.id : null;
+  const { onFiles, statuses } = useImportStatusNotices();
 
   return (
     <div className="flex flex-col gap-4">
@@ -133,6 +138,8 @@ export function FileLogView() {
         skeleton={<FileLogSkeleton />}
         isEmpty={hasFilters ? undefined : (files) => files.length === 0}
         empty={EMPTY_MESSAGE}
+        refreshEvery={fileStatusRefreshDelay}
+        onData={onFiles}
       >
         {(files) =>
           files.length === 0 ? (
@@ -153,9 +160,14 @@ export function FileLogView() {
           )
         }
       </DataState>
-      {/* Keyed by the file: a new selection loads that file's details afresh. */}
+      {/* Keyed by the file: a new selection loads that file's details afresh;
+          a status change seen in the list refreshes them in the background. */}
       {selection.kind === 'file' && (
-        <FileDetailCard key={selection.id} fileId={selection.id} />
+        <FileDetailCard
+          key={selection.id}
+          fileId={selection.id}
+          refreshKey={statuses.get(selection.id) ?? null}
+        />
       )}
       {selection.kind === 'invalid' && <FileNotFound />}
     </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { isServiceError } from '@/lib/api/service-error';
 import { LOADING_THRESHOLDS } from '@/lib/utils/constants';
+import { usePageVisible } from '@/lib/utils/page-visibility';
 import type { ServiceErrorShape } from '@/types/api';
 
 /** Loading phases (UI-17): hidden → skeleton (300 ms) → slow (3 s). */
@@ -33,34 +34,93 @@ export function toServiceErrorShape(reason: unknown): ServiceErrorShape {
 const INITIAL_LOADING = { status: 'loading', phase: 'hidden' } as const;
 
 /**
- * Runs `load` on mount (and on `retry`) and tracks the loading thresholds.
- * `load` may be an inline function; only the latest one is called.
+ * Silent-refresh options. A silent refresh re-runs `load` while the loaded
+ * data stays on screen (no loading state, no skeleton); a failure still
+ * becomes the error state, so it is never swallowed.
  */
-export function useDataState<T>(load: () => Promise<T>) {
+export interface DataStateRefreshOptions<T> {
+  /**
+   * Re-check in the background every N ms after each successful load, while
+   * the tab is visible; return `null` to stop (e.g. nothing left pending).
+   */
+  refreshEvery?: (data: T) => number | null;
+  /**
+   * Re-check in the background whenever this value changes after mount from
+   * one non-null value to another (`null` = not known yet).
+   */
+  refreshKey?: string | number | null;
+  /** Called with every successful load (first and background ones). */
+  onData?: (data: T) => void;
+}
+
+/**
+ * Runs `load` on mount (and on `retry`) and tracks the loading thresholds,
+ * with optional silent refreshes (`refreshEvery`, `refreshKey`).
+ * `load` may be an inline function; only the latest one is called, and only
+ * the latest read's result is applied.
+ */
+export function useDataState<T>(
+  load: () => Promise<T>,
+  options: DataStateRefreshOptions<T> = {},
+) {
+  const { refreshEvery, refreshKey, onData } = options;
   const loadRef = useRef(load);
+  const onDataRef = useRef(onData);
   useEffect(() => {
     loadRef.current = load;
+    onDataRef.current = onData;
   });
 
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<DataLoadState<T>>(INITIAL_LOADING);
+  const latestRun = useRef(0);
 
-  useEffect(() => {
-    let active = true;
+  const run = useCallback(() => {
+    latestRun.current += 1;
+    const runId = latestRun.current;
     loadRef.current().then(
       (data) => {
-        if (active) setState({ status: 'success', data });
+        if (latestRun.current !== runId) return;
+        setState({ status: 'success', data });
+        onDataRef.current?.(data);
       },
       (reason: unknown) => {
-        if (active) {
-          setState({ status: 'error', error: toServiceErrorShape(reason) });
-        }
+        if (latestRun.current !== runId) return;
+        setState({ status: 'error', error: toServiceErrorShape(reason) });
       },
     );
+  }, []);
+
+  useEffect(() => {
+    run();
     return () => {
-      active = false;
+      // Unmount or retry: any read still in flight is stale.
+      latestRun.current += 1;
     };
-  }, [attempt]);
+  }, [attempt, run]);
+
+  // Silent refresh when `refreshKey` changes from one known value to another
+  // (not on mount; a first known value after `null` is only the baseline).
+  const lastRefreshKey = useRef(refreshKey ?? null);
+  useEffect(() => {
+    const next = refreshKey ?? null;
+    const previous = lastRefreshKey.current;
+    if (previous === next) return;
+    lastRefreshKey.current = next;
+    if (previous !== null && next !== null) run();
+  }, [refreshKey, run]);
+
+  // Silent background re-check after each successful load, while visible.
+  const visible = usePageVisible();
+  const refreshDelay =
+    state.status === 'success' && refreshEvery
+      ? refreshEvery(state.data)
+      : null;
+  useEffect(() => {
+    if (refreshDelay === null || !visible) return;
+    const timer = setTimeout(run, refreshDelay);
+    return () => clearTimeout(timer);
+  }, [refreshDelay, visible, state, run]);
 
   const isLoading = state.status === 'loading';
   useEffect(() => {

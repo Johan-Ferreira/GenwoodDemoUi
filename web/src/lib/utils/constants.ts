@@ -48,6 +48,11 @@ export const LOADING_THRESHOLDS = {
 } as const;
 
 /**
+ * How often the File log re-checks the list while a file is Processing (NFR-5).
+ */
+export const FILE_STATUS_POLL_MS = 10_000;
+
+/**
  * Modal settings
  */
 export const MODAL_SETTINGS = {

@@ -16,7 +16,8 @@
       "Filter labels (Status, Curve family, Received from, Received to) sit above each control in a row above the table; the design's single status filter had no visible label. Check this layout looks right.",
       "Sorting a column keeps you on the current page; changing a filter goes back to page 1. Check this is what you want.",
       "New wording not in the design: a failed download reads 'The original file could not be downloaded.' then the service's message and 'Choose Retry to try again.'; the missing-file screen links back with 'Back to the file list'. Check this wording.",
-      "A cancelled workflow instance shows an amber (warning) status chip; the design only gives colours for Finished, Faulted and Running. Check amber is right for Cancelled."
+      "A cancelled workflow instance shows an amber (warning) status chip; the design only gives colours for Finished, Faulted and Running. Check amber is right for Cancelled.",
+      "If a background check fails (for example the service drops for a moment), the file list is replaced by the usual 'The data could not be loaded.' message with Retry rather than quietly keeping the old list. Check this is what you want during a demo."
     ],
     "manualTestResults": []
   },
@@ -26,7 +27,7 @@
     "2": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T14:25:00.000Z", "completedAt": "2026-10-04T14:38:00.000Z" },
     "3": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T14:42:00.000Z", "completedAt": "2026-10-04T14:55:00.000Z" },
     "4": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T14:58:00.000Z", "completedAt": "2026-10-04T15:08:00.000Z" },
-    "5": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }
+    "5": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-04T15:12:00.000Z", "completedAt": "2026-10-04T15:24:00.000Z" }
   },
   "halt": null,
   "lastUpdated": "2026-10-04T13:30:00.000Z"

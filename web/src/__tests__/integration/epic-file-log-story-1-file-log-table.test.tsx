@@ -37,6 +37,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import FileLogPage from '@/app/(app)/file-log/page';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { get } from '@/lib/api/client';
 import { ServiceError } from '@/lib/api/service-error';
 import {
@@ -65,6 +66,15 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+/** The page inside the app's ToastProvider (mounted by the root layout). */
+function renderFileLog() {
+  return render(
+    <ToastProvider>
+      <FileLogPage />
+    </ToastProvider>,
+  );
+}
+
 /** The table row for a file, found by its leading ID cell. */
 function rowForFile(id: number): HTMLElement {
   return screen.getByRole('row', { name: new RegExp(`^${id}\\b`) });
@@ -89,7 +99,7 @@ describe('Epic file-log, Story 1: File log table', () => {
       createFileList({ Files: [...createFiles()].reverse() }),
     );
 
-    render(<FileLogPage />);
+    renderFileLog();
 
     const table = await screen.findByRole('table');
     for (const header of [
@@ -141,7 +151,7 @@ describe('Epic file-log, Story 1: File log table', () => {
       }),
     );
 
-    render(<FileLogPage />);
+    renderFileLog();
     await screen.findByRole('table');
 
     const expectations: Array<[number, string, string]> = [
@@ -165,7 +175,7 @@ describe('Epic file-log, Story 1: File log table', () => {
   it('says no files have been received instead of showing an empty table', async () => {
     mockGet.mockResolvedValue(createEmptyFileList());
 
-    render(<FileLogPage />);
+    renderFileLog();
 
     expect(
       await screen.findByText('No files have been received yet.'),
@@ -185,7 +195,7 @@ describe('Epic file-log, Story 1: File log table', () => {
       }),
     );
 
-    render(<FileLogPage />);
+    renderFileLog();
 
     const alert = await screen.findByRole('alert');
     expect(

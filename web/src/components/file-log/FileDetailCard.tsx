@@ -235,11 +235,19 @@ function FileDetails({
 }
 
 /** Loads `GET /v1/files/{Id}` through DataState and shows the file, or "File not found". */
-export function FileDetailCard({ fileId }: { fileId: number }) {
+export function FileDetailCard({
+  fileId,
+  refreshKey,
+}: {
+  fileId: number;
+  /** When this changes (e.g. the file's status in the list), re-read silently. */
+  refreshKey?: string | number | null;
+}) {
   return (
     <DataState
       load={() => lookUp(() => getFile(fileId))}
       skeleton={<DetailSkeleton />}
+      refreshKey={refreshKey}
     >
       {(lookup) =>
         lookup.found ? (
