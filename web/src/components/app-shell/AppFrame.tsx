@@ -8,6 +8,7 @@ import {
   useDemoSession,
 } from '@/lib/session/demo-session';
 import { SIGN_IN_PATH } from '@/lib/navigation/nav-items';
+import { SessionTimer } from '@/components/session/SessionTimer';
 import { AppHeader } from './AppHeader';
 import { SideNav } from './SideNav';
 
@@ -48,6 +49,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <SessionTimer signedInAt={session.signedInAt} onExpire={signOutDemo} />
       <AppHeader displayName={session.displayName} onSignOut={handleSignOut} />
       <div className="flex flex-1">
         <SideNav />

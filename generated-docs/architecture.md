@@ -7,7 +7,9 @@
 |---|---|---|
 | `useDemoSession`, `readDemoSession`, `signInDemo`, `signOutDemo`, `DemoSession` | `web/src/lib/session/demo-session.ts` | Client-only demo session in sessionStorage (`displayName`, `signedInAt`, `lastActivityAt`); hook re-renders on sign-in/out |
 | `NAV_GROUPS`, `isNavItemActive`, `OVERVIEW_PATH`, `SIGN_IN_PATH` | `web/src/lib/navigation/nav-items.ts` | The six destinations, their routes, icons and groups; active-item matching |
-| `AppFrame` | `web/src/components/app-shell/AppFrame.tsx` | Signed-in frame (header, side nav, padded `<main>`); redirects to `/sign-in` with no session; mounted by `app/(app)/layout.tsx` |
+| `SESSION_ABSOLUTE_LIMIT_MS`, `isSessionExpired`, `msUntilSessionExpiry` | `web/src/lib/session/session-limits.ts` | The single 8-hour absolute session limit (no idle limit) and expiry checks |
+| `SessionTimer` | `web/src/components/session/SessionTimer.tsx` | `<SessionTimer signedInAt onExpire />`: at the absolute limit calls `onExpire` then `router.replace('/sign-in')`; new `signedInAt` restarts; re-checks on tab visible; renders nothing |
+| `AppFrame` | `web/src/components/app-shell/AppFrame.tsx` | Signed-in frame (header, side nav, padded `<main>`); redirects to `/sign-in` with no session; mounts `SessionTimer` (sign-out on expiry); mounted by `app/(app)/layout.tsx` |
 | `AppHeader`, `SideNav`, `GenwoodLogo` | `web/src/components/app-shell/` | Forest header with Sign out; 232px nav with `aria-current="page"`; logo at 36px/52px (Forest surfaces only) |
 | `PageHeader` | `web/src/components/app-shell/PageHeader.tsx` | A view's `<h1>` title with optional subtitle and right-aligned actions |
 | `get`, `requestFromService` | `web/src/lib/api/client.ts` | Read-only (GET-only) data-service client via the same-origin proxy; query params (arrays repeat, `undefined` dropped); rejects with `ServiceError` |

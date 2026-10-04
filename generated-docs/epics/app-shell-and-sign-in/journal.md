@@ -12,3 +12,6 @@
 ## Story 3: Shared loading, error and message patterns
 - Every screen now shares one way of handling loading and problems. While data loads, nothing shows for the first 300 ms, then a placeholder skeleton appears. After 3 seconds a line says loading is taking longer than usual. If the data service fails, a message stays on screen with the reason and a Retry button. If the service refuses the request as not authorised, the page says so and explains how to request access.
 - Confirmation messages now appear at the bottom right in Genwood's dark forest green and leave after about 2.6 seconds. Messages that need the user to act stay until they're dismissed. Status labels always show their text as well as their colour, and icon-only buttons are read out by name to screen readers.
+
+## Story 4: Session time limit
+- A session now ends 8 hours after sign-in and the app goes back to the sign-in screen, even if the presenter is active the whole time. Idle sign-out is off by decision, so pausing mid-demo never signs anyone out and no warning appears. The 8-hour limit is set in one place, web/src/lib/session/session-limits.ts.
