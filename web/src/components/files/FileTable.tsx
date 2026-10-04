@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from 'react';
+
 import { StatusChip } from '@/components/status-chip/StatusChip';
 import { SortableTableHead } from '@/components/table-sort/SortableTableHead';
 import {
@@ -46,13 +48,26 @@ export interface FileTableProps {
   sort?: FileSort | null;
   /** When given, every header is a sort button that reports its column. */
   onSortChange?: (key: FileSortKey) => void;
+  /** Id of the selected file: its row gets `aria-selected` and the selected fill. */
+  selectedId?: number | null;
+  /** When given, rows are clickable (and keyboard-activatable) and report their file. */
+  onSelect?: (row: FileRow) => void;
 }
+
+const SELECTABLE_ROW_CLASS =
+  'cursor-pointer focus-ring aria-selected:bg-selected aria-selected:shadow-[inset_2px_0_0_var(--selected-foreground)] aria-selected:hover:bg-selected';
 
 /**
  * The file-log columns (ID, File, Curve family, Received, Size, Records
  * inserted, WOID, Status) for the given rows, in the order supplied.
  */
-export function FileTable({ rows, sort = null, onSortChange }: FileTableProps) {
+export function FileTable({
+  rows,
+  sort = null,
+  onSortChange,
+  selectedId = null,
+  onSelect,
+}: FileTableProps) {
   return (
     <Table>
       <TableHeader className="bg-muted">
@@ -80,7 +95,21 @@ export function FileTable({ rows, sort = null, onSortChange }: FileTableProps) {
       </TableHeader>
       <TableBody>
         {rows.map((row) => (
-          <TableRow key={row.id}>
+          <TableRow
+            key={row.id}
+            {...(onSelect && {
+              className: SELECTABLE_ROW_CLASS,
+              tabIndex: 0,
+              'aria-selected': row.id === selectedId,
+              onClick: () => onSelect(row),
+              onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelect(row);
+                }
+              },
+            })}
+          >
             <TableCell
               className={`${CELL_CLASS} font-mono text-muted-foreground`}
             >

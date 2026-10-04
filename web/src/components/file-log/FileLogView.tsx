@@ -18,8 +18,10 @@ import {
 import { nextSort } from '@/lib/utils/sort';
 import type { FileRow } from '@/types/files';
 
+import { FileDetailCard, FileNotFound } from './FileDetailCard';
 import { FileLogFilters } from './FileLogFilters';
 import { useFileLogFilters, type ActiveFilter } from './useFileLogFilters';
+import { useSelectedFile } from './useSelectedFile';
 
 const EMPTY_MESSAGE = 'No files have been received yet.';
 const NO_MATCHES_MESSAGE = 'No files match these filters.';
@@ -70,10 +72,14 @@ function FileLogTableCard({
   files,
   sort,
   onSortChange,
+  selectedId,
+  onSelect,
 }: {
   files: readonly FileRow[];
   sort: FileSort | null;
   onSortChange: (key: FileSortKey) => void;
+  selectedId: number | null;
+  onSelect: (row: FileRow) => void;
 }) {
   const sorted = useMemo(() => sortFileRows(files, sort), [files, sort]);
   const pagination = useClientPagination(sorted);
@@ -84,6 +90,8 @@ function FileLogTableCard({
         rows={pagination.pageItems}
         sort={sort}
         onSortChange={onSortChange}
+        selectedId={selectedId}
+        onSelect={onSelect}
       />
       <div className="flex flex-wrap items-center justify-between gap-4 border-t bg-muted px-3 py-2.5">
         <p className="text-muted-foreground">{SOURCE_NOTE}</p>
@@ -112,6 +120,8 @@ export function FileLogView() {
   const { filters, filtersKey, activeFilters, clearAll } = filterState;
   const hasFilters = activeFilters.length > 0;
   const [sort, setSort] = useState<FileSort | null>(null);
+  const { selection, select } = useSelectedFile();
+  const selectedId = selection.kind === 'file' ? selection.id : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -137,10 +147,17 @@ export function FileLogView() {
               onSortChange={(key) =>
                 setSort((current) => nextSort(current, key))
               }
+              selectedId={selectedId}
+              onSelect={(row) => select(row.id)}
             />
           )
         }
       </DataState>
+      {/* Keyed by the file: a new selection loads that file's details afresh. */}
+      {selection.kind === 'file' && (
+        <FileDetailCard key={selection.id} fileId={selection.id} />
+      )}
+      {selection.kind === 'invalid' && <FileNotFound />}
     </div>
   );
 }

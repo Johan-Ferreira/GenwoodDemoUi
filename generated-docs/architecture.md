@@ -31,8 +31,10 @@
 | `sortFileRows`, `fileSortValue`, `FileSort`, `FileSortKey` | `web/src/lib/files/file-sort.ts` | Sorts `FileRow`s by any of the eight file-log columns |
 | `isIsoDate`, `ISO_DATE_MESSAGE` | `web/src/lib/validation/iso-date.ts` | Real calendar date in `YYYY-MM-DD`; the inline "Enter the date as YYYY-MM-DD." message |
 | `FileLogFilters`, `useFileLogFilters` | `web/src/components/file-log/` | File-log filter bar (Status / Curve family Selects, Received from/to text dates applied on blur or Enter) → `FileFilters` query params, active-filter list, `clearAll` |
-| `formatFileSize`, `formatCount`, `shortWoid`, `fileStatusTone`, `FILE_STATUS_TONE`, `NO_VALUE` | `web/src/lib/files/file-format.ts` | Size "342.7 KB" (1024-based, 1 dp), counts, 8-char WOID, status → tone (Imported success / Failed danger / Processing info), "—" placeholder |
-| `FileTable` | `web/src/components/files/FileTable.tsx` | The eight file-log columns (ID … Status) for given `FileRow`s, in the order supplied; optional `sort` + `onSortChange` make every header a sort button |
+| `formatFileSize`, `formatByteCount`, `formatCount`, `shortWoid`, `fileStatusTone`, `FILE_STATUS_TONE`, `NO_VALUE` | `web/src/lib/files/file-format.ts` | Size "342.7 KB" (1024-based, 1 dp) or exact "350,925 bytes", counts, 8-char WOID, status → tone (Imported success / Failed danger / Processing info), "—" placeholder |
+| `FileTable` | `web/src/components/files/FileTable.tsx` | The eight file-log columns (ID … Status) for given `FileRow`s, in the order supplied; optional `sort` + `onSortChange` make every header a sort button; optional `onSelect` + `selectedId` make rows clickable/keyboard-activatable with `aria-selected` (Forest-50 fill + 2px inset bar) |
+| `useSelectedFile`, `FILE_QUERY_PARAM` | `web/src/components/file-log/useSelectedFile.ts` | The File log selection held in the URL (`/file-log?file=<Id>`, linkable); `select(id)` pushes without scrolling; non-numeric value → `invalid` |
+| `FileDetailCard`, `FileNotFound`, `FILE_NOT_FOUND` | `web/src/components/file-log/FileDetailCard.tsx` | One file's detail via `getFile` in `DataState` (region named by the file-name heading, subtitle with " · current", failed-file alert, `<dl>` grid, "Download original" via `downloadFile`); 404 → "File not found" + link back to the file list |
 | `TablePagination`, `useClientPagination`, `PAGE_SIZE_OPTIONS`, `DEFAULT_PAGE_SIZE` | `web/src/components/table-pagination/` | In-browser paging of a list: "Rows per page" select (5/10/20/50, default 20), range line, Previous/Next buttons (accessible names "Previous page"/"Next page"); page clamps when the list shrinks |
 
 ## Conventions
@@ -43,6 +45,8 @@
 - Interactive controls use the `focus-ring` utility (white gap + Forest 400 ring); Shadcn `Button` already applies it.
 - Fonts: IBM Plex Sans/Mono via `next/font/google` (self-hosted) exposed as `font-sans` / `font-mono`; `font-mono` gets tabular figures. Icons: `lucide-react` with `aria-hidden="true"` when decorative.
 - Filtered lists re-key `DataState` by the applied filters, so a filter change reloads and returns to page 1; sorting and paging run in the browser over the whole loaded list.
+- A 404 that has a specific "not found" message (BR6) is caught inside the `load` passed to `DataState` and returned as a `{ found: false }` result; every other failure is rethrown so `DataState` shows the persistent error with Retry. Downloads use `downloadFile` only (not the generated Blob helpers in `endpoints.ts`).
+- Client components that read `useSearchParams` are rendered inside `<Suspense>` by their page.
 - Every read in a view goes through `DataState` (never a hand-rolled spinner or silent empty fallback); status labels use `StatusChip`; icon-only buttons use `IconButton`.
 - Shadcn CLI output must import `cn` from `@/lib/utils` and `Slot` from `@radix-ui/react-slot`; the CLI currently emits `from "cn"` / `from "radix-ui"` and adds those packages — fix the imports and revert `package.json`.
 

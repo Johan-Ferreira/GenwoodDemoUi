@@ -27,6 +27,11 @@ export function formatFileSize(bytes: number | null): string {
   return `${(kb / 1024).toFixed(1)} MB`;
 }
 
+/** Exact size in bytes with thousands separators: "350,925 bytes". `null` → placeholder. */
+export function formatByteCount(bytes: number | null): string {
+  return bytes === null ? NO_VALUE : `${bytes.toLocaleString('en-GB')} bytes`;
+}
+
 /** A count, or the placeholder when absent. */
 export function formatCount(value: number | null): string {
   return value === null ? NO_VALUE : value.toLocaleString('en-GB');
