@@ -21,7 +21,7 @@ export function parseTenorList(text: string): string[] | null {
   if (trimmed === '') return [];
   const labels = trimmed.split(',').map((part) => part.trim());
   if (labels.some((label) => !TENOR_LABEL_PATTERN.test(label))) return null;
-  return labels.map((label) => label.toUpperCase());
+  return [...new Set(labels.map((label) => label.toUpperCase()))];
 }
 
 /** The design's key tenors, in months: long end and short end. */

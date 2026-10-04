@@ -158,7 +158,7 @@ function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
           />
         </div>
       </div>
-      {csv.state.status === 'error' && (
+      {csv.state.status === 'error' && exportDate && (
         <ExportCsvFailure error={csv.state.error} onRetry={runExport} />
       )}
       <CurveCard curve={curve}>
