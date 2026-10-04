@@ -20,3 +20,7 @@
 
 ## Story 5: Import finished and failed notices
 - The File log now checks for updates on its own every 10 seconds while any file on screen is still Processing. It stops when nothing is Processing or the browser tab is hidden. When a file it saw as Processing turns Imported or Failed, you get a short "Import complete." or "Import failed. See the file log for details." message, once. If that file's details are open, they update too. Opening the page never shows these messages for files that were already finished.
+
+## Manual-test fix: layout
+- After manual testing, the page content now lines up on the left right beside the side menu and uses the full screen width, instead of sitting centred in a 1280px column. This applies to every signed-in page. The file log table was tightened (smaller padding, slightly smaller monospace text) so every column, including Status, fits without sideways scrolling on a normal desktop screen. Very long file names are cut short with "…" and the full name shows when you hover over it.
+- Both changes were the user's decisions that differ from the design, recorded in the design digest under "Your Decisions".

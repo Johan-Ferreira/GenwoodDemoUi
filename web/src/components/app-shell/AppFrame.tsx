@@ -65,10 +65,10 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       <AppHeader displayName={session.displayName} onSignOut={handleSignOut} />
       <div className="flex flex-1">
         <SideNav />
+        {/* Content sits left, right beside the side nav, and uses the full width
+            (no centring, no max width) — a user decision over the design. */}
         <main className="min-w-0 flex-1">
-          <div className="mx-auto flex max-w-(--layout-content-max) flex-col gap-5 px-8 py-7">
-            {children}
-          </div>
+          <div className="flex flex-col gap-5 px-6 py-7">{children}</div>
         </main>
       </div>
     </div>

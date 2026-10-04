@@ -20,8 +20,10 @@ import type { FileSort, FileSortKey } from '@/lib/files/file-sort';
 import type { FileRow } from '@/types/files';
 
 const HEAD_CLASS =
-  'h-9 px-3 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
-const CELL_CLASS = 'px-3 py-2.5';
+  'h-9 px-2 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
+const CELL_CLASS = 'px-2 py-2.5';
+/** Monospace values (12px) keep the eight columns within a desktop-width table. */
+const MONO_CELL_CLASS = `${CELL_CLASS} font-mono text-xs`;
 
 const COLUMNS: ReadonlyArray<{
   key: FileSortKey;
@@ -29,7 +31,8 @@ const COLUMNS: ReadonlyArray<{
   className?: string;
 }> = [
   { key: 'id', label: 'ID', className: 'w-14' },
-  { key: 'fileName', label: 'File' },
+  // File takes whatever width the other columns leave (see its cell).
+  { key: 'fileName', label: 'File', className: 'w-full' },
   { key: 'curveFamily', label: 'Curve family' },
   { key: 'receivedAt', label: 'Received' },
   { key: 'sizeBytes', label: 'Size', className: 'text-right' },
@@ -110,26 +113,28 @@ export function FileTable({
               },
             })}
           >
-            <TableCell
-              className={`${CELL_CLASS} font-mono text-muted-foreground`}
-            >
+            <TableCell className={`${MONO_CELL_CLASS} text-muted-foreground`}>
               {row.id}
             </TableCell>
-            <TableCell className={`${CELL_CLASS} font-mono`}>
+            {/* max-w-0 + w-full: the column fills the leftover width and a long
+                name is cut with an ellipsis (full name on hover) rather than
+                pushing the table into a horizontal scroll. */}
+            <TableCell
+              className={`${MONO_CELL_CLASS} w-full max-w-0 truncate`}
+              title={row.fileName}
+            >
               {row.fileName}
             </TableCell>
             <TableCell className={CELL_CLASS}>{row.curveFamily}</TableCell>
-            <TableCell className={`${CELL_CLASS} font-mono`}>
-              {row.receivedAt}
-            </TableCell>
-            <TableCell className={`${CELL_CLASS} text-right font-mono`}>
+            <TableCell className={MONO_CELL_CLASS}>{row.receivedAt}</TableCell>
+            <TableCell className={`${MONO_CELL_CLASS} text-right`}>
               {formatFileSize(row.sizeBytes)}
             </TableCell>
-            <TableCell className={`${CELL_CLASS} text-right font-mono`}>
+            <TableCell className={`${MONO_CELL_CLASS} text-right`}>
               {formatCount(row.recordsInserted)}
             </TableCell>
             <TableCell
-              className={`${CELL_CLASS} font-mono text-muted-foreground`}
+              className={`${MONO_CELL_CLASS} text-muted-foreground`}
               title={row.woid}
             >
               {shortWoid(row.woid)}
