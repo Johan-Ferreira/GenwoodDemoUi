@@ -89,16 +89,15 @@ Scoped to this epic. Authoritative sources: `documentation/CurveData.yaml` (Open
 2. After 3 s the skeleton stays and a message says loading is taking longer than usual.
 3. The content replaces the skeleton when the data arrives.
 
-**Idle session**
-1. The presenter does nothing for 14 minutes.
-2. A warning appears with 60 seconds left and a way to stay signed in.
-3. If the presenter stays, the idle timer restarts. Otherwise the app signs out and shows the sign-in screen.
+**Session limit** *(idle sign-out switched off by user decision)*
+1. The presenter can leave the app untouched for any length of time without being signed out.
+2. Eight hours after sign-in the app ends the session and shows the sign-in screen.
 
 ---
 
 ## Feature NFRs
 
-- **Accessibility:** WCAG 2.1 AA. Visible focus ring (Forest-400 ring with white gap), keyboard operation of sign-in, navigation, sign out, retry and the idle warning, sufficient contrast on the Forest header, and text labels on icon-only buttons. Status is never conveyed by colour alone.
+- **Accessibility:** WCAG 2.1 AA. Visible focus ring (Forest-400 ring with white gap), keyboard operation of sign-in, navigation, sign out and retry, sufficient contrast on the Forest header, and text labels on icon-only buttons. Status is never conveyed by colour alone.
 - **Performance:** the budgets in R14. Fonts and icons are local so no third-party request blocks first render.
 - **Resilience:** one consistent handling of loading, error, not-authorised and empty responses across all screens, built once in the shared layer.
 - **Tone:** all app copy follows §1.8 (calm, precise, plain).
