@@ -68,21 +68,28 @@ export function ToastProvider({ children }: { children: ReactNode }) {
    * Automatically assigns a unique ID and sets up auto-dismiss timer
    * Limits the number of visible toasts to MAX_TOASTS
    *
-   * @param options - Toast configuration options (variant, title, message, duration, dismissible)
+   * @param options - Toast configuration options (variant, title, message, duration, persistent, dismissible)
    */
   const showToast = useCallback(
     (options: ToastOptions) => {
       // Generate unique ID using timestamp + random string
       const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-      // Create toast object with defaults
+      // Create toast object with defaults. A persistent toast (needs the user
+      // to act) never auto-dismisses and can always be dismissed by the user.
+      const persistent = options.persistent ?? false;
       const newToast: Toast = {
         id,
         variant: options.variant,
         title: options.title,
         message: options.message,
-        duration: options.duration ?? TOAST_DEFAULTS.DURATION,
-        dismissible: options.dismissible ?? TOAST_DEFAULTS.DISMISSIBLE,
+        persistent,
+        duration: persistent
+          ? 0
+          : (options.duration ?? TOAST_DEFAULTS.DURATION),
+        dismissible: persistent
+          ? true
+          : (options.dismissible ?? TOAST_DEFAULTS.DISMISSIBLE),
         onClick: options.onClick,
       };
 
@@ -99,7 +106,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       });
 
       // Set up auto-dismiss timer if duration is specified
-      if (newToast.duration && newToast.duration > 0) {
+      if (newToast.duration > 0) {
         const timeoutId = setTimeout(() => {
           dismissToast(id);
         }, newToast.duration);

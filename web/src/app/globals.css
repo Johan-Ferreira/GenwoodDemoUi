@@ -54,6 +54,26 @@
   --color-brand-divider: var(--brand-divider);
   --color-brand-action: var(--brand-action);
   --color-brand-action-hover: var(--brand-action-hover);
+  /* Status intents (chips, alerts): fg 700 / surface 100 / border 300 */
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
+  --color-neutral: var(--neutral);
+  --color-neutral-surface: var(--neutral-surface);
+  --color-neutral-border: var(--neutral-border);
+  /* Toast surface (Forest 900) */
+  --color-toast: var(--toast);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-muted: var(--toast-muted);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -168,7 +188,31 @@
   --brand-action: var(--gw-white-a12);
   --brand-action-hover: var(--gw-white-a20);
 
+  /* Status intents */
+  --success: var(--gw-moss-700);
+  --success-surface: var(--gw-moss-100);
+  --success-border: var(--gw-moss-300);
+  --warning: var(--gw-ochre-700);
+  --warning-surface: var(--gw-ochre-100);
+  --warning-border: var(--gw-ochre-300);
+  --danger: var(--gw-clay-700);
+  --danger-surface: var(--gw-clay-100);
+  --danger-border: var(--gw-clay-300);
+  --info: var(--gw-slate-700);
+  --info-surface: var(--gw-slate-100);
+  --info-border: var(--gw-slate-300);
+  --neutral: var(--gw-stone-700);
+  --neutral-surface: var(--gw-stone-100);
+  --neutral-border: var(--gw-stone-200);
+
+  /* Toast (Forest 900, white text) */
+  --toast: var(--gw-forest-900);
+  --toast-foreground: var(--gw-white);
+  --toast-muted: var(--gw-forest-200);
+
   /* Layout sizes (tokens/spacing) */
+  --layout-toast-max: 380px;
+  --layout-toast-inset: 24px;
   --layout-header-height: 56px;
   --layout-sidebar-width: 232px;
   --layout-content-max: 1280px;
