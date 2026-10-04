@@ -29,7 +29,9 @@ Replaces the placeholder Curve data page with a "Curve" select (all 16 curves fr
 
 - Open Curve data → a curve is selected, the valuation date shows the latest date with data, and the table lists one rate per maturity
 - Check the table → every rate column is headed "Rate (%)" and shows 4 decimal places
-- Pick another date from the available dates → the table updates to that date's rates
+- Click the calendar button next to Valuation date → a calendar opens on the selected date, limited to the curve's earliest and latest dates, with dates that have data marked by a dot
+- Pick a different marked date in the calendar → the calendar closes and the table updates to that date's rates
+- Pick a date with no data in the calendar → you see "No data imported"; you can also still type a date by hand
 - Type 04/10/2026 as the valuation date → you see "Enter the observation date as YYYY-MM-DD."
 - Type a date with no data (e.g. a weekend) → you see "No data imported" and an empty list, not an error
 - Click a rate's source import (WOID) → the import trace opens with its file log entry, workflow instance, and rates and curves counts
