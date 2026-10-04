@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "curve-data",
+    "name": "Curve data",
+    "createdAt": "2026-10-04T16:22:30.670Z",
+    "dependsOn": [
+      "app-shell-and-sign-in",
+      "file-log"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-04T16:22:30.670Z"
+}
