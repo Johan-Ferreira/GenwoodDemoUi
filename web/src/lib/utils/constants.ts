@@ -6,12 +6,18 @@
  */
 
 /**
- * API base URL - Retrieved from environment variable
- * Set NEXT_PUBLIC_API_BASE_URL in your .env.local file
- * Default: http://localhost:8042 (adjust as needed)
+ * Same-origin proxy path the browser uses for every data-service call.
+ * next.config.ts rewrites it to the real service (CURVE_DATA_SERVICE_URL,
+ * server-side), so the browser never calls the service address directly.
+ */
+export const CURVE_DATA_PROXY_PATH = '/curve-data';
+
+/**
+ * API base URL - browser-facing, from NEXT_PUBLIC_API_BASE_URL.
+ * Defaults to the same-origin proxy path.
  */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8042';
+  process.env.NEXT_PUBLIC_API_BASE_URL || CURVE_DATA_PROXY_PATH;
 
 /**
  * Default pagination settings
@@ -23,13 +29,22 @@ export const PAGINATION = {
 } as const;
 
 /**
- * Toast notification settings
+ * Toast notification settings (UI-18): a completed-action message leaves after
+ * about 2.6 s; a message that needs the user to act is shown with
+ * `persistent: true` and stays until dismissed.
  */
 export const TOAST_SETTINGS = {
-  DEFAULT_DURATION: 5000, // 5 seconds
-  SUCCESS_DURATION: 3000, // 3 seconds
-  ERROR_DURATION: 7000, // 7 seconds
+  DEFAULT_DURATION: 2600,
   MAX_TOASTS: 3,
+} as const;
+
+/**
+ * Loading thresholds (UI-17): nothing for the first 300 ms, then a skeleton,
+ * and after 3 s the skeleton plus a "taking longer than usual" line.
+ */
+export const LOADING_THRESHOLDS = {
+  SKELETON_AFTER_MS: 300,
+  SLOW_AFTER_MS: 3000,
 } as const;
 
 /**

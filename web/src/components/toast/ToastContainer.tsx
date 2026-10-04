@@ -1,43 +1,19 @@
 'use client';
 
 /**
- * ToastContainer - Container component for rendering toast notifications
- * Positioned at top-right of viewport, renders all active toasts
- * Manages stacking and positioning of multiple toasts
+ * ToastContainer - renders active toasts bottom-right, 24px from the viewport
+ * edges, up to 380px wide (Genwood toast spec).
  */
 
 import { useToast } from '@/contexts/ToastContext';
-import { Toast } from './Toast';
-import { ToastContainerProps } from '@/types/toast';
+import { TOAST_SETTINGS } from '@/lib/utils/constants';
 
-export function ToastContainer({
-  position = 'top-right',
-  maxToasts = 3,
-}: ToastContainerProps = {}) {
+import { Toast } from './Toast';
+
+export function ToastContainer() {
   const { toasts, dismissToast } = useToast();
 
-  // Position classes based on prop
-  const getPositionClasses = () => {
-    switch (position) {
-      case 'top-right':
-        return 'top-4 right-4';
-      case 'top-left':
-        return 'top-4 left-4';
-      case 'top-center':
-        return 'top-4 left-1/2 -translate-x-1/2';
-      case 'bottom-right':
-        return 'bottom-4 right-4';
-      case 'bottom-left':
-        return 'bottom-4 left-4';
-      case 'bottom-center':
-        return 'bottom-4 left-1/2 -translate-x-1/2';
-      default:
-        return 'top-4 right-4';
-    }
-  };
-
-  // Limit number of visible toasts
-  const visibleToasts = toasts.slice(-maxToasts);
+  const visibleToasts = toasts.slice(-TOAST_SETTINGS.MAX_TOASTS);
 
   if (visibleToasts.length === 0) {
     return null;
@@ -45,11 +21,10 @@ export function ToastContainer({
 
   return (
     <div
-      className={`fixed ${getPositionClasses()} z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none`}
-      aria-live="polite"
-      aria-atomic="false"
+      className="pointer-events-none fixed right-(--layout-toast-inset) bottom-(--layout-toast-inset) z-50 flex w-full max-w-(--layout-toast-max) flex-col gap-2"
       role="region"
       aria-label="Notifications"
+      data-position="bottom-right"
     >
       {visibleToasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />

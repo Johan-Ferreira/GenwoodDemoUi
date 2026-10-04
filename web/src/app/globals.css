@@ -3,12 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Shadcn UI Theme Configuration */
+/* Shadcn UI Theme Configuration (mapped onto the Genwood tokens below) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:
+    var(--font-plex-sans), system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:
+    var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -17,6 +19,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -25,6 +28,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -33,92 +37,217 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-selected: var(--selected);
+  --color-selected-foreground: var(--selected-foreground);
+  /* Brand surface (Forest 800): app header and sign-in panel */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-label: var(--brand-label);
+  --color-brand-user: var(--brand-user);
+  --color-brand-footnote: var(--brand-footnote);
+  --color-brand-divider: var(--brand-divider);
+  --color-brand-action: var(--brand-action);
+  --color-brand-action-hover: var(--brand-action-hover);
+  /* Status intents (chips, alerts): fg 700 / surface 100 / border 300 */
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
+  --color-neutral: var(--neutral);
+  --color-neutral-surface: var(--neutral-surface);
+  --color-neutral-border: var(--neutral-border);
+  /* Toast surface (Forest 900) */
+  --color-toast: var(--toast);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-muted: var(--toast-muted);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+/* Genwood type scale additions (tokens/typography.css) */
+@theme {
+  --text-overline: 0.6875rem;
+  --text-overline--line-height: 1rem;
+  --text-page-title: 1.75rem;
+  --text-page-title--line-height: 2.25rem;
+  --tracking-overline: 0.08em;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+:root {
+  /* Genwood palette primitives (tokens/colors.css, raw hex) */
+  --gw-forest-950: #001f15;
+  --gw-forest-900: #002a1c;
+  --gw-forest-800: #003926;
+  --gw-forest-700: #0d4a34;
+  --gw-forest-600: #1f5e45;
+  --gw-forest-500: #3a7559;
+  --gw-forest-400: #6a9580;
+  --gw-forest-300: #9cb8a8;
+  --gw-forest-200: #c8d8cd;
+  --gw-forest-100: #e3ece5;
+  --gw-forest-50: #f1f6f2;
+  --gw-moss-700: #3f6b2a;
+  --gw-moss-600: #557f38;
+  --gw-moss-500: #6e9447;
+  --gw-moss-300: #a9c28a;
+  --gw-moss-100: #e6eedb;
+  --gw-ochre-700: #7f5c1e;
+  --gw-ochre-600: #9a7128;
+  --gw-ochre-500: #b88a3e;
+  --gw-ochre-300: #dcc08a;
+  --gw-ochre-100: #f4ead5;
+  --gw-clay-700: #86412d;
+  --gw-clay-600: #9e5238;
+  --gw-clay-500: #b56a4f;
+  --gw-clay-300: #dba792;
+  --gw-clay-100: #f5e3db;
+  --gw-slate-700: #344e5a;
+  --gw-slate-600: #45636f;
+  --gw-slate-500: #5b7a86;
+  --gw-slate-300: #a3b8c0;
+  --gw-slate-100: #e2eaed;
+  --gw-stone-950: #1a1d1a;
+  --gw-stone-900: #262a26;
+  --gw-stone-800: #383d38;
+  --gw-stone-700: #4f554f;
+  --gw-stone-600: #676d66;
+  --gw-stone-500: #868b83;
+  --gw-stone-400: #a7aaa1;
+  --gw-stone-300: #c9c9bf;
+  --gw-stone-200: #dedcd2;
+  --gw-stone-150: #e8e6dd;
+  --gw-stone-100: #f0eee7;
+  --gw-stone-50: #f7f6f1;
+  --gw-white: #ffffff;
+  /* White-alpha accents used on the Forest header (12% / 20%) */
+  --gw-white-a12: #ffffff1f;
+  --gw-white-a20: #ffffff33;
+
+  /* Shadcn semantic tokens (light only: the design has no dark theme) */
+  --radius: 0.375rem;
+  --background: var(--gw-stone-50);
+  --foreground: var(--gw-stone-950);
+  --card: var(--gw-white);
+  --card-foreground: var(--gw-stone-950);
+  --popover: var(--gw-white);
+  --popover-foreground: var(--gw-stone-950);
+  --primary: var(--gw-forest-800);
+  --primary-hover: var(--gw-forest-700);
+  --primary-foreground: var(--gw-white);
+  --secondary: var(--gw-stone-100);
+  --secondary-foreground: var(--gw-stone-950);
+  --muted: var(--gw-stone-100);
+  --muted-foreground: var(--gw-stone-600);
+  --accent: var(--gw-stone-100);
+  --accent-foreground: var(--gw-stone-950);
+  --destructive: var(--gw-clay-700);
+  --border: var(--gw-stone-200);
+  --border-subtle: var(--gw-stone-150);
+  --input: var(--gw-stone-300);
+  --ring: var(--gw-forest-400);
+  --selected: var(--gw-forest-50);
+  --selected-foreground: var(--gw-forest-800);
+  --chart-1: var(--gw-forest-600);
+  --chart-2: var(--gw-ochre-500);
+  --chart-3: var(--gw-slate-500);
+  --chart-4: var(--gw-clay-500);
+  --chart-5: var(--gw-moss-500);
+  --chart-6: var(--gw-stone-500);
+  --sidebar: var(--gw-white);
+  --sidebar-foreground: var(--gw-stone-700);
+  --sidebar-primary: var(--gw-forest-800);
+  --sidebar-primary-foreground: var(--gw-white);
+  --sidebar-accent: var(--gw-forest-50);
+  --sidebar-accent-foreground: var(--gw-forest-800);
+  --sidebar-border: var(--gw-stone-150);
+  --sidebar-ring: var(--gw-forest-400);
+
+  /* Brand surface (Forest 800) */
+  --brand: var(--gw-forest-800);
+  --brand-foreground: var(--gw-white);
+  --brand-label: var(--gw-forest-200);
+  --brand-user: var(--gw-forest-100);
+  --brand-footnote: var(--gw-forest-300);
+  --brand-divider: var(--gw-white-a20);
+  --brand-action: var(--gw-white-a12);
+  --brand-action-hover: var(--gw-white-a20);
+
+  /* Status intents */
+  --success: var(--gw-moss-700);
+  --success-surface: var(--gw-moss-100);
+  --success-border: var(--gw-moss-300);
+  --warning: var(--gw-ochre-700);
+  --warning-surface: var(--gw-ochre-100);
+  --warning-border: var(--gw-ochre-300);
+  --danger: var(--gw-clay-700);
+  --danger-surface: var(--gw-clay-100);
+  --danger-border: var(--gw-clay-300);
+  --info: var(--gw-slate-700);
+  --info-surface: var(--gw-slate-100);
+  --info-border: var(--gw-slate-300);
+  --neutral: var(--gw-stone-700);
+  --neutral-surface: var(--gw-stone-100);
+  --neutral-border: var(--gw-stone-200);
+
+  /* Toast (Forest 900, white text) */
+  --toast: var(--gw-forest-900);
+  --toast-foreground: var(--gw-white);
+  --toast-muted: var(--gw-forest-200);
+
+  /* Layout sizes (tokens/spacing) */
+  --layout-toast-max: 380px;
+  --layout-toast-inset: 24px;
+  --layout-header-height: 56px;
+  --layout-sidebar-width: 232px;
+  --layout-content-max: 1280px;
+  --layout-min-width: 1280px;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    min-width: var(--layout-min-width);
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * Genwood focus ring: a white gap then a Forest 400 ring
+ * (0 0 0 2px white, 0 0 0 4px forest-400). Applied to every interactive control.
+ */
+@utility focus-ring {
+  outline: none;
+  &:focus-visible {
+    /* Transparent (not none) so Windows forced-colors mode still shows a ring. */
+    outline: 2px solid transparent;
+    box-shadow:
+      0 0 0 2px var(--gw-white),
+      0 0 0 4px var(--ring);
   }
 }
 
