@@ -8,9 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ServiceErrorShape } from '@/types/api';
 
-import { useDataState } from './useDataState';
+import { useDataState, type DataStateRefreshOptions } from './useDataState';
 
-export interface DataStateProps<T> {
+/**
+ * `refreshEvery` / `refreshKey` / `onData` are the silent-refresh options:
+ * background re-reads keep the loaded content on screen (no skeleton).
+ */
+export interface DataStateProps<T> extends DataStateRefreshOptions<T> {
   /** The read to run, e.g. `() => get<T>('/v1/overview')`. */
   load: () => Promise<T>;
   /** Renders the loaded data. */
@@ -92,8 +96,15 @@ export function DataState<T>({
   skeleton,
   isEmpty,
   empty = DEFAULT_EMPTY,
+  refreshEvery,
+  refreshKey,
+  onData,
 }: DataStateProps<T>) {
-  const { state, retry } = useDataState(load);
+  const { state, retry } = useDataState(load, {
+    refreshEvery,
+    refreshKey,
+    onData,
+  });
 
   if (state.status === 'loading') {
     if (state.phase === 'hidden') return null;

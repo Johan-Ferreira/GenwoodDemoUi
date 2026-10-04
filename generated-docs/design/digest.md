@@ -19,7 +19,10 @@ the interpreter carries this section through untouched, never edits or re-words 
 and never re-raises a question answered here.
 -->
 
-*Nothing yet — this fills in as you settle things while we build.*
+- **App shell content area — left-aligned, not centred, and not capped at 1280px** *(file-log, 2026-10-04)*
+  The page content sits immediately to the right of the side menu and uses the available width, instead of being centred with a 1280px maximum width as the design's App shell describes.
+- **File log table — fits without horizontal scrolling** *(file-log, 2026-10-04)*
+  The table panel must be wide enough to show every column, including Status at the end, with no horizontal scrollbar at normal desktop widths.
 
 ---
 
