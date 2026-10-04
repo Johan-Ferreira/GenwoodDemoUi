@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/app-shell/PageHeader';
+import { FileLogView } from '@/components/file-log/FileLogView';
 
 export const metadata: Metadata = { title: 'File log' };
 
-/** Placeholder: the File log epic replaces this content. */
 export default function FileLogPage() {
-  return <PageHeader title="File log" />;
+  return (
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title="File log"
+        subtitle="Every file received from the Bank of England, with its import outcome."
+      />
+      <FileLogView />
+    </div>
+  );
 }

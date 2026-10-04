@@ -23,6 +23,12 @@
 | `IconButton` | `web/src/components/icon-button/IconButton.tsx` | Icon-only Shadcn button; required `label` → `aria-label` + `title`; ghost/icon by default |
 | `LOADING_THRESHOLDS`, `TOAST_SETTINGS` | `web/src/lib/utils/constants.ts` | 300 ms / 3000 ms loading thresholds; toast duration and max visible |
 | `QueryParams`, `ServiceErrorShape`, `ServiceErrorKind`, `ServiceMessage` | `web/src/types/api.ts` | Shared data-service API types |
+| Typed endpoint functions (`getFiles`, `getFile`, `getOverview`, `getImport`, …) and `api-generated` types | `web/src/lib/api/endpoints.ts`, `web/src/types/api-generated.ts` | Generated from `documentation/CurveData.yaml`; import, don't redefine |
+| `getAllFiles`, `toFileRow`, `compareNewestFirst`, `FileFilters` | `web/src/lib/api/files.ts` | Loads every matching file (large `Size`, follows pages until `TotalItems`), normalised to `FileRow`, newest first |
+| `FileRow`, `FileStatus`, `FILE_STATUSES` | `web/src/types/files.ts` | App-side file-log row (nullable numbers parsed) and the three service statuses |
+| `formatFileSize`, `formatCount`, `shortWoid`, `fileStatusTone`, `FILE_STATUS_TONE`, `NO_VALUE` | `web/src/lib/files/file-format.ts` | Size "342.7 KB" (1024-based, 1 dp), counts, 8-char WOID, status → tone (Imported success / Failed danger / Processing info), "—" placeholder |
+| `FileTable` | `web/src/components/files/FileTable.tsx` | The eight file-log columns (ID … Status) for given `FileRow`s, in the order supplied |
+| `TablePagination`, `useClientPagination`, `PAGE_SIZE_OPTIONS`, `DEFAULT_PAGE_SIZE` | `web/src/components/table-pagination/` | In-browser paging of a list: "Rows per page" select (5/10/20/50, default 20), range line, Previous/Next; page clamps when the list shrinks |
 
 ## Conventions
 - Signed-in views live under `web/src/app/(app)/<route>/page.tsx`; routes: `/overview`, `/file-log`, `/curve-data`, `/yield-curves`, `/workflow-monitor`, `/api-reference` (not `/api`). `/` redirects to `/overview`.
