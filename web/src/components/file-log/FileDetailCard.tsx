@@ -1,10 +1,11 @@
 'use client';
 
-import { CircleAlert, Download } from 'lucide-react';
+import { CircleAlert, Download, Route } from 'lucide-react';
 import Link from 'next/link';
 import { useId, useState } from 'react';
 
 import { DataState } from '@/components/data-state/DataState';
+import { NotFoundMessage } from '@/components/data-state/NotFoundMessage';
 import { toServiceErrorShape } from '@/components/data-state/useDataState';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/contexts/ToastContext';
 import { downloadFile } from '@/lib/api/download';
 import { getFile } from '@/lib/api/endpoints';
+import { lookUp } from '@/lib/api/not-found';
 import { parseNullableNumber } from '@/lib/api/nullable-number';
 import { isServiceError } from '@/lib/api/service-error';
 import {
@@ -31,16 +33,9 @@ export const ORIGINAL_DOWNLOADED =
 const HASH_NOT_RECORDED = 'Not recorded';
 const FILE_LIST_PATH = '/file-log';
 
-type FileLookup = { found: true; detail: FileDetailRead } | { found: false };
-
-/** A 404 from the service is "not found" (BR6); anything else is rethrown for DataState. */
-async function lookUpFile(id: number): Promise<FileLookup> {
-  try {
-    return { found: true, detail: await getFile(id) };
-  } catch (error) {
-    if (isServiceError(error) && error.status === 404) return { found: false };
-    throw error;
-  }
+/** The import trace page for a file's WOID. */
+export function importTracePath(woid: string): string {
+  return `/file-log/imports/${encodeURIComponent(woid)}`;
 }
 
 function text(value: string | undefined): string {
@@ -86,15 +81,11 @@ function DetailSkeleton() {
 /** The requested file does not exist: say so and offer the way back (R16, BR6). */
 export function FileNotFound() {
   return (
-    <Card className="items-start gap-3 p-6">
-      <p className="font-medium">{FILE_NOT_FOUND}</p>
-      <Link
-        href={FILE_LIST_PATH}
-        className="focus-ring rounded-sm text-primary underline underline-offset-2"
-      >
-        Back to the file list
-      </Link>
-    </Card>
+    <NotFoundMessage
+      message={FILE_NOT_FOUND}
+      backHref={FILE_LIST_PATH}
+      backLabel="Back to the file list"
+    />
   );
 }
 
@@ -230,6 +221,14 @@ function FileDetails({
           <Download aria-hidden="true" />
           Download original
         </Button>
+        {detail.Woid && detail.Woid.trim() !== '' && (
+          <Button asChild variant="ghost">
+            <Link href={importTracePath(detail.Woid)}>
+              <Route aria-hidden="true" />
+              Trace import
+            </Link>
+          </Button>
+        )}
       </div>
     </section>
   );
@@ -238,10 +237,13 @@ function FileDetails({
 /** Loads `GET /v1/files/{Id}` through DataState and shows the file, or "File not found". */
 export function FileDetailCard({ fileId }: { fileId: number }) {
   return (
-    <DataState load={() => lookUpFile(fileId)} skeleton={<DetailSkeleton />}>
+    <DataState
+      load={() => lookUp(() => getFile(fileId))}
+      skeleton={<DetailSkeleton />}
+    >
       {(lookup) =>
         lookup.found ? (
-          <FileDetails detail={lookup.detail} fileId={fileId} />
+          <FileDetails detail={lookup.value} fileId={fileId} />
         ) : (
           <FileNotFound />
         )

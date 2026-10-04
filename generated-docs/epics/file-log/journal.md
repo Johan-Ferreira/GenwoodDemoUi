@@ -14,3 +14,6 @@
 - Clicking a row in the file log now selects it: the row is highlighted, the address bar changes to ?file=<number>, and that file's details appear under the table. Pasting a link with ?file= opens the same file directly.
 - If the file number in the address doesn't exist, the details area says "File not found" and links back to the file list. Other service errors still show the usual error with Retry. I confirmed against the live service that a missing file gives 404 with the message "File not found" (and a missing import gives "Import not found").
 - "Download original" saves the real file and shows a confirmation message; a missing original shows "File not found".
+
+## Story 4: Trace a file to its import
+- Added the import trace page. From a file's details, "Trace import" opens /file-log/imports/{WOID}. It shows the file's log entry, the workflow instance that processed it (with its status and timestamps), and how many rates and curves it published. An unknown WOID shows "Import not found" with a link back to the file list; any other failure shows the usual error with Retry. The step-by-step pipeline is left for the Workflow monitor epic.
