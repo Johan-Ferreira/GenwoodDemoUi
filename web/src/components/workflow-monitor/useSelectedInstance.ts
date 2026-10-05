@@ -16,7 +16,8 @@ export function workflowMonitorSelectionPath(id: string): string {
 
 /**
  * The run selected in the Workflow monitor, kept in the URL (`?instance=<Id>`)
- * so the selection is linkable. `select` updates the URL without scrolling.
+ * so the selection is linkable. `select` updates the URL without scrolling,
+ * and does nothing when the run is already selected.
  */
 export function useSelectedInstance() {
   const searchParams = useSearchParams();
@@ -27,11 +28,13 @@ export function useSelectedInstance() {
 
   const select = useCallback(
     (id: string) => {
+      // Re-selecting the open run would only add a duplicate history entry.
+      if (id.trim() === selectedId) return;
       const params = new URLSearchParams(searchParams.toString());
       params.set(INSTANCE_QUERY_PARAM, id);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams],
+    [pathname, router, searchParams, selectedId],
   );
 
   return { selectedId, select };

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { CurveSelect } from '@/components/curve-data/CurveSelect';
 import { useValuationDate } from '@/components/curve-data/useValuationDate';
 import { ValuationDateField } from '@/components/curve-data/ValuationDateField';
 import { DataState } from '@/components/data-state/DataState';
+import { toServiceErrorShape } from '@/components/data-state/useDataState';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -22,6 +23,7 @@ import {
   getCurves,
 } from '@/lib/api/endpoints';
 import { defaultYieldCurveCode } from '@/lib/yield-curves/yield-curves';
+import type { ServiceErrorKind } from '@/types/api';
 import type { AvailabilityRead, CurveRead } from '@/types/api-generated';
 
 import { API_ENDPOINTS, exampleRequestLine } from './api-endpoints';
@@ -30,6 +32,12 @@ import { API_ENDPOINTS, exampleRequestLine } from './api-endpoints';
 interface Choice {
   code: string;
   date: string | null;
+}
+
+/** A failed availability read, tagged with the curve it was for. */
+interface AvailabilityFailure {
+  code: string;
+  kind: ServiceErrorKind;
 }
 
 /** The "Valuation date" field for one curve; reports each applied date. */
@@ -122,15 +130,26 @@ function ExampleCard({
   code,
   date,
   loadingDate,
+  dateFailure,
 }: {
   serviceBase: string;
   code: string;
   date: string | null;
   loadingDate: boolean;
+  /** Set when the curve's valuation dates could not be loaded. */
+  dateFailure: ServiceErrorKind | null;
 }) {
   const titleId = useId();
   let body;
-  if (loadingDate) {
+  if (dateFailure !== null) {
+    body = (
+      <p className="text-danger">
+        {dateFailure === 'not-authorised'
+          ? 'The example cannot be shown because the request for this curve’s valuation dates was not authorised.'
+          : 'The example cannot be shown because this curve’s valuation dates could not be loaded. Choose Retry beside the curve to try again.'}
+      </p>
+    );
+  } else if (loadingDate) {
     body = <Skeleton className="h-40 w-full" />;
   } else if (date === null) {
     body = (
@@ -174,7 +193,24 @@ function ApiReferenceExplorer({
 }) {
   const [code, setCode] = useState(() => defaultYieldCurveCode(curves));
   const [choice, setChoice] = useState<Choice | null>(null);
+  const [failure, setFailure] = useState<AvailabilityFailure | null>(null);
   const current = choice?.code === code ? choice : null;
+  const currentFailure = failure?.code === code ? failure.kind : null;
+  const latestCode = useRef(code);
+  useEffect(() => {
+    latestCode.current = code;
+  });
+
+  /** Loads the curve's dates, tracking a failure so the example stops waiting on it. */
+  const loadAvailability = (curveCode: string) => {
+    setFailure(null);
+    return getCurveAvailability(curveCode).catch((reason: unknown) => {
+      if (latestCode.current === curveCode) {
+        setFailure({ code: curveCode, kind: toServiceErrorShape(reason).kind });
+      }
+      throw reason;
+    });
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -188,7 +224,7 @@ function ApiReferenceExplorer({
         {code && (
           <DataState
             key={code}
-            load={() => getCurveAvailability(code)}
+            load={() => loadAvailability(code)}
             skeleton={<Skeleton className="mt-6 h-9 w-80" />}
           >
             {(availability) => (
@@ -207,7 +243,8 @@ function ApiReferenceExplorer({
           serviceBase={serviceBase}
           code={code}
           date={current?.date ?? null}
-          loadingDate={current === null}
+          loadingDate={current === null && currentFailure === null}
+          dateFailure={current === null ? currentFailure : null}
         />
       </div>
     </div>

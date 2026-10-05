@@ -43,6 +43,7 @@
  * These tests WILL FAIL until implemented (TDD red).
  */
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import WorkflowMonitorPage from '@/app/(app)/workflow-monitor/page';
@@ -78,9 +79,10 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 let currentSearch = '';
+const { mockPush } = vi.hoisted(() => ({ mockPush: vi.fn() }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: mockPush,
     replace: vi.fn(),
     refresh: vi.fn(),
     back: vi.fn(),
@@ -96,8 +98,24 @@ const TIMESTAMP = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
 interface RunScenario {
   detail: ProcessInstanceDetailRead;
-  logs: ExecutionLogReadList;
-  trace: ImportRead;
+  logs: ExecutionLogReadList | ServiceError;
+  trace: ImportRead | ServiceError;
+}
+
+function serverError(description: string): ServiceError {
+  return new ServiceError({
+    status: 500,
+    description,
+    retryable: true,
+    kind: 'service-error',
+  });
+}
+
+/** Resolves a payload, or rejects when the scenario says the read fails. */
+function answer<T>(payload: T | ServiceError): Promise<T> {
+  return payload instanceof ServiceError
+    ? Promise.reject(payload)
+    : Promise.resolve(payload);
 }
 
 /** Serves the list, the selected run, its log and its import from the shared factories. */
@@ -111,10 +129,10 @@ function serveRun({ detail, logs, trace }: RunScenario) {
       return Promise.resolve(detail);
     }
     if (endpoint === `/v1/process-instances/${id}/execution-logs`) {
-      return Promise.resolve(logs);
+      return answer(logs);
     }
     if (endpoint === `/v1/imports/${detail.ContextId ?? ''}`) {
-      return Promise.resolve(trace);
+      return answer(trace);
     }
     return Promise.reject(
       new ServiceError({
@@ -286,5 +304,72 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
     const back = await within(logRegion).findByRole('link', { name: /file/i });
     // ContextId → /v1/imports/{Woid} → File.Id 101 (BR3).
     expect(back).toHaveAttribute('href', '/file-log?file=101');
+  });
+
+  it("still shows the run when its import cannot be read, without the file's details", async () => {
+    renderSelectedRun({
+      detail: createProcessInstanceDetail(),
+      logs: createEmptyExecutionLogList(),
+      trace: serverError('The import service is unavailable.'),
+    });
+
+    expect(
+      await screen.findByRole('list', { name: 'Steps' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: /audit history/i }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText('The import service is unavailable.'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Without the import the run's file is unknown: the link falls back to the file log.
+    const logRegion = screen.getByRole('region', { name: /execution log/i });
+    expect(
+      within(logRegion).getByRole('link', { name: /file/i }),
+    ).toHaveAttribute('href', '/file-log');
+  });
+
+  it('shows the persistent error with Retry when the run log cannot be read', async () => {
+    renderSelectedRun({
+      detail: createProcessInstanceDetail(),
+      logs: serverError('The execution log could not be read.'),
+      trace: createImport(),
+    });
+
+    const alert = await screen.findByRole('alert');
+    expect(
+      within(alert).getByText('The execution log could not be read.'),
+    ).toBeInTheDocument();
+    expect(
+      within(alert).getByRole('button', { name: 'Retry' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('list', { name: 'Steps' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not navigate again when the already-selected run is chosen, but does for another run', async () => {
+    const user = userEvent.setup();
+    const selected = createProcessInstanceDetail();
+    renderSelectedRun({
+      detail: selected,
+      logs: createExecutionLogList(),
+      trace: createImport(),
+    });
+
+    await screen.findByRole('list', { name: 'Steps' });
+    const selectedRow = screen.getByRole('row', { name: /^6645057045ca…/ });
+    expect(selectedRow).toHaveAttribute('aria-selected', 'true');
+
+    await user.click(selectedRow);
+    expect(mockPush).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('row', { name: /^b7c8d9e0f1a2…/ }));
+    expect(mockPush).toHaveBeenCalledWith(
+      '/workflow-monitor?instance=b7c8d9e0f1a24b3c8d9e0f1a2b3c4d5e',
+      { scroll: false },
+    );
   });
 });

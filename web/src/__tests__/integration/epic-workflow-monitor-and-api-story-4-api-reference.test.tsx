@@ -40,6 +40,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ApiReferencePage from '@/app/(app)/api-reference/page';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { get } from '@/lib/api/client';
+import { ServiceError } from '@/lib/api/service-error';
 import {
   DATE_WITHOUT_DATA,
   createAvailability,
@@ -53,7 +54,7 @@ import {
   createShortEndRates,
 } from '@/mocks/data/rate';
 import { createTenors } from '@/mocks/data/tenor';
-import type { RateReadList } from '@/types/api-generated';
+import type { AvailabilityRead, RateReadList } from '@/types/api-generated';
 
 vi.mock('@/lib/api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api/client')>();
@@ -88,7 +89,10 @@ const defaultRates: RatesHandler = (code) =>
   code === OIS_CODE ? createRateList(createShortEndRates()) : createRateList();
 
 /** Route GET calls to the shared factories, the way the live service answers. */
-function mockService(rates: RatesHandler = defaultRates) {
+function mockService(
+  rates: RatesHandler = defaultRates,
+  availability: (code: string) => AvailabilityRead = () => createAvailability(),
+) {
   mockGet.mockImplementation(
     async (endpoint: string, params?: Record<string, unknown>) => {
       if (endpoint === '/v1/curves') {
@@ -100,7 +104,7 @@ function mockService(rates: RatesHandler = defaultRates) {
       if (match) {
         const [, code, resource] = match;
         if (resource === 'tenors') return { Tenors: createTenors() };
-        if (resource === 'availability') return createAvailability();
+        if (resource === 'availability') return availability(code);
         return rates(code, params?.ObservationDate as string | undefined);
       }
       throw new Error(`Unexpected GET ${endpoint}`);
@@ -332,5 +336,49 @@ describe('Epic workflow-monitor-and-api, Story 4: API reference', () => {
     for (const key of ['curve', 'source', 'count', 'note']) {
       expect(text).not.toMatch(new RegExp(`"${key}"\\s*:`));
     }
+  });
+
+  it("explains the missing example when the curve's dates cannot load, and Retry brings the example back", async () => {
+    const user = userEvent.setup();
+    let availabilityFails = true;
+    mockService(defaultRates, () => {
+      if (availabilityFails) {
+        throw new ServiceError({
+          status: 500,
+          description: 'The data service could not complete the request.',
+          retryable: true,
+          kind: 'service-error',
+        });
+      }
+      return createAvailability();
+    });
+
+    renderApiReference();
+
+    const alert = await screen.findByRole('alert');
+    expect(
+      within(alert).getByText(
+        'The data service could not complete the request.',
+      ),
+    ).toBeInTheDocument();
+    const region = await exampleRegion();
+    expect(
+      await within(region).findByText(
+        /valuation dates could not be loaded\. Choose Retry/,
+      ),
+    ).toBeInTheDocument();
+    expect(within(region).queryByRole('status')).not.toBeInTheDocument();
+
+    availabilityFails = false;
+    await user.click(within(alert).getByRole('button', { name: 'Retry' }));
+
+    await waitFor(() => {
+      expect(region).toHaveTextContent(
+        requestLine(DEFAULT_CODE, CANONICAL_OBSERVATION_DATE),
+      );
+    });
+    expect(
+      within(region).queryByText(/valuation dates could not be loaded/),
+    ).not.toBeInTheDocument();
   });
 });

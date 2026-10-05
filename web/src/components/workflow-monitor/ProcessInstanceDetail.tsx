@@ -31,15 +31,23 @@ export interface RunDetail {
   trace: ImportRead | null;
 }
 
+/**
+ * The run's import, or null when it cannot be resolved. Any failure here (404
+ * or otherwise) only drops the file name and file route; it never hides the run.
+ */
 async function loadTrace(woid: string | undefined): Promise<ImportRead | null> {
   if (woid === undefined || woid.trim() === '') return null;
-  const lookup = await lookUp(() => getImport(encodeURIComponent(woid)));
-  return lookup.found ? lookup.value : null;
+  try {
+    return await getImport(encodeURIComponent(woid));
+  } catch {
+    return null;
+  }
 }
 
 /**
- * The run, its log and its import. A 404 on the run is "not found" (R6); an
- * unresolvable import only leaves the file name and file route absent.
+ * The run, its log and its import. A 404 on the run is "not found" (R6); any
+ * other failure of the run or its log is the persistent error with Retry. An
+ * unresolvable import (any failure) only leaves the file name and file route absent.
  */
 async function loadRunDetail(id: string): Promise<Lookup<RunDetail>> {
   const encoded = encodeURIComponent(id);
