@@ -17,7 +17,7 @@ import {
   type ProcessInstanceSort,
   type ProcessInstanceSortKey,
 } from '@/lib/workflow/process-instances';
-import { isFinishedOnError } from '@/lib/workflow/process-status';
+import { isRateLoadFinishedOnError } from '@/lib/workflow/process-status';
 import type {
   ProcessInstanceRead,
   ProcessInstanceReadList,
@@ -91,15 +91,18 @@ function NoMatchingInstances({
 }
 
 /**
- * Every Finished run (optionally of one process) whose last activity is Error,
- * newest first, as one list — the service cannot filter on the last activity,
+ * Every RateLoad run Finished on its Error activity (the runs whose chip reads
+ * "Finished (Error)"), newest first, as one list — the service cannot filter on the last activity,
  * so the page narrows and pages it.
  */
 async function loadFinishedOnError(
   filters: ProcessInstanceFilterParams,
 ): Promise<ProcessInstanceReadList> {
   const all = await getAllProcessInstances(filters);
-  const matching = sortProcessInstances(all.filter(isFinishedOnError), null);
+  const matching = sortProcessInstances(
+    all.filter(isRateLoadFinishedOnError),
+    null,
+  );
   return {
     ProcessInstances: matching,
     TotalItems: matching.length,

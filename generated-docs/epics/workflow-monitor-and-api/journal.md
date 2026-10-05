@@ -45,3 +45,7 @@
 ## Story 9: File log hides technical fields
 
 - The File log and Overview Recent loads tables no longer have a Size column, and the first column is headed "#". A file's details no longer show Size, Backup file or SHA-256. Download original works as before.
+
+## Epic-end code review (fix cycle 2)
+
+- "Finished (Error)" now means the same thing everywhere: on the Workflow monitor and in the Import trace it appears only on rate load runs that ended on their Error step, and the "Finished (Error)" filter lists exactly those runs.

@@ -256,6 +256,49 @@ describe('Epic workflow-monitor-and-api, Story 6: import trace shows both proces
     ).not.toBeInTheDocument();
   });
 
+  it('shows a rate load run that finished on its Error activity as a red "Finished (Error)", and a normal finish as a green "Finished"', async () => {
+    // RateLoad-failed file 106: the LoadYieldCurves run Finished on 'Error'.
+    const first = renderTrace(createRateLoadFailedImport());
+
+    const failedRateLoad = await screen.findByRole('region', {
+      name: 'Rate load run',
+    });
+    const failedStatus = within(fieldValue(failedRateLoad, 'Status')).getByText(
+      'Finished (Error)',
+    );
+    expect(failedStatus.closest('[data-tone]')).toHaveAttribute(
+      'data-tone',
+      'danger',
+    );
+
+    // Its staging run finished normally.
+    const staging = screen.getByRole('region', { name: 'Staging run' });
+    const stagingStatus = within(fieldValue(staging, 'Status')).getByText(
+      'Finished',
+    );
+    expect(stagingStatus.closest('[data-tone]')).toHaveAttribute(
+      'data-tone',
+      'success',
+    );
+
+    first.unmount();
+
+    // Imported file 101: the rate load run finished normally.
+    renderTrace(createImport());
+
+    const rateLoad = await screen.findByRole('region', {
+      name: 'Rate load run',
+    });
+    const status = within(fieldValue(rateLoad, 'Status')).getByText('Finished');
+    expect(status.closest('[data-tone]')).toHaveAttribute(
+      'data-tone',
+      'success',
+    );
+    expect(
+      within(rateLoad).queryByText('Finished (Error)'),
+    ).not.toBeInTheDocument();
+  });
+
   // AC-5
   it('offers "Open staging run" for every file and "Open import run" only once RateLoad has started', async () => {
     // RateLoad-failed file 106: has a WorkflowInstanceId, so both are offered.

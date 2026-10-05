@@ -28,23 +28,13 @@ export const FINISHED_ON_ERROR_LABEL = 'Finished (Error)';
 
 /**
  * The Status filter's options: the service statuses, then "Finished (Error)"
- * (Finished runs whose last activity is Error — narrowed on the page, since the
- * service cannot filter on the last activity).
+ * (the runs `isRateLoadFinishedOnError` accepts — narrowed on the page, since
+ * the service cannot filter on the last activity).
  */
 export const PROCESS_STATUS_FILTER_OPTIONS = [
   ...PROCESS_STATUSES,
   FINISHED_ON_ERROR_LABEL,
 ] as const;
-
-/** True for any run that is Finished with last activity 'Error'. */
-export function isFinishedOnError(
-  run: Pick<ProcessInstanceRead, 'CurrentStatus' | 'LastExecutedActivityName'>,
-): boolean {
-  return (
-    run.CurrentStatus === 'Finished' &&
-    run.LastExecutedActivityName?.trim() === RATE_LOAD_ERROR_ACTIVITY
-  );
-}
 
 /**
  * Workflow instance status → chip tone (BR4): Finished success, Faulted danger,
@@ -61,14 +51,23 @@ export function processStatusTone(status: string): StatusTone {
   return PROCESS_STATUS_TONE[status] ?? 'neutral';
 }
 
-/** True for a RateLoad run that is Finished with last activity 'Error' (a failure). */
+/**
+ * True for a RateLoad (LoadYieldCurves) run that is Finished with last activity
+ * 'Error' (a failure). The single predicate behind both the "Finished (Error)"
+ * status chip and the "Finished (Error)" Status filter, so a run is listed under
+ * the filter exactly when its chip reads "Finished (Error)".
+ */
 export function isRateLoadFinishedOnError(
   run: Pick<
     ProcessInstanceRead,
     'ProcessName' | 'CurrentStatus' | 'LastExecutedActivityName'
   >,
 ): boolean {
-  return run.ProcessName === RATE_LOAD_PROCESS_NAME && isFinishedOnError(run);
+  return (
+    run.ProcessName === RATE_LOAD_PROCESS_NAME &&
+    run.CurrentStatus === 'Finished' &&
+    run.LastExecutedActivityName?.trim() === RATE_LOAD_ERROR_ACTIVITY
+  );
 }
 
 /**

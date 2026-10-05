@@ -6,7 +6,10 @@ import { useId } from 'react';
 
 import { DataState } from '@/components/data-state/DataState';
 import { NotFoundMessage } from '@/components/data-state/NotFoundMessage';
-import { StatusChip } from '@/components/status-chip/StatusChip';
+import {
+  StatusChip,
+  type StatusTone,
+} from '@/components/status-chip/StatusChip';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,7 +17,7 @@ import { workflowMonitorSelectionPath } from '@/components/workflow-monitor/useS
 import { getImport } from '@/lib/api/endpoints';
 import { lookUp } from '@/lib/api/not-found';
 import { fileStatusTone, formatCount, NO_VALUE } from '@/lib/files/file-format';
-import { processStatusTone } from '@/lib/workflow/process-status';
+import { runStatusDisplay } from '@/lib/workflow/process-status';
 import type {
   FileDetailRead,
   ImportRead,
@@ -38,10 +41,25 @@ function present(value: string | undefined): value is string {
 
 function statusChip(
   status: string | undefined,
-  tone: (status: string) => ReturnType<typeof processStatusTone>,
+  tone: (status: string) => StatusTone,
 ): React.ReactNode {
   return present(status) ? (
     <StatusChip tone={tone(status)} label={status} />
+  ) : (
+    NO_VALUE
+  );
+}
+
+/**
+ * A run's status chip, as on the Workflow monitor: a RateLoad run Finished on
+ * its Error activity reads "Finished (Error)" in danger.
+ */
+function runStatusChip(
+  instance: ProcessInstanceDetailRead | undefined,
+): React.ReactNode {
+  const display = instance ? runStatusDisplay(instance) : null;
+  return display ? (
+    <StatusChip tone={display.tone} label={display.label} />
   ) : (
     NO_VALUE
   );
@@ -160,10 +178,7 @@ function workflowFields(
       value: text(instance?.ProcessInstanceId),
       mono: true,
     },
-    {
-      label: 'Status',
-      value: statusChip(instance?.CurrentStatus, processStatusTone),
-    },
+    { label: 'Status', value: runStatusChip(instance) },
     { label: 'Created', value: text(instance?.CreatedAt), mono: true },
     {
       label: 'Last executed',

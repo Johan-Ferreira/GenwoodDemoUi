@@ -62,6 +62,7 @@ import {
 } from '@/mocks/data/execution-log';
 import { createFailedImport } from '@/mocks/data/import';
 import {
+  createProcessInstance,
   createProcessInstances,
   isFinishedWithError,
   queryProcessInstances,
@@ -131,14 +132,17 @@ function unexpected(endpoint: unknown): Promise<never> {
 }
 
 /** Behaves like the service's list endpoint: filters and pages by query params. */
-function answerList(params: QueryParams | undefined) {
+function answerList(
+  params: QueryParams | undefined,
+  from: typeof instances = instances,
+) {
   const text = (key: string): string | undefined => {
     const value = params?.[key];
     return value === undefined || value === '' ? undefined : String(value);
   };
   const page = text('Page');
   const size = text('Size');
-  return queryProcessInstances(instances, {
+  return queryProcessInstances(from, {
     Status: text('Status'),
     ProcessName: text('ProcessName'),
     Page: page === undefined ? undefined : Number(page),
@@ -357,6 +361,66 @@ describe('Epic workflow-monitor-and-api, Story 8: Workflow monitor refinements',
     expect(
       within(activeFilters).getByText('Status: Finished (Error)'),
     ).toBeInTheDocument();
+  });
+
+  it('lists a run under "Finished (Error)" only when its status reads "Finished (Error)" — an ImportFile run ending on an Error activity stays a plain "Finished"', async () => {
+    const user = userEvent.setup();
+    // An ImportFile run whose last activity happens to be named Error.
+    const importFileOnError = createProcessInstance({
+      ProcessInstanceId: 'f9e8d7c6b5a44f3e9d8c7b6a5f4e3d2c',
+      ProcessName: 'ImportFile',
+      CurrentStatus: 'Finished',
+      LastExecutedActivityName: 'Error',
+      CreatedAt: '2026-10-01 08:00:00',
+    });
+    const served = [importFileOnError, ...instances];
+    mockGet.mockImplementation((endpoint: unknown, params?: QueryParams) =>
+      endpoint === '/v1/process-instances'
+        ? Promise.resolve(answerList(params, served))
+        : unexpected(endpoint),
+    );
+
+    renderMonitor();
+    await screen.findByRole('table');
+
+    // Unfiltered, its chip reads "Finished", not "Finished (Error)".
+    const importFileRow = await waitFor(() => {
+      const row = within(processTable())
+        .getAllByRole('row')
+        .find((candidate) =>
+          candidate.textContent?.includes(
+            shortId(importFileOnError.ProcessInstanceId),
+          ),
+        );
+      if (row === undefined) throw new Error('ImportFile run not listed');
+      return row;
+    });
+    expect(within(importFileRow).getByText('Finished')).toBeInTheDocument();
+    expect(
+      within(importFileRow).queryByText('Finished (Error)'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('combobox', { name: 'Status' }));
+    await user.click(
+      within(await screen.findByRole('listbox')).getByRole('option', {
+        name: 'Finished (Error)',
+      }),
+    );
+
+    // Only the RateLoad runs whose chip reads "Finished (Error)" are listed.
+    await waitFor(() => {
+      expect(listedIds()).toEqual([
+        shortId(createRateLoadErrorProcessInstanceDetail().ProcessInstanceId),
+        shortId(
+          createOlderRateLoadErrorProcessInstanceDetail().ProcessInstanceId,
+        ),
+      ]);
+    });
+    for (const row of within(processTable())
+      .getAllByRole('row')
+      .filter((candidate) => within(candidate).queryAllByRole('cell').length)) {
+      expect(within(row).getByText('Finished (Error)')).toBeInTheDocument();
+    }
   });
 
   // AC-5

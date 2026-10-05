@@ -56,11 +56,12 @@ export const PROCESS_STATUSES = [
 export const PROCESS_NAMES = [IMPORT_FILE, LOAD_YIELD_CURVES] as const;
 
 /**
- * True for a run the "Finished (Error)" filter lists: `Finished` with
- * `LastExecutedActivityName` `'Error'` (the failed RateLoad runs).
+ * True for a run the "Finished (Error)" filter lists: a `LoadYieldCurves` run
+ * `Finished` with `LastExecutedActivityName` `'Error'` (the failed RateLoad runs).
  */
 export function isFinishedWithError(instance: ProcessInstanceRead): boolean {
   return (
+    instance.ProcessName === LOAD_YIELD_CURVES &&
     instance.CurrentStatus === 'Finished' &&
     instance.LastExecutedActivityName === 'Error'
   );
