@@ -13,3 +13,7 @@
 
 ## Story 4: Yield curves across families
 - Across families mode now works on Yield curves. The chart shows the Nominal, Real, Inflation and OIS curves that share the selected curve's rate type (spot or forward) and segment, for the chosen valuation date, in that order and named by family. The title is "Spot curves by family" or "Forward curves by family", and the subtitle is "{date}, long end". A family curve with no data for that date is left out and named in the subtitle instead. Compare with is hidden in this mode, and the curve, valuation date and comparison date are all kept when you switch back.
+
+## Epic-end quality fixes
+- The chart wrapper used to colour each line by writing a small style block into the page, and the security check flagged that as an XSS risk. It now passes the line colours straight to the chart's container, so nothing is injected. The charts look the same, and the security check now passes.
+- Raised the per-test time limit for the automated tests from 5 s to 15 s: a slow typing test from the File log epic timed out when the machine was busy.

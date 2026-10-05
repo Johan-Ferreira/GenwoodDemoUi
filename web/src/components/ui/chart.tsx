@@ -5,9 +5,6 @@ import { cn } from '@/lib/utils';
 import * as RechartsPrimitive from 'recharts';
 import type { TooltipValueType } from 'recharts';
 
-// Format: { THEME_NAME: CSS_SELECTOR }
-const THEMES = { light: '', dark: '.dark' } as const;
-
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const;
 type TooltipNameType = number | string;
 
@@ -16,10 +13,8 @@ export type ChartConfig = Record<
   {
     label?: React.ReactNode;
     icon?: React.ComponentType;
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
+    color?: string;
+  }
 >;
 
 type ChartContextProps = {
@@ -44,6 +39,7 @@ function ChartContainer({
   children,
   config,
   initialDimension = INITIAL_DIMENSION,
+  style,
   ...props
 }: React.ComponentProps<'div'> & {
   config: ChartConfig;
@@ -68,8 +64,8 @@ function ChartContainer({
           className,
         )}
         {...props}
+        style={{ ...chartColorVariables(config), ...style }}
       >
-        <ChartStyle id={chartId} config={config} />
         <RechartsPrimitive.ResponsiveContainer
           initialDimension={initialDimension}
         >
@@ -80,38 +76,18 @@ function ChartContainer({
   );
 }
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color,
-  );
-
-  if (!colorConfig.length) {
-    return null;
+// Per-series colour variables (`--color-<key>`) applied as inline CSS custom
+// properties on the chart container, so no <style> injection is needed. The
+// project is light-only, so there is no per-theme variant.
+function chartColorVariables(config: ChartConfig): React.CSSProperties {
+  const variables: Record<string, string> = {};
+  for (const [key, itemConfig] of Object.entries(config)) {
+    if (itemConfig.color) {
+      variables[`--color-${key}`] = itemConfig.color;
+    }
   }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
-      itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join('\n')}
+  return variables as React.CSSProperties;
 }
-`,
-          )
-          .join('\n'),
-      }}
-    />
-  );
-};
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
@@ -369,5 +345,4 @@ export {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-  ChartStyle,
 };
