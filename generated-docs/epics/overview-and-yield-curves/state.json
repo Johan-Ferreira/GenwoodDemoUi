@@ -9,11 +9,20 @@
       "file-log"
     ],
     "introducesSharedSurface": false,
-    "unverifiedAssumptions": [],
+    "unverifiedAssumptions": [
+      "Verify the two headline rate cards fill in once rates are imported: the app assumes the overview's key rates can be told apart by their family (nominal vs inflation), spot type and a \"10Y\" tenor label. If the service names them differently, both cards will keep saying \"No data\" even though rates exist.",
+      "Verify the size of the daily change: the app assumes the service already sends the change in basis points. If it actually sends a percentage difference, a real move of a few basis points will show as something like \"+0.0 bp\".",
+      "Verify Across families shows four lines: the app assumes the curve list has exactly one Nominal, Real, Inflation and OIS curve for each rate type and segment. If OIS has no long-end forward curve, or the families are labelled differently, lines will be missing and wrongly reported as \"No data has been imported\"."
+    ],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "1": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "2": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }
+  },
   "halt": null,
-  "lastUpdated": "2026-10-05T05:54:57.237Z"
+  "lastUpdated": "2026-10-05T06:10:00.000Z"
 }
