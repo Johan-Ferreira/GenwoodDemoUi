@@ -3,8 +3,16 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
+import { FILE_LOG_PATH } from '@/lib/navigation/nav-items';
+
 /** Query parameter that holds the selected file's Id (`/file-log?file=101`). */
 export const FILE_QUERY_PARAM = 'file';
+
+/** Link to the File log with one file selected (its detail panel open). */
+export function fileLogSelectionPath(id: number): string {
+  const params = new URLSearchParams({ [FILE_QUERY_PARAM]: String(id) });
+  return `${FILE_LOG_PATH}?${params.toString()}`;
+}
 
 export type FileSelection =
   | { kind: 'none' }

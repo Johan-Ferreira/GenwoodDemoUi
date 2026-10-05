@@ -13,6 +13,8 @@ export const OVERVIEW_PATH = '/overview';
 
 export const SIGN_IN_PATH = '/sign-in';
 
+export const FILE_LOG_PATH = '/file-log';
+
 export interface NavItem {
   label: string;
   href: string;
@@ -34,7 +36,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Data',
     items: [
-      { label: 'File log', href: '/file-log', icon: FileSpreadsheet },
+      { label: 'File log', href: FILE_LOG_PATH, icon: FileSpreadsheet },
       { label: 'Curve data', href: '/curve-data', icon: Table },
       { label: 'Yield curves', href: '/yield-curves', icon: ChartLine },
     ],

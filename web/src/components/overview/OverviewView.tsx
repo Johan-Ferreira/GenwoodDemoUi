@@ -14,6 +14,8 @@ import {
 import type { OverviewRead } from '@/types/api-generated';
 
 import { OverviewHeadlineCards } from './OverviewHeadlineCards';
+import { RecentLoadsCard } from './RecentLoadsCard';
+import { SpotCurvesCard } from './SpotCurvesCard';
 
 function OverviewSkeleton() {
   return (
@@ -31,7 +33,8 @@ function OverviewSkeleton() {
 
 /**
  * The Overview view: one `GET /v1/overview` read (NFR1) in `DataState`, the
- * title with a subtitle naming the latest valuation date, and the stat cards.
+ * title with a subtitle naming the latest valuation date, the stat cards, the
+ * spot curves chart and the recent loads.
  */
 export function OverviewView() {
   const [latestDate, setLatestDate] = useState<string | null>(null);
@@ -47,7 +50,13 @@ export function OverviewView() {
         onData={handleData}
         skeleton={<OverviewSkeleton />}
       >
-        {(overview) => <OverviewHeadlineCards overview={overview} />}
+        {(overview) => (
+          <div className="flex flex-col gap-5">
+            <OverviewHeadlineCards overview={overview} />
+            <SpotCurvesCard curves={overview.SpotCurves} />
+            <RecentLoadsCard files={overview.RecentFiles} />
+          </div>
+        )}
       </DataState>
     </div>
   );
