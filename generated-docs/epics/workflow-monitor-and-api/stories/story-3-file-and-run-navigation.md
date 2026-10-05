@@ -42,3 +42,7 @@ FileDetailCard action row (Download original, Trace import); fileLogSelectionPat
 ## Contract correction (manual test, 2026-10-05)
 
 The live service returns no ContextId. A file's Woid equals the ProcessInstanceId of its ImportFile run; the file's WorkflowInstanceId points at the later LoadYieldCurves run, which has no link back to a file. So: "Open workflow" uses the file Woid (works for failed files too) and adds `view=single`; "Open file log entry" uses the run's ProcessInstanceId as the Woid.
+
+## Superseded in part (2026-10-05)
+
+The two-stage status change (stories 5-7) replaces the single "Open workflow" button in the file details with "Open staging run" and "Open import run" (story 6), and "Open file log entry" from a RateLoad run uses the file Id carried on the link (story 7).
