@@ -216,6 +216,7 @@
   --layout-header-height: 56px;
   --layout-sidebar-width: 232px;
   --layout-min-width: 1280px;
+  --layout-table-max-height: 520px;
 }
 
 @layer base {

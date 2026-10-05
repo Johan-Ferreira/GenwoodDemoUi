@@ -41,3 +41,8 @@ export function formatCount(value: number | null): string {
 export function shortWoid(woid: string): string {
   return woid.slice(0, 8);
 }
+
+/** The import trace page for a WOID (`/file-log/imports/{Woid}`). */
+export function importTracePath(woid: string): string {
+  return `/file-log/imports/${encodeURIComponent(woid)}`;
+}

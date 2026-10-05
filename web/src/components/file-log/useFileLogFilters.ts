@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 
+import { ALL_OPTION } from '@/components/filter-select/FilterSelect';
 import type { FileFilters } from '@/lib/api/files';
 import { isIsoDate } from '@/lib/validation/iso-date';
 
-/** Select value for "no filter" (Radix Select items cannot use an empty value). */
-export const ALL_OPTION = 'all';
+export { ALL_OPTION };
 
 /** A received-date field: what is typed, what is applied, and whether the entry is invalid. */
 export interface DateFilterField {

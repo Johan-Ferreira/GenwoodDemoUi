@@ -23,6 +23,8 @@ and never re-raises a question answered here.
   The page content sits immediately to the right of the side menu and uses the available width, instead of being centred with a 1280px maximum width as the design's App shell describes.
 - **File log table — fits without horizontal scrolling** *(file-log, 2026-10-04)*
   The table panel must be wide enough to show every column, including Status at the end, with no horizontal scrollbar at normal desktop widths.
+- **Curve data — Valuation date is chosen with a date picker, not a dropdown list of dates** *(curve-data, 2026-10-04)*
+  The list of available dates grows with every import, so it must not be a dropdown. The field stays typeable (YYYY-MM-DD) and opens a calendar; dates with data are marked, and the earliest and latest dates still bound the picker.
 
 ---
 
