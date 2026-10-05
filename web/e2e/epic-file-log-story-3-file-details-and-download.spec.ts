@@ -31,8 +31,9 @@
  *     with `aria-labelledby` pointing at the file-name heading).
  *   - The key/value grid is a description list (`<dl>` with `<dt>`/`<dd>`) in the
  *     story's order: WOID, Workflow instance, Stage (then Failed step for Failed
- *     files), Received, Size, Inbox location,
- *     Backup file, SHA-256, Record count, Records inserted, Created by.
+ *     files), Received, Inbox location, Record count, Records inserted,
+ *     Created by. (Size, Backup file and SHA-256 are not shown — epic
+ *     workflow-monitor-and-api story 9.)
  *   - "Download original" saves the file under the file's own FileName (the
  *     service sends no Content-Disposition; its name is preferred only when sent)
  *     via downloadFile in web/src/lib/api/download.ts, and shows the toast.
@@ -71,10 +72,7 @@ const GRID_LABELS = [
   'Workflow instance',
   'Stage',
   'Received',
-  'Size',
   'Inbox location',
-  'Backup file',
-  'SHA-256',
   'Record count',
   'Records inserted',
   'Created by',
@@ -182,29 +180,17 @@ function titleOf(card: Locator, detail: FileDetailRead): Locator {
 }
 
 /** The values the key/value grid shows, in label order. */
-function expectedGridValues(
-  detail: FileDetailRead,
-  sha256: string,
-): (string | RegExp)[] {
+function expectedGridValues(detail: FileDetailRead): string[] {
   return [
     present(detail.Woid, 'Woid'),
     present(detail.WorkflowInstanceId, 'WorkflowInstanceId'),
     present(detail.Stage, 'Stage'),
     present(detail.ReceivedAt, 'ReceivedAt'),
-    sizePattern(present(detail.SizeBytes, 'SizeBytes')),
     present(detail.InboxLocation, 'InboxLocation'),
-    present(detail.BackupFileName, 'BackupFileName'),
-    sha256,
     String(present(detail.RecordCount, 'RecordCount')),
     present(detail.RecordsInserted, 'RecordsInserted'),
     present(detail.CreatedBy, 'CreatedBy'),
   ];
-}
-
-/** Size in bytes with thousands separators, optionally followed by a unit. */
-function sizePattern(sizeBytes: string): RegExp {
-  const grouped = sizeBytes.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return new RegExp(`^${grouped}(\\s*bytes)?$`);
 }
 
 /** Accessibility scan scoped to WCAG 2.1 AA; the Next.js dev overlay is excluded. */
@@ -224,7 +210,7 @@ test.describe('Epic file-log, Story 3: File details and original download', () =
   });
 
   // AC-1
-  test('selecting a file highlights its row and shows its details, with "Not recorded" for a missing hash', async ({
+  test('selecting a file highlights its row and shows its details, and selecting another file moves the selection', async ({
     page,
   }) => {
     const current = createFileDetail();
@@ -245,13 +231,13 @@ test.describe('Epic file-log, Story 3: File details and original download', () =
     await expect(titleOf(card, current)).toBeVisible();
     await expect(card.getByRole('term')).toHaveText(GRID_LABELS);
     await expect(card.getByRole('definition')).toHaveText(
-      expectedGridValues(current, present(current.Sha256, 'Sha256')),
+      expectedGridValues(current),
     );
 
     // Details state passes the real-browser accessibility scan.
     await expectNoA11yViolations(page);
 
-    // A file the service holds no content hash for shows "Not recorded".
+    // Selecting another file (one with no content hash) moves the selection.
     await rowFor(page, noHash).click();
     await expect(page).toHaveURL(
       new RegExp(`[?&]file=${present(noHash.Id, 'Id')}(&|$)`),
@@ -265,7 +251,7 @@ test.describe('Epic file-log, Story 3: File details and original download', () =
     const noHashCard = detailsFor(page, noHash);
     await expect(noHashCard.getByRole('term')).toHaveText(GRID_LABELS);
     await expect(noHashCard.getByRole('definition')).toHaveText(
-      expectedGridValues(noHash, 'Not recorded'),
+      expectedGridValues(noHash),
     );
   });
 

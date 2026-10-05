@@ -41,3 +41,7 @@
 
 - The live service never reports Faulted, so the Status filter now offers "Finished (Error)". The service cannot filter on the last activity, so for that choice the app fetches the Finished runs (50 per request, following pages) and keeps the ones that ended on Error; paging then happens in the browser.
 - Run cards stop where the run stopped: ImportFile runs hide the unused Hold/Clear steps, a failed RateLoad run ends on a red "Error" card for the step that failed, and the execution log shows one "Executed" row per activity instead of the Executing/Executed pair.
+
+## Story 9: File log hides technical fields
+
+- The File log and Overview Recent loads tables no longer have a Size column, and the first column is headed "#". A file's details no longer show Size, Backup file or SHA-256. Download original works as before.

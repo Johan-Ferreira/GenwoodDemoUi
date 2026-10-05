@@ -18,7 +18,7 @@
  * - Each sortable column header is a `columnheader` containing a button. First choice
  *   sorts ascending, second descending; the active column carries `aria-sort`
  *   ("ascending" / "descending") and no other column does (R9).
- * - SizeBytes / RecordsInserted are parsed as numbers (not compared as text). Rows where
+ * - RecordsInserted is parsed as a number (not compared as text). Rows where
  *   the value is missing stay in the list and sort AFTER all rows that have a value, in
  *   both directions (BR4).
  *
@@ -188,7 +188,7 @@ describe('Epic file-log, Story 2: filter and sort the file log', () => {
     renderFileLog();
     await waitForIds(9);
 
-    await user.click(sortButton(/^ID/));
+    await user.click(sortButton(/^#/));
 
     expect(listedIds()).toEqual([
       '95',
@@ -201,7 +201,7 @@ describe('Epic file-log, Story 2: filter and sort the file log', () => {
       '105',
       '106',
     ]);
-    expect(screen.getByRole('columnheader', { name: /^ID/ })).toHaveAttribute(
+    expect(screen.getByRole('columnheader', { name: /^#/ })).toHaveAttribute(
       'aria-sort',
       'ascending',
     );
@@ -211,7 +211,7 @@ describe('Epic file-log, Story 2: filter and sort the file log', () => {
     expect(receivedHeader).not.toHaveAttribute('aria-sort', 'ascending');
     expect(receivedHeader).not.toHaveAttribute('aria-sort', 'descending');
 
-    await user.click(sortButton(/^ID/));
+    await user.click(sortButton(/^#/));
 
     expect(listedIds()).toEqual([
       '106',
@@ -224,14 +224,14 @@ describe('Epic file-log, Story 2: filter and sort the file log', () => {
       '97',
       '95',
     ]);
-    expect(screen.getByRole('columnheader', { name: /^ID/ })).toHaveAttribute(
+    expect(screen.getByRole('columnheader', { name: /^#/ })).toHaveAttribute(
       'aria-sort',
       'descending',
     );
   });
 
   // AC-5
-  it('keeps files with a missing size or records inserted in the list, after the files that have a value, without breaking the numeric order of the others', async () => {
+  it('keeps files with a missing records inserted in the list, after the files that have a value, without breaking the numeric order of the others', async () => {
     const user = userEvent.setup();
     const files: FileRead[] = [
       createStagingFile(), // Id 104: size and records inserted missing
@@ -255,15 +255,14 @@ describe('Epic file-log, Story 2: filter and sort the file log', () => {
     renderFileLog();
     await waitForIds(5);
 
-    await user.click(sortButton(/^Size/));
-    expect(listedIds()).toEqual(['97', '102', '98', '101', '104']);
-
-    await user.click(sortButton(/^Size/));
-    expect(listedIds()).toEqual(['101', '98', '102', '97', '104']);
-
     await user.click(sortButton(/^Records inserted/));
     const byRecordsInserted = listedIds();
     expect(byRecordsInserted.slice(0, 3)).toEqual(['97', '98', '101']);
     expect([...byRecordsInserted.slice(3)].sort()).toEqual(['102', '104']);
+
+    await user.click(sortButton(/^Records inserted/));
+    const byRecordsInsertedDesc = listedIds();
+    expect(byRecordsInsertedDesc.slice(0, 3)).toEqual(['101', '98', '97']);
+    expect([...byRecordsInsertedDesc.slice(3)].sort()).toEqual(['102', '104']);
   });
 });

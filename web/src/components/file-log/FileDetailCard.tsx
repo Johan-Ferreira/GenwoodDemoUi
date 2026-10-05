@@ -20,7 +20,6 @@ import { lookUp } from '@/lib/api/not-found';
 import { parseNullableNumber } from '@/lib/api/nullable-number';
 import { isServiceError } from '@/lib/api/service-error';
 import {
-  formatByteCount,
   fileStatusTone,
   formatCount,
   importTracePath,
@@ -34,7 +33,6 @@ export const FAILED_FILE_GUIDANCE =
   'Fix the source file or re-import once the Bank of England republishes it.';
 export const ORIGINAL_DOWNLOADED =
   'Original file downloaded from the Backup folder.';
-const HASH_NOT_RECORDED = 'Not recorded';
 const FILE_LIST_PATH = '/file-log';
 
 function text(value: string | undefined): string {
@@ -74,15 +72,7 @@ function detailFields(detail: FileDetailRead): Array<[string, string]> {
     ['Stage', text(detail.Stage)],
     ...failedStep,
     ['Received', text(detail.ReceivedAt)],
-    ['Size', formatByteCount(parseNullableNumber(detail.SizeBytes))],
     ['Inbox location', text(detail.InboxLocation)],
-    ['Backup file', text(detail.BackupFileName)],
-    [
-      'SHA-256',
-      detail.Sha256 && detail.Sha256.trim() !== ''
-        ? detail.Sha256
-        : HASH_NOT_RECORDED,
-    ],
     ['Record count', formatCount(parseNullableNumber(detail.RecordCount))],
     [
       'Records inserted',

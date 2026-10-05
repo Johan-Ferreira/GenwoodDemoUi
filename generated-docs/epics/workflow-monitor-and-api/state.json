@@ -27,7 +27,7 @@
     ],
     "manualTestResults": []
   },
-  "phase": "BUILD",
+  "phase": "EPIC-END",
   "stories": {
     "1": {
       "status": "complete",
@@ -86,11 +86,11 @@
       "completedAt": "2026-10-05T14:54:11.278Z"
     },
     "9": {
-      "status": "in-progress",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
       "startedAt": "2026-10-05T14:54:11.279Z",
-      "completedAt": null
+      "completedAt": "2026-10-05T14:57:34.539Z"
     }
   },
   "halt": null,

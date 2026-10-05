@@ -276,11 +276,10 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
     const recent = await findRecentLoadsCard();
     const table = within(recent).getByRole('table');
     for (const header of [
-      /^ID/,
+      /^#/,
       /^File/,
       /^Curve family/,
       /^Received/,
-      /^Size/,
       /^Records inserted/,
       /^WOID/,
       /^Status/,
