@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "workflow-monitor-and-api",
+    "name": "Workflow monitor and API reference",
+    "createdAt": "2026-10-05T08:42:22.898Z",
+    "dependsOn": [
+      "app-shell-and-sign-in",
+      "file-log",
+      "curve-data"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-05T08:42:22.898Z"
+}
