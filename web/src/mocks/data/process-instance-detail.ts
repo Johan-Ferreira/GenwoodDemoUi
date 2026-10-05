@@ -4,6 +4,8 @@
  *
  * Variants mirror the file statuses: Finished (Imported), Faulted (Failed),
  * Running (Processing). `ContextId` is the WOID linking it to a file.
+ * Cancelled / Suspended / Idle cover the remaining `CurrentStatus` values; their
+ * WOIDs match no file in `./file`, so they also back the "Import not found" path.
  *
  * Import discipline: `import type` only, sibling factories by relative path.
  */
@@ -74,5 +76,75 @@ export function createRunningProcessInstanceDetail(
     ],
   });
   delete instance.FinishedAt;
+  return { ...instance, ...overrides };
+}
+
+/**
+ * Cancelled instance: carries `CancelledAt`, no `FinishedAt` / `FaultedAt`.
+ * Steps after the cancellation point stay Pending (BR-12).
+ */
+export function createCancelledProcessInstanceDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  const instance = createProcessInstanceDetail({
+    ProcessInstanceId: 'd4e5f6a7b8c94d0e1f2a3b4c5d6e7f80',
+    ContextId: '4d5e6f708192a3b4c5d6e7f8091a2b3c',
+    CurrentStatus: 'Cancelled',
+    CreatedAt: '2026-09-29 09:14:03',
+    LastExecutedAt: '2026-09-29 09:14:06',
+    CancelledAt: '2026-09-29 09:14:07',
+    LastExecutedActivityName: 'BackupFile',
+    Steps: [
+      { Name: 'ReceiveFile', State: 'Completed' },
+      { Name: 'BackupFile', State: 'Completed' },
+      { Name: 'ParseRates', State: 'Pending' },
+      { Name: 'PublishCurves', State: 'Pending' },
+    ],
+  });
+  delete instance.FinishedAt;
+  return { ...instance, ...overrides };
+}
+
+/** Suspended instance: paused mid-run, no terminal timestamp. */
+export function createSuspendedProcessInstanceDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  const instance = createProcessInstanceDetail({
+    ProcessInstanceId: 'e5f6a7b8c9d04e1f2a3b4c5d6e7f8091',
+    ContextId: '6a7b8c9d0e1f42a3b4c5d6e7f8091a2b',
+    CurrentStatus: 'Suspended',
+    CreatedAt: '2026-09-28 14:30:12',
+    LastExecutedAt: '2026-09-28 14:30:18',
+    LastExecutedActivityName: 'ParseRates',
+    Steps: [
+      { Name: 'ReceiveFile', State: 'Completed' },
+      { Name: 'BackupFile', State: 'Completed' },
+      { Name: 'ParseRates', State: 'Completed' },
+      { Name: 'PublishCurves', State: 'Pending' },
+    ],
+  });
+  delete instance.FinishedAt;
+  return { ...instance, ...overrides };
+}
+
+/** Idle instance: created but never executed — every step Pending, no last activity. */
+export function createIdleProcessInstanceDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  const instance = createProcessInstanceDetail({
+    ProcessInstanceId: 'f6a7b8c9d0e14f2a3b4c5d6e7f8091a2',
+    ContextId: '8c9d0e1f2a3b44c5d6e7f8091a2b3c4d',
+    CurrentStatus: 'Idle',
+    CreatedAt: '2026-09-27 08:00:00',
+    Steps: [
+      { Name: 'ReceiveFile', State: 'Pending' },
+      { Name: 'BackupFile', State: 'Pending' },
+      { Name: 'ParseRates', State: 'Pending' },
+      { Name: 'PublishCurves', State: 'Pending' },
+    ],
+  });
+  delete instance.FinishedAt;
+  delete instance.LastExecutedAt;
+  delete instance.LastExecutedActivityName;
   return { ...instance, ...overrides };
 }
