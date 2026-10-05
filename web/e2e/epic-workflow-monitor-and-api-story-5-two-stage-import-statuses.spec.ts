@@ -142,8 +142,12 @@ test.describe('Epic workflow-monitor-and-api, Story 5: Two-stage import statuses
       'Failed',
     ]);
 
-    // Accessibility of the open status list introduced by this story.
+    // Accessibility of the open status list introduced by this story. Scoped to the
+    // listbox: while a Radix Select is open it aria-hides (and focus-traps away from)
+    // the rest of the page by design, which a page-wide scan reports as
+    // aria-hidden-focus. The closed page is scanned by the File log specs.
     const { violations } = await new AxeBuilder({ page })
+      .include('[role="listbox"]')
       .withTags(WCAG_TAGS)
       .exclude('nextjs-portal')
       .analyze();
