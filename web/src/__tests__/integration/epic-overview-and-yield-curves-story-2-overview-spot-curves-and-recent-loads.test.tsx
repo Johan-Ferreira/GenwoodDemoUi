@@ -13,16 +13,17 @@
  * - The spot curves chart card and the Recent loads card are each a labelled
  *   region named by their visible title (e.g. `<section aria-labelledby=...>`):
  *   "Spot curves on latest valuation date" and "Recent loads".
- * - The chart card shows the subtitle "Nominal, real and implied inflation,
- *   long end", a legend naming "Nominal spot", "Real spot" and "Inflation spot"
- *   (only the families the service returned), the axis labels
+ * - The chart card shows the subtitle "Nominal, real, implied inflation and
+ *   OIS, long end", a legend naming "Nominal spot", "Real spot",
+ *   "Inflation spot" and "OIS spot" (only the families the service returned,
+ *   in that order — OIS is the fourth chart colour), the axis labels
  *   "Maturity (years)" and "Spot rate (%)", and X ticks 0 to 40 in fives.
  *   Built on the Shadcn chart primitive (Recharts) — tests read visible text
  *   only, never SVG internals.
  * - No spot curves -> the card keeps its title and shows only
  *   "No spot curves have been imported yet." (no axes, no legend).
  * - Some families missing -> the others are drawn and the subtitle adds
- *   "No data for {family}." for each missing one (e.g. "No data for Real.").
+ *   "No data for {family}." for each missing one (e.g. "No data for OIS.").
  * - Recent loads reuses FileTable + StatusChip: the five newest RecentFiles by
  *   ReceivedAt, newest first (the app sorts; the service order is not
  *   trusted), with the File log columns and `data-tone` status badges.
@@ -140,7 +141,7 @@ afterAll(() => {
 // ---------------------------------------------------------------------------
 
 const CHART_TITLE = 'Spot curves on latest valuation date';
-const CHART_SUBTITLE = 'Nominal, real and implied inflation, long end';
+const CHART_SUBTITLE = 'Nominal, real, implied inflation and OIS, long end';
 
 /** The page inside the app's ToastProvider (mounted by the root layout). */
 function renderOverview() {
@@ -183,7 +184,7 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
   });
 
   // AC-1
-  it('draws the three spot series with a legend, both axis labels and maturity ticks 0 to 40 in fives', async () => {
+  it('draws the four spot series with a legend, both axis labels and maturity ticks 0 to 40 in fives', async () => {
     mockGet.mockResolvedValue(createOverview());
 
     renderOverview();
@@ -191,7 +192,12 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
     const chart = await findChartCard();
     expect(within(chart).getByText(CHART_SUBTITLE)).toBeVisible();
 
-    for (const series of ['Nominal spot', 'Real spot', 'Inflation spot']) {
+    for (const series of [
+      'Nominal spot',
+      'Real spot',
+      'Inflation spot',
+      'OIS spot',
+    ]) {
       expect(firstText(chart, series)).toBeVisible();
     }
 
@@ -229,24 +235,27 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
 
     unmount();
 
-    // Real is missing: Nominal and Inflation are drawn, the subtitle names Real.
+    // OIS is missing: Nominal, Real and Inflation are drawn, the subtitle names OIS.
     mockGet.mockResolvedValue(
       createOverview({
-        SpotCurves: createSpotCurves(['Nominal', 'Inflation']),
+        SpotCurves: createSpotCurves(['Nominal', 'Real', 'Inflation']),
       }),
     );
 
     renderOverview();
 
     const partialChart = await findChartCard();
-    expect(within(partialChart).getByText(/No data for Real\./)).toBeVisible();
-    expect(firstText(partialChart, 'Nominal spot')).toBeVisible();
-    expect(firstText(partialChart, 'Inflation spot')).toBeVisible();
+    expect(within(partialChart).getByText(/No data for OIS\./)).toBeVisible();
+    for (const series of ['Nominal spot', 'Real spot', 'Inflation spot']) {
+      expect(firstText(partialChart, series)).toBeVisible();
+    }
     expect(
-      within(partialChart).queryByText('Real spot'),
+      within(partialChart).queryByText('OIS spot'),
     ).not.toBeInTheDocument();
     expect(
-      within(partialChart).queryByText(/No data for (Nominal|Inflation)\./),
+      within(partialChart).queryByText(
+        /No data for (Nominal|Real|Inflation)\./,
+      ),
     ).not.toBeInTheDocument();
     expect(
       within(partialChart).queryByText(

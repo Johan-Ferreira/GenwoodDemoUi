@@ -3,12 +3,12 @@ import type { SpotCurveItem } from '@/types/api-generated';
 
 export const SPOT_CURVES_TITLE = 'Spot curves on latest valuation date';
 export const SPOT_CURVES_SUBTITLE =
-  'Nominal, real and implied inflation, long end';
+  'Nominal, real, implied inflation and OIS, long end';
 export const NO_SPOT_CURVES = 'No spot curves have been imported yet.';
 export { SPOT_RATE_LABEL } from '@/lib/charts/line-chart';
 
 /** The Overview's families, in series (colour) order. */
-const SPOT_FAMILIES = ['Nominal', 'Real', 'Inflation'] as const;
+const SPOT_FAMILIES = ['Nominal', 'Real', 'Inflation', 'OIS'] as const;
 type SpotFamily = (typeof SPOT_FAMILIES)[number];
 
 export interface SpotCurvesChart {
@@ -20,7 +20,7 @@ export interface SpotCurvesChart {
 
 /**
  * The Overview's spot curves as chart series ("Nominal spot", "Real spot",
- * "Inflation spot"), leaving out any family without data (BR2).
+ * "Inflation spot", "OIS spot"), leaving out any family without data (BR2).
  */
 export function spotCurvesChart(
   curves: readonly SpotCurveItem[] | undefined,

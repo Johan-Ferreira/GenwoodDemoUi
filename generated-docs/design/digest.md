@@ -25,6 +25,8 @@ and never re-raises a question answered here.
   The table panel must be wide enough to show every column, including Status at the end, with no horizontal scrollbar at normal desktop widths.
 - **Curve data — Valuation date is chosen with a date picker, not a dropdown list of dates** *(curve-data, 2026-10-04)*
   The list of available dates grows with every import, so it must not be a dropdown. The field stays typeable (YYYY-MM-DD) and opens a calendar; dates with data are marked, and the earliest and latest dates still bound the picker.
+- **Overview spot curves chart — includes an OIS spot curve as a fourth series** *(overview-and-yield-curves, 2026-10-05)*
+  The "Spot curves on latest valuation date" chart draws Nominal, Real, Inflation and OIS spot (series "OIS spot", fourth chart colour), instead of only the three the design shows. The subtitle reads "Nominal, real, implied inflation and OIS, long end", and a missing OIS curve is reported as "No data for OIS." like the other families.
 
 ---
 

@@ -11,7 +11,7 @@
  *   - Every data-service request (`**\/v1/**`, i.e. anything sent through the
  *     same-origin `/curve-data` proxy) is intercepted and dispatched by path, with
  *     bodies from the project-wide factories in web/src/mocks/data/:
- *     - GET /v1/overview     → createOverview() (all three spot curves, the five
+ *     - GET /v1/overview     → createOverview() (all four spot curves, the five
  *                              newest files); createEmptyOverview() for the empty
  *                              accessibility state
  *     - GET /v1/files        → createFileList()
@@ -29,7 +29,7 @@
  *   - The shared line chart is built on the Shadcn chart primitive, so its
  *     container carries the `data-chart` attribute; hovering the plot shows the
  *     chart tooltip, which carries `role="tooltip"`, reads "{x} years" and has one
- *     line per series ("Nominal spot", "Real spot", "Inflation spot").
+ *     line per series ("Nominal spot", "Real spot", "Inflation spot", "OIS spot").
  *   - The chart is wrapped in a `<figure>` (role figure) whose accessible
  *     description is the text summary of its series (e.g. `aria-describedby`
  *     pointing at a visually hidden summary naming every series).
@@ -62,7 +62,7 @@ const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const CHART_TITLE = 'Spot curves on latest valuation date';
 const RECENT_LOADS = 'Recent loads';
-const SERIES = ['Nominal spot', 'Real spot', 'Inflation spot'];
+const SERIES = ['Nominal spot', 'Real spot', 'Inflation spot', 'OIS spot'];
 const NOT_FOUND = 'File not found';
 
 /** Generated types mark every field optional; fail loudly if a factory omits one. */

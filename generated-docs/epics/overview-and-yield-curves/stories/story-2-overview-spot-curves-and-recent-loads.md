@@ -11,7 +11,7 @@ Adds the "Spot curves on latest valuation date" chart card (280px) built from Sp
 The Overview shows the nominal, real and inflation spot curves for the latest valuation date on one chart, and lists the five most recent file loads. Clicking a load opens it in the File log.
 
 ## Acceptance criteria
-- AC-1 [vitest]: The chart card titled "Spot curves on latest valuation date" (subtitle "Nominal, real and implied inflation, long end") draws the "Nominal spot", "Real spot" and "Inflation spot" series with a legend, the axes "Maturity (years)" and "Spot rate (%)", and maturity ticks 0 to 40 in fives.
+- AC-1 [vitest]: The chart card titled "Spot curves on latest valuation date" (subtitle "Nominal, real, implied inflation and OIS, long end") draws the "Nominal spot", "Real spot", "Inflation spot" and "OIS spot" series with a legend, the axes "Maturity (years)" and "Spot rate (%)", and maturity ticks 0 to 40 in fives.
 - AC-2 [vitest]: When no spot curves exist, the card keeps its title and shows only "No spot curves have been imported yet." (no empty axes). When some families are missing, the chart draws the rest and the subtitle adds "No data for {family}."
 - AC-3 [playwright]: Hovering over the chart shows a vertical guide and a tooltip reading "{x} years" with one line per series.
 - AC-4 [vitest]: Recent loads lists the five newest files, newest first, with the File log's columns and labelled status badges. With no files it reads "No files have been received yet."
@@ -31,3 +31,6 @@ The Overview shows the nominal, real and inflation spot curves for the latest va
 
 ## Resolved design choices
 - Empty data from the live service shows calm empty messages; no computing from curve data.
+
+## Change after manual test (2026-10-05)
+- The chart also draws an "OIS spot" series (fourth chart colour, after Inflation). When OIS has no points the subtitle adds "No data for OIS." like the other families. Recorded in the design digest's Your Decisions.

@@ -25,8 +25,13 @@ import { createCurvePoints } from './curve-points';
 import { createFiles } from './file';
 import { CANONICAL_OBSERVATION_DATE, createRate } from './rate';
 
-/** Families drawn on the Overview spot curves chart, in series order (chart-1..3). */
-export const SPOT_CURVE_FAMILIES = ['Nominal', 'Real', 'Inflation'] as const;
+/** Families drawn on the Overview spot curves chart, in series order (chart-1..4). */
+export const SPOT_CURVE_FAMILIES = [
+  'Nominal',
+  'Real',
+  'Inflation',
+  'OIS',
+] as const;
 export type SpotCurveFamily = (typeof SPOT_CURVE_FAMILIES)[number];
 
 // ---------------------------------------------------------------------------
@@ -99,6 +104,7 @@ const SPOT_CURVE_META: Record<SpotCurveFamily, { code: string; name: string }> =
       code: 'GlcInflationSpotCurve',
       name: 'UK implied inflation spot curve',
     },
+    OIS: { code: 'OisSpotCurve', name: 'UK OIS spot curve' },
   };
 
 /** Long-end spot curve for one family on the canonical date. */
@@ -119,7 +125,7 @@ export function createSpotCurve(
   };
 }
 
-/** Spot curves for the given families (default: all three, in series order). */
+/** Spot curves for the given families (default: all four, in series order). */
 export function createSpotCurves(
   families: readonly SpotCurveFamily[] = SPOT_CURVE_FAMILIES,
 ): SpotCurveItem[] {

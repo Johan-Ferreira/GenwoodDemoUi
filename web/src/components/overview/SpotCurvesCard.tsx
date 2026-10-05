@@ -13,8 +13,8 @@ import {
 import type { SpotCurveItem } from '@/types/api-generated';
 
 /**
- * "Spot curves on latest valuation date": the nominal, real and inflation spot
- * curves from the Overview read, leaving out (and naming) any family without
+ * "Spot curves on latest valuation date": the nominal, real, inflation and OIS
+ * spot curves from the Overview read, leaving out (and naming) any family without
  * data. No curves at all → the title and one empty-state line only.
  */
 export function SpotCurvesCard({

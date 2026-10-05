@@ -18,3 +18,6 @@
 - The chart wrapper used to colour each line by writing a small style block into the page, and the security check flagged that as an XSS risk. It now passes the line colours straight to the chart's container, so nothing is injected. The charts look the same, and the security check now passes.
 - Raised the per-test time limit for the automated tests from 5 s to 15 s: a slow typing test from the File log epic timed out when the machine was busy.
 - Browser tests found the family chart's title appearing twice on the page (a hidden copy inside the chart image). The chart is now named from its visible heading instead, so the title appears once. All 7 browser checks pass.
+
+## Manual-test fix: OIS on the Overview chart
+- After manual testing, the Overview spot curves chart now includes the OIS spot curve as a fourth line, drawn in the fourth chart colour after Inflation. The subtitle now reads "Nominal, real, implied inflation and OIS, long end", and if the service has no OIS curve the subtitle says "No data for OIS.", just as it does for the other families.
