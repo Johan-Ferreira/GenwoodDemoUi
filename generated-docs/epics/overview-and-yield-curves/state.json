@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "overview-and-yield-curves",
+    "name": "Overview and yield curve charts",
+    "createdAt": "2026-10-05T05:54:57.237Z",
+    "dependsOn": [
+      "app-shell-and-sign-in",
+      "file-log"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-05T05:54:57.237Z"
+}
