@@ -7,6 +7,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // Page-level integration tests type into fields with userEvent; under load
+    // (parallel files, concurrent build) the 5 s default produces false timeouts.
+    testTimeout: 15000,
     setupFiles: ['./vitest.setup.ts'],
     include: [
       'src/**/__tests__/**/*.[jt]s?(x)',

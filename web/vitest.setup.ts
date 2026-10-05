@@ -29,6 +29,21 @@ if (typeof (globalThis as { jest?: unknown }).jest === 'undefined') {
   };
 }
 
+// jsdom lacks the pointer-capture and scrollIntoView APIs that Radix Select
+// (Shadcn Select) calls when opened. Test-environment shims only.
+{
+  const proto = Element.prototype as unknown as Record<string, unknown>;
+  if (typeof proto.hasPointerCapture !== 'function') {
+    proto.hasPointerCapture = () => false;
+  }
+  if (typeof proto.releasePointerCapture !== 'function') {
+    proto.releasePointerCapture = () => undefined;
+  }
+  if (typeof proto.scrollIntoView !== 'function') {
+    proto.scrollIntoView = () => undefined;
+  }
+}
+
 // Polyfill for Web APIs needed by Next.js
 // These are required for testing files that import from 'next/server'
 if (typeof Request === 'undefined') {

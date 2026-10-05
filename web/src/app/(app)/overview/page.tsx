@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/app-shell/PageHeader';
+
+import { OverviewView } from '@/components/overview/OverviewView';
 
 export const metadata: Metadata = { title: 'Overview' };
 
-/** Placeholder: the Overview epic replaces this content. */
 export default function OverviewPage() {
-  return <PageHeader title="Overview" />;
+  return <OverviewView />;
 }

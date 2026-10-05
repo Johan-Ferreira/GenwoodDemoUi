@@ -21,6 +21,14 @@ export const AVAILABLE_DATES = [
   CANONICAL_OBSERVATION_DATE,
 ] as const;
 
+/** Latest date with data (default Valuation date on Yield curves). */
+export const LATEST_AVAILABLE_DATE =
+  AVAILABLE_DATES[AVAILABLE_DATES.length - 1];
+
+/** Previous date with data (default "Compare with" date on Yield curves). */
+export const PREVIOUS_AVAILABLE_DATE =
+  AVAILABLE_DATES[AVAILABLE_DATES.length - 2];
+
 /** A weekend date inside the range with no imported data (for the "No data imported" case). */
 export const DATE_WITHOUT_DATA = '2026-09-27';
 

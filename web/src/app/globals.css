@@ -25,6 +25,9 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-chart-label: var(--chart-label);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -86,6 +89,8 @@
   --text-overline--line-height: 1rem;
   --text-page-title: 1.75rem;
   --text-page-title--line-height: 2.25rem;
+  --text-stat-value: 1.375rem;
+  --text-stat-value--line-height: 1.75rem;
   --tracking-overline: 0.08em;
 }
 
@@ -169,6 +174,10 @@
   --chart-4: var(--gw-clay-500);
   --chart-5: var(--gw-moss-500);
   --chart-6: var(--gw-stone-500);
+  /* Chart furniture: grid stone-150, axis lines stone-300, labels stone-600 */
+  --chart-grid: var(--gw-stone-150);
+  --chart-axis: var(--gw-stone-300);
+  --chart-label: var(--gw-stone-600);
   --sidebar: var(--gw-white);
   --sidebar-foreground: var(--gw-stone-700);
   --sidebar-primary: var(--gw-forest-800);

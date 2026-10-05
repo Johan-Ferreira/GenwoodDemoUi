@@ -48,7 +48,7 @@ Parsing rule: `ChangeBp`, `SizeBytes` and `RecordsInserted` are strings in the s
 - **R2.** (was R53) The Overview shows the headline rates, "10Y nominal spot" and "10Y implied inflation", each to 4 decimals with unit "%", each with its change in basis points against the prior day, formatted "+2.1 bp vs prior day" or "−2.1 bp vs prior day" (true minus sign U+2212, 1 decimal). An increase uses the success tone, a decrease the danger tone, and the sign is always in the text so colour is never the only cue.
 - **R3.** (was R54, BR-11) When a headline rate has no prior day (`ChangeBp` null or absent), no change value is shown at all. No "0.0 bp", no placeholder dash.
 - **R4.** (was R55, UI-20) The Overview shows the file counts as "Files received" (the total), with the line "{n} failed, {m} current", or "{m} current" when none have failed, in a neutral tone.
-- **R5.** (was R56) The Overview shows a chart titled "Spot curves on latest valuation date" (subtitle "Nominal, real and implied inflation, long end") with up to three series, "Nominal spot", "Real spot" and "Inflation spot", built from `SpotCurves`. X axis "Maturity (years)" with ticks 0 to 40 in steps of 5; Y axis "Spot rate (%)" to 3 decimals. Series colours run chart-1, chart-2, chart-3 from the design tokens.
+- **R5.** (was R56) The Overview shows a chart titled "Spot curves on latest valuation date" (subtitle "Nominal, real, implied inflation and OIS, long end") with up to four series, "Nominal spot", "Real spot", "Inflation spot" and "OIS spot", built from `SpotCurves`. X axis "Maturity (years)" with ticks 0 to 40 in steps of 5; Y axis "Spot rate (%)" to 3 decimals. Series colours run chart-1, chart-2, chart-3, chart-4 from the design tokens.
 - **R6.** (was R57) The Overview shows the last five files as "Recent loads", newest first, using the same columns and status badges as the File log. Clicking a row opens the File log with that file selected and its detail panel open.
 
 **Yield curves**
@@ -103,7 +103,7 @@ At smoke test on 2026-10-04 the live `GET /v1/overview` returned `KeyRates: []` 
 | A key rate whose `ChangeBp` is null | no prior day | The value shows; the change line is omitted (BR1). |
 | Files received card | `FileCounts` present | Shown as normal, independent of rate data (so it can read 4 total, 4 current, no failed line). |
 | Spot curves chart | `SpotCurves` empty | The card and title stay; the plot area is replaced by one line: "No spot curves have been imported yet." No empty axes. |
-| Spot curves chart | only some of the three families present | Draw those that exist; the subtitle adds "No data for {family}." for the rest (BR2). |
+| Spot curves chart | only some of the four families present | Draw those that exist; the subtitle adds "No data for {family}." for the rest (BR2). |
 | Recent loads | `RecentFiles` empty | "No files have been received yet." (names the entity). Rows present: shown as normal. |
 | Overview call fails | network or 5xx | Persistent message with the service error and a Retry action. Cards do not render partial invented values. |
 | Yield curves, a date without data | empty `Rates` or missing series | Subtitle replaced by "No data has been imported for {curve name} on {date}." The chart still shows any series that do have data; if none do, the plot area shows the same line only. |
