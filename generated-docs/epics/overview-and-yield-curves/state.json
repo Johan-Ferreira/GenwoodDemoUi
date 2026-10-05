@@ -29,7 +29,7 @@
       }
     ]
   },
-  "phase": "BUILD",
+  "phase": "MANUAL-TEST",
   "stories": {
     "1": {
       "status": "complete",
@@ -41,7 +41,7 @@
     "2": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed-after-fix",
       "startedAt": "2026-10-05T06:42:00.000Z",
       "completedAt": "2026-10-05T08:32:32.476Z"
     },
@@ -61,5 +61,5 @@
     }
   },
   "halt": null,
-  "lastUpdated": "2026-10-05T08:32:32.477Z"
+  "lastUpdated": "2026-10-05T08:36:41.474Z"
 }
