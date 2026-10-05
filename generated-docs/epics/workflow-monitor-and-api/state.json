@@ -10,11 +10,20 @@
       "curve-data"
     ],
     "introducesSharedSurface": false,
-    "unverifiedAssumptions": [],
+    "unverifiedAssumptions": [
+      "Verify the run list order: the app assumes the data service returns process instances newest first. If it returns them in another order, the Workflow monitor will not open with the latest runs at the top. Column sorting only reorders the page you are on.",
+      "Verify Open workflow lands on the right run: the app assumes a file's 'Workflow instance' value is the same ID the Workflow monitor uses for that run. If they differ, choosing Open workflow will show 'Process instance not found' for a run that does exist.",
+      "Verify Pending steps appear: the app assumes the service returns every step of a run, including ones that have not run yet, marked Pending. If it only returns steps that actually ran, a failed run will show fewer tiles and no Pending steps after the failure."
+    ],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "1": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "2": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }
+  },
   "halt": null,
-  "lastUpdated": "2026-10-05T08:42:22.898Z"
+  "lastUpdated": "2026-10-05T09:00:00.000Z"
 }
