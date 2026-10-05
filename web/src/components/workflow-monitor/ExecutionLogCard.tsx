@@ -95,7 +95,7 @@ export function ExecutionLogCard({
   fileId,
 }: {
   logs: readonly ExecutionLogRead[];
-  /** The run's file (ContextId → import → File.Id), for the empty-log route. */
+  /** The run's file (ProcessInstanceId → import → File.Id), for the empty-log route. */
   fileId: number | null;
 }) {
   const titleId = useId();

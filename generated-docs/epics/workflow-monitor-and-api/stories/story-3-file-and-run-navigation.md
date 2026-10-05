@@ -21,8 +21,8 @@ Adds an "Open workflow" secondary button (workflow icon) to the File log file de
 - **AC-1** (coverage: playwright): In the File log, choosing "Open workflow" on a file's details opens the Workflow monitor with that file's run selected.
 - **AC-2** (coverage: playwright): From a selected run, choosing "Open file log entry" opens the File log with that run's file selected and its details shown.
 - **AC-3** (coverage: playwright): Opening a failed file's workflow shows the faulted step, the Pending steps after it and the failing activity's message in the log.
-- **AC-4** (coverage: vitest): A file with no workflow instance does not offer "Open workflow".
-- **AC-5** (coverage: vitest): When a run's file cannot be found, "Open file log entry" leads to an "Import not found" message with a route back, not a raw error.
+- **AC-4** (coverage: vitest): "Open workflow" is offered for every file and opens the file's own import run (the run whose ID is the file's WOID, process ImportFile), not the later LoadYieldCurves run. The link also asks the Workflow monitor to show only that run in the Process instances table.
+- **AC-5** (coverage: vitest): "Open file log entry" resolves the run's own ID as the import WOID (`GET /v1/imports/{ProcessInstanceId}`; the live service returns no ContextId). When no import exists for the run (for example a LoadYieldCurves run), it leads to an "Import not found" message with a route back, not a raw error.
 
 ## Manual test checklist
 
@@ -38,3 +38,7 @@ Adds an "Open workflow" secondary button (workflow icon) to the File log file de
 ## Reuse notes
 
 FileDetailCard action row (Download original, Trace import); fileLogSelectionPath; getImport + lookUp; NotFoundMessage.
+
+## Contract correction (manual test, 2026-10-05)
+
+The live service returns no ContextId. A file's Woid equals the ProcessInstanceId of its ImportFile run; the file's WorkflowInstanceId points at the later LoadYieldCurves run, which has no link back to a file. So: "Open workflow" uses the file Woid (works for failed files too) and adds `view=single`; "Open file log entry" uses the run's ProcessInstanceId as the Woid.

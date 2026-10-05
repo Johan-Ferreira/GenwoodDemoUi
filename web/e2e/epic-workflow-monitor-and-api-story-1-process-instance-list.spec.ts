@@ -11,8 +11,7 @@
  *   - `GET .../v1/process-instances` (served through the same-origin /curve-data
  *     proxy) is fulfilled from the project-wide factories in web/src/mocks/data/
  *     via `queryProcessInstances`, which behaves like the service: exact `Status`
- *     match, case-insensitive substring `ProcessName` match, then 1-based
- *     `Page` / `Size`.
+ *     match, exact `ProcessName` match, then 1-based `Page` / `Size`.
  *   - Every other data-service request (`**\/v1/**`) is aborted.
  * - Implementation pattern this assumes:
  *   - The process-instance list is fetched from the browser (client component via
@@ -20,13 +19,13 @@
  *     Component or Server Action.
  *   - Filters and paging are sent to the service as the Status / ProcessName /
  *     Page / Size query parameters (service-driven paging, not client slicing).
- *     The "all statuses" option omits Status.
+ *     "All statuses" omits Status; "All processes" omits ProcessName.
  *   - The demo session is client-only (sign in via "Sign in with Genwood SSO", as in
  *     the app-shell spec); no credentials, no userinfo endpoint.
- *   - Filter controls: a Shadcn Select combobox labelled "Status" (options
- *     "All statuses", Idle, Running, Suspended, Finished, Cancelled, Faulted) and a
- *     free-text input labelled "Process name", applied when committed (blur / Tab)
- *     or after a short debounce.
+ *   - Filter controls: two Shadcn Select comboboxes (FilterSelect) — "Status"
+ *     (options "All statuses", Idle, Running, Suspended, Finished, Cancelled,
+ *     Faulted) and "Process name" (hardcoded options "All processes", "ImportFile",
+ *     "LoadYieldCurves"; not populated dynamically).
  *   - Paging uses the shared TablePagination: "Rows per page" select (5, 10, 20, 50;
  *     default 20), a "first–last of total" range line, Previous / Next page buttons.
  *   - Each row shows the instance ID shortened to its first 12 characters plus "…".
@@ -44,6 +43,10 @@ import {
   createProcessInstances,
   queryProcessInstances,
 } from '../src/mocks/data/process-instance';
+import {
+  IMPORT_FILE,
+  LOAD_YIELD_CURVES,
+} from '../src/mocks/data/process-instance-detail';
 
 import type { Locator, Page } from '@playwright/test';
 import type { ProcessInstanceRead } from '../src/types/api-generated';
@@ -51,8 +54,9 @@ import type { ProcessInstanceRead } from '../src/types/api-generated';
 const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
-/** The 9-row mixed collection, newest first, as the service returns it. */
+/** The 11-row mixed collection, newest first, as the service returns it. */
 const ALL_INSTANCES = createProcessInstances();
+const TOTAL = ALL_INSTANCES.length;
 
 /** The shortened instance ID a row displays (12 characters, then the ellipsis). */
 function shortId(instance: ProcessInstanceRead): string {
@@ -134,6 +138,10 @@ function withStatus(status: string): ProcessInstanceRead[] {
   return ALL_INSTANCES.filter((p) => p.CurrentStatus === status);
 }
 
+function withProcess(processName: string): ProcessInstanceRead[] {
+  return ALL_INSTANCES.filter((p) => p.ProcessName === processName);
+}
+
 test.describe('Epic workflow-monitor-and-api, Story 1: Process instance list', () => {
   test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
@@ -141,27 +149,28 @@ test.describe('Epic workflow-monitor-and-api, Story 1: Process instance list', (
   });
 
   // AC-2
-  test('filtering by status or by process name lists only the matching instances', async ({
+  test('filtering by status or by choosing a process lists only the matching instances', async ({
     page,
   }) => {
     await openWorkflowMonitor(page);
     await expectRows(page, ALL_INSTANCES);
 
-    // Status: only the two faulted runs remain, newest first.
+    // Status: only the faulted runs remain, newest first.
     await chooseOption(page, 'Status', 'Faulted');
     await expectRows(page, withStatus('Faulted'));
 
-    // Back to every status, then narrow by free-text process name.
+    // Back to every status, then narrow by the Process name dropdown.
     await chooseOption(page, 'Status', 'All statuses');
     await expectRows(page, ALL_INSTANCES);
 
-    const processName = page.getByLabel('Process name', { exact: true });
-    await processName.fill('Reprocess');
-    await processName.press('Tab');
-    await expectRows(
-      page,
-      ALL_INSTANCES.filter((p) => p.ProcessName === 'ReprocessCurveFile'),
-    );
+    await chooseOption(page, 'Process name', IMPORT_FILE);
+    await expectRows(page, withProcess(IMPORT_FILE));
+
+    await chooseOption(page, 'Process name', LOAD_YIELD_CURVES);
+    await expectRows(page, withProcess(LOAD_YIELD_CURVES));
+
+    await chooseOption(page, 'Process name', 'All processes');
+    await expectRows(page, ALL_INSTANCES);
   });
 
   // AC-3
@@ -170,12 +179,12 @@ test.describe('Epic workflow-monitor-and-api, Story 1: Process instance list', (
   }) => {
     await openWorkflowMonitor(page);
 
-    // Default page size 20: all 9 runs on one page.
+    // Default page size 20: every run on one page.
     await expect(
       page.getByRole('combobox', { name: 'Rows per page', exact: true }),
     ).toHaveText(/20/);
     await expectRows(page, ALL_INSTANCES);
-    await expect(page.getByText(/1–9 of 9/)).toBeVisible();
+    await expect(page.getByText(`1–${TOTAL} of ${TOTAL}`)).toBeVisible();
 
     // Accessibility of the populated list (filters, table, pagination).
     const { violations } = await new AxeBuilder({ page })
@@ -184,17 +193,14 @@ test.describe('Epic workflow-monitor-and-api, Story 1: Process instance list', (
       .analyze();
     expect(violations).toEqual([]);
 
-    // Page size 5: the five newest runs, then the remaining four on page 2.
+    // Page size 5: the five newest runs, then the next five on page 2.
     await chooseOption(page, 'Rows per page', '5');
     await expectRows(page, ALL_INSTANCES.slice(0, 5));
-    await expect(page.getByText(/1–5 of 9/)).toBeVisible();
+    await expect(page.getByText(`1–5 of ${TOTAL}`)).toBeVisible();
 
     await page.getByRole('button', { name: 'Next page' }).click();
-    await expectRows(page, ALL_INSTANCES.slice(5));
-    await expect(page.getByText(/6–9 of 9/)).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: 'Next page' }),
-    ).toBeDisabled();
+    await expectRows(page, ALL_INSTANCES.slice(5, 10));
+    await expect(page.getByText(`6–10 of ${TOTAL}`)).toBeVisible();
 
     await page.getByRole('button', { name: 'Previous page' }).click();
     await expectRows(page, ALL_INSTANCES.slice(0, 5));

@@ -4,6 +4,11 @@
  * Composes the File factory (`./file`) so row and detail never drift. Adds the
  * workflow, location, hash, exception-note and audit fields.
  *
+ * - `WorkflowInstanceId` is only set for Imported files. It points to a separate
+ *   `LoadYieldCurves` run (file 101 -> `6645057045ca4ce59a9827c6f5138246`,
+ *   file 98 -> `2a3b4c5d6e7f40819a0b1c2d3e4f5a6b`) whose id matches no import.
+ *   The file's own `ImportFile` run has `ProcessInstanceId === Woid`.
+ *
  * - Failed detail carries `ExceptionNote`; Imported / Processing never do (BR5).
  * - `Sha256` is absent where the service has no content key yet (Processing,
  *   and the explicit `createFileDetailWithoutHash` variant).
@@ -54,26 +59,31 @@ export function createSupersededFileDetail(
   });
 }
 
-/** Failed import detail: carries the exception note. */
+/**
+ * Failed import detail: carries the exception note. No `WorkflowInstanceId` (the
+ * service only sets it for Imported files); its ImportFile run lives at its Woid.
+ */
 export function createFailedFileDetail(
   overrides: Partial<FileDetailRead> = {},
 ): FileDetailRead {
-  return detailFrom(createFailedFile(), {
-    WorkflowInstanceId: 'b7c8d9e0f1a24b3c8d9e0f1a2b3c4d5e',
+  const detail = detailFrom(createFailedFile(), {
     Sha256: '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
     ExceptionNote: 'Row 12: invalid rate',
-    ...overrides,
   });
+  delete detail.WorkflowInstanceId;
+  return { ...detail, ...overrides };
 }
 
-/** Processing import detail: no content hash yet, no exception note. */
+/**
+ * Processing import detail: no content hash yet, no exception note, no
+ * `WorkflowInstanceId` (not Imported); its ImportFile run lives at its Woid.
+ */
 export function createProcessingFileDetail(
   overrides: Partial<FileDetailRead> = {},
 ): FileDetailRead {
-  const detail = detailFrom(createProcessingFile(), {
-    WorkflowInstanceId: 'c1d2e3f4a5b64c7d8e9f0a1b2c3d4e5f',
-  });
+  const detail = detailFrom(createProcessingFile(), {});
   delete detail.Sha256;
+  delete detail.WorkflowInstanceId;
   return { ...detail, ...overrides };
 }
 

@@ -1,6 +1,12 @@
 import { sortBy, type SortState, type SortValue } from '@/lib/utils/sort';
 import type { ProcessInstanceRead } from '@/types/api-generated';
 
+/**
+ * The process names the service runs, offered by the Process name filter.
+ * Hardcoded for the demo (the service has no endpoint listing them).
+ */
+export const PROCESS_NAMES = ['ImportFile', 'LoadYieldCurves'] as const;
+
 /** Characters of a process instance ID shown before the ellipsis. */
 const SHORT_INSTANCE_ID_LENGTH = 12;
 

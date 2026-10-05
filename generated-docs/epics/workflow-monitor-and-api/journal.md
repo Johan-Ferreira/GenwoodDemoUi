@@ -16,3 +16,8 @@
 ## Story 4: API reference
 
 - The API page shows the real data service address in the example request (the same setting the app proxy uses), not the prototype address. The example response is a live read of the chosen curve rates for the chosen date. The subtitle was reworded because the design said "Illustrative contract for the demo".
+
+## Manual-test fix cycle 1
+
+- The live service has no ContextId on process runs. An ImportFile run ID is the same as its file WOID, so the app finds a run's file using the run ID. Open workflow on any file (failed ones included) opens that file's own import run, and the monitor lists only that run until you choose "Show all process instances". LoadYieldCurves runs have no file, so Open file log entry on one shows "Import not found" with a link back.
+- The Process name filter is now a dropdown: All processes, ImportFile, LoadYieldCurves (hardcoded for the demo).

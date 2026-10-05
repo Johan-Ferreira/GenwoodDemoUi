@@ -1,21 +1,17 @@
 'use client';
 
-import { useId } from 'react';
-
 import { FilterSelect } from '@/components/filter-select/FilterSelect';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { PROCESS_NAMES } from '@/lib/workflow/process-instances';
 import { PROCESS_STATUSES } from '@/lib/workflow/process-status';
 
 import type { ProcessInstanceFiltersState } from './useProcessInstanceFilters';
 
-/** Status select and free-text process name filter for the process instances (R1). */
+/** Status and Process name selects for the process instances (R1). */
 export function ProcessInstanceFilters({
   state,
 }: {
   state: ProcessInstanceFiltersState;
 }) {
-  const nameId = useId();
   return (
     <div
       role="group"
@@ -29,21 +25,13 @@ export function ProcessInstanceFilters({
         options={PROCESS_STATUSES}
         onChange={state.setStatus}
       />
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor={nameId}>Process name</Label>
-        <Input
-          id={nameId}
-          type="text"
-          autoComplete="off"
-          className="focus-ring w-56"
-          value={state.processNameDraft}
-          onChange={(event) => state.typeProcessName(event.target.value)}
-          onBlur={state.commitProcessName}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') state.commitProcessName();
-          }}
-        />
-      </div>
+      <FilterSelect
+        label="Process name"
+        value={state.processName}
+        allLabel="All processes"
+        options={PROCESS_NAMES}
+        onChange={state.setProcessName}
+      />
     </div>
   );
 }

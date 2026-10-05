@@ -18,8 +18,13 @@
  *                                                   Id → 404 createProcessInstanceNotFound()
  *     - GET /v1/process-instances/{Id}/execution-logs → the matching shared log list;
  *                                                   unknown Id → 404 (same body)
- *     - GET /v1/imports/{Woid}                    → the shared import traces; unknown
- *                                                   WOID → 404 createImportNotFound()
+ *     - GET /v1/imports/{Woid}                    → the shared import traces, keyed by
+ *                                                   the ImportFile run's own
+ *                                                   ProcessInstanceId (the live service
+ *                                                   returns NO ContextId; an ImportFile
+ *                                                   run's Id IS its file's Woid). Any
+ *                                                   other Id (LoadYieldCurves runs,
+ *                                                   unknown) → 404 createImportNotFound()
  *     - anything else                             → aborted (never reaches a live service)
  *   - Auth is the client-only demo session (project.md: custom); sign-in is the
  *     "Sign in with Genwood SSO" button — no credentials, no userinfo endpoint.
@@ -29,6 +34,9 @@
  *     page.route() sees them. Server Components / Server Actions must NOT fetch them.
  *   - The selection lives in the URL: loading `/workflow-monitor?instance=<Id>` opens
  *     that run directly, and its table row carries `aria-selected="true"`.
+ *   - The file name in the steps-card subtitle comes from
+ *     `GET /v1/imports/{ProcessInstanceId}` (the run's own Id used as the Woid) —
+ *     never from a ContextId, which the service does not return.
  *   - The steps card is a landmark region named by its title (the process name, e.g.
  *     a `<section aria-labelledby>` pointing at the heading); its subtitle contains
  *     the full instance Id, the status and the file name. Its step tiles are list
@@ -53,9 +61,11 @@ import {
   createCancelledProcessInstanceDetail,
   createFaultedProcessInstanceDetail,
   createIdleProcessInstanceDetail,
+  createLoadYieldCurvesProcessInstanceDetail,
   createProcessInstanceDetail,
   createRunningProcessInstanceDetail,
   createSuspendedProcessInstanceDetail,
+  IMPORT_FILE,
 } from '../src/mocks/data/process-instance-detail';
 import {
   createProcessInstances,
@@ -66,6 +76,7 @@ import {
   createExecutionLogList,
   createExecutionLogs,
   createFaultedExecutionLogs,
+  createLoadYieldCurvesExecutionLogs,
   createRunningExecutionLogs,
 } from '../src/mocks/data/execution-log';
 import {
@@ -118,6 +129,7 @@ function knownDetails(): Map<string, ProcessInstanceDetailRead> {
       createCancelledProcessInstanceDetail(),
       createSuspendedProcessInstanceDetail(),
       createIdleProcessInstanceDetail(),
+      createLoadYieldCurvesProcessInstanceDetail(),
     ].map((d) => [required(d.ProcessInstanceId, 'ProcessInstanceId'), d]),
   );
 }
@@ -137,15 +149,32 @@ function knownLogs(): Map<string, ExecutionLogReadList> {
       required(createRunningProcessInstanceDetail().ProcessInstanceId, 'Id'),
       createExecutionLogList(createRunningExecutionLogs()),
     ],
+    [
+      required(
+        createLoadYieldCurvesProcessInstanceDetail().ProcessInstanceId,
+        'Id',
+      ),
+      createExecutionLogList(createLoadYieldCurvesExecutionLogs()),
+    ],
   ]);
 }
 
-/** Import traces by WOID (= ProcessInstance.ContextId). */
+/**
+ * Import traces keyed by the ImportFile run's own ProcessInstanceId — the Woid the
+ * app looks imports up by (the service returns no ContextId). Only ImportFile runs
+ * resolve; any other Id (e.g. a LoadYieldCurves run) is absent, so it 404s.
+ */
 function knownImports(): Map<string, ImportRead> {
   return new Map(
-    [createImport(), createFailedImport(), createProcessingImport()].map(
-      (trace) => [required(trace.File?.Woid, 'File.Woid'), trace],
-    ),
+    [createImport(), createFailedImport(), createProcessingImport()]
+      .filter((trace) => trace.ProcessInstance?.ProcessName === IMPORT_FILE)
+      .map((trace) => [
+        required(
+          trace.ProcessInstance?.ProcessInstanceId,
+          'ProcessInstance.ProcessInstanceId',
+        ),
+        trace,
+      ]),
   );
 }
 

@@ -17,17 +17,16 @@ export type ProcessInstanceFilters = Pick<
 >;
 
 /**
- * Process-instance filter state: a Status select ("All statuses" omits the
- * parameter) and a free-text process name applied when committed (blur / Enter).
+ * Process-instance filter state: a Status select and a Process name select;
+ * their "All ..." option omits the parameter.
  */
 export function useProcessInstanceFilters() {
   const [status, setStatus] = useState<string>(ALL_OPTION);
-  const [processNameDraft, setProcessNameDraft] = useState('');
-  const [processName, setProcessName] = useState('');
+  const [processName, setProcessName] = useState<string>(ALL_OPTION);
 
   const filters: ProcessInstanceFilters = {};
   if (status !== ALL_OPTION) filters.Status = status;
-  if (processName) filters.ProcessName = processName;
+  if (processName !== ALL_OPTION) filters.ProcessName = processName;
 
   const activeFilters: ActiveFilter[] = [];
   if (filters.Status) {
@@ -39,22 +38,16 @@ export function useProcessInstanceFilters() {
 
   return {
     status,
-    processNameDraft,
+    processName,
     filters,
     /** Stable identity of the applied filters; changes only when the request would. */
     filtersKey: JSON.stringify(filters),
     activeFilters,
     setStatus,
-    typeProcessName: setProcessNameDraft,
-    commitProcessName: () => {
-      const value = processNameDraft.trim();
-      setProcessNameDraft(value);
-      setProcessName(value);
-    },
+    setProcessName,
     clearAll: () => {
       setStatus(ALL_OPTION);
-      setProcessNameDraft('');
-      setProcessName('');
+      setProcessName(ALL_OPTION);
     },
   };
 }

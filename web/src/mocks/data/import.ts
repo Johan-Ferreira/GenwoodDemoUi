@@ -4,7 +4,10 @@
  * data counts.
  *
  * Composes `./file-detail` and `./process-instance-detail` so each variant's file
- * status, WOID and workflow state stay consistent.
+ * status, WOID and workflow state stay consistent. The trace's `ProcessInstance`
+ * is the file's `ImportFile` run, so `File.Woid === ProcessInstance.ProcessInstanceId`
+ * (the lookup key works both ways). `LoadYieldCurves` runs have no import — the
+ * service answers 404 "Import not found" for their ids.
  *
  * Import discipline: `import type` only, sibling factories by relative path.
  */

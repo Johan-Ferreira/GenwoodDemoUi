@@ -27,7 +27,10 @@ export const PROCESS_INSTANCE_NOT_FOUND = 'Process instance not found';
 export interface RunDetail {
   instance: ProcessInstanceDetailRead;
   logs: ExecutionLogRead[];
-  /** The run's import (ContextId → `/v1/imports/{Woid}`); null when it cannot be resolved. */
+  /**
+   * The run's import (`/v1/imports/{ProcessInstanceId}` — an ImportFile run's ID
+   * is its file's Woid); null when it cannot be resolved (e.g. LoadYieldCurves).
+   */
   trace: ImportRead | null;
 }
 
@@ -56,7 +59,7 @@ async function loadRunDetail(id: string): Promise<Lookup<RunDetail>> {
   const instance = lookup.value;
   const [logList, trace] = await Promise.all([
     getProcessInstanceExecutionLogs(encoded),
-    loadTrace(instance.ContextId),
+    loadTrace(instance.ProcessInstanceId ?? id),
   ]);
   return {
     found: true,
@@ -94,7 +97,10 @@ function RunDetailView({ run }: { run: RunDetail }) {
       <RunSteps instance={run.instance} fileName={run.trace?.File?.FileName} />
       <AuditHistory instance={run.instance} />
       <ExecutionLogCard logs={run.logs} fileId={fileId} />
-      <OpenFileLogEntry contextId={run.instance.ContextId} fileId={fileId} />
+      <OpenFileLogEntry
+        instanceId={run.instance.ProcessInstanceId}
+        fileId={fileId}
+      />
     </div>
   );
 }

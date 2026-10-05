@@ -3,9 +3,17 @@
  * - Route: /workflow-monitor
  * - Target File: web/src/app/(app)/workflow-monitor/page.tsx
  * - Page Action: modify_existing
+ * - Role: Demo presenter
  *
  * Epic workflow-monitor-and-api, Story 2: run detail — step pipeline, audit
  * history and execution log.
+ *
+ * Service contract (verified against the live service):
+ * - Process instances carry NO ContextId. Two process names exist: "ImportFile"
+ *   and "LoadYieldCurves".
+ * - An ImportFile run's ProcessInstanceId IS its file's Woid, so the run's file is
+ *   resolved with `GET /v1/imports/{ProcessInstanceId}`. A LoadYieldCurves run
+ *   matches no import (the lookup answers 404 "Import not found").
  *
  * Production contracts these tests define (implement to them):
  * - The Workflow monitor page default export renders synchronously in jsdom (a
@@ -15,8 +23,9 @@
  *   same URL-selection pattern as `useSelectedFile`. With a run selected the page
  *   loads `GET /v1/process-instances/{Id}` (getProcessInstance),
  *   `GET /v1/process-instances/{Id}/execution-logs`
- *   (getProcessInstanceExecutionLogs) and `GET /v1/imports/{ContextId}` (getImport,
- *   for the file name and the file's Id) via `get`, through DataState.
+ *   (getProcessInstanceExecutionLogs) and `GET /v1/imports/{ProcessInstanceId}`
+ *   (getImport via lookUp, for the file name and the file's Id) via `get`,
+ *   through DataState.
  * - Step pipeline: a list with accessible name "Steps" (e.g. `<ol aria-label="Steps">`)
  *   holding one `listitem` tile per entry of the service's `Steps[]`, in service
  *   order (never a hard-coded set). Each tile shows "{n} · {State}" as one element
@@ -35,14 +44,16 @@
  *   removed ("ActivityCompleted" → "Completed").
  * - Empty log: inside the Execution log region, "No log entries exist" and a link
  *   (name mentioning "file") to the run's file details at `/file-log?file=<File.Id>`,
- *   resolved ContextId → `/v1/imports/{Woid}` → `File.Id` (BR3).
+ *   resolved ProcessInstanceId → `/v1/imports/{ProcessInstanceId}` → `File.Id`
+ *   (BR3). When the run has no import (404, e.g. a LoadYieldCurves run) or the
+ *   import cannot be read, the link falls back to the general file log `/file-log`.
  *
  * Only the API boundary (`@/lib/api/client`) and Next navigation hooks are mocked.
  * Payloads come from the project-wide factories in web/src/mocks/data/.
  *
  * These tests WILL FAIL until implemented (TDD red).
  */
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -64,6 +75,7 @@ import {
 import { createProcessInstanceList } from '@/mocks/data/process-instance';
 import {
   createFaultedProcessInstanceDetail,
+  createLoadYieldCurvesProcessInstanceDetail,
   createProcessInstanceDetail,
   createRunningProcessInstanceDetail,
 } from '@/mocks/data/process-instance-detail';
@@ -111,6 +123,17 @@ function serverError(description: string): ServiceError {
   });
 }
 
+/** The service's answer for an id that matches no import (e.g. a LoadYieldCurves run). */
+function importNotFound(): ServiceError {
+  return new ServiceError({
+    status: 404,
+    description:
+      'The data service could not complete the request (404 Not Found). The service said: Import not found',
+    retryable: true,
+    kind: 'service-error',
+  });
+}
+
 /** Resolves a payload, or rejects when the scenario says the read fails. */
 function answer<T>(payload: T | ServiceError): Promise<T> {
   return payload instanceof ServiceError
@@ -118,7 +141,10 @@ function answer<T>(payload: T | ServiceError): Promise<T> {
     : Promise.resolve(payload);
 }
 
-/** Serves the list, the selected run, its log and its import from the shared factories. */
+/**
+ * Serves the list, the selected run, its log and its import from the shared
+ * factories. The import is looked up by the run's own ProcessInstanceId (= Woid).
+ */
 function serveRun({ detail, logs, trace }: RunScenario) {
   const id = detail.ProcessInstanceId ?? '';
   mockGet.mockImplementation((endpoint: unknown) => {
@@ -131,7 +157,7 @@ function serveRun({ detail, logs, trace }: RunScenario) {
     if (endpoint === `/v1/process-instances/${id}/execution-logs`) {
       return answer(logs);
     }
-    if (endpoint === `/v1/imports/${detail.ContextId ?? ''}`) {
+    if (endpoint === `/v1/imports/${id}`) {
       return answer(trace);
     }
     return Promise.reject(
@@ -165,6 +191,7 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
 
   // AC-1
   it('shows one step tile per service step, in order, with position, state, name and a state-following tint; unrun steps read "Pending"', async () => {
+    // Faulted ImportFile run 3c9d5e7f… (file 102): ParseRates faults.
     const first = renderSelectedRun({
       detail: createFaultedProcessInstanceDetail(),
       logs: createExecutionLogList(createFaultedExecutionLogs()),
@@ -189,7 +216,7 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
 
     first.unmount();
 
-    // A running step is tinted info.
+    // Running ImportFile run 9a8b7c6d… (file 103): a running step is tinted info.
     renderSelectedRun({
       detail: createRunningProcessInstanceDetail(),
       logs: createExecutionLogList(createRunningExecutionLogs()),
@@ -287,7 +314,8 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
 
   // AC-6
   it('shows "No log entries exist" with a link back to the run\'s file details when the log is empty', async () => {
-    renderSelectedRun({
+    // Finished ImportFile run 0d41a444… is file 101's Woid: its import resolves.
+    const first = renderSelectedRun({
       detail: createProcessInstanceDetail(),
       logs: createEmptyExecutionLogList(),
       trace: createImport(),
@@ -301,9 +329,32 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
     ).toBeInTheDocument();
     expect(within(logRegion).queryByRole('table')).not.toBeInTheDocument();
 
-    const back = await within(logRegion).findByRole('link', { name: /file/i });
-    // ContextId → /v1/imports/{Woid} → File.Id 101 (BR3).
-    expect(back).toHaveAttribute('href', '/file-log?file=101');
+    // ProcessInstanceId → /v1/imports/{ProcessInstanceId} → File.Id 101 (BR3).
+    await waitFor(() => {
+      expect(
+        within(logRegion).getByRole('link', { name: /file/i }),
+      ).toHaveAttribute('href', '/file-log?file=101');
+    });
+
+    first.unmount();
+
+    // A LoadYieldCurves run matches no import (404): the link falls back to the file log.
+    renderSelectedRun({
+      detail: createLoadYieldCurvesProcessInstanceDetail(),
+      logs: createEmptyExecutionLogList(),
+      trace: importNotFound(),
+    });
+
+    const curvesRegion = await screen.findByRole('region', {
+      name: /execution log/i,
+    });
+    expect(
+      await within(curvesRegion).findByText('No log entries exist'),
+    ).toBeInTheDocument();
+    expect(
+      await within(curvesRegion).findByRole('link', { name: /file/i }),
+    ).toHaveAttribute('href', '/file-log');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it("still shows the run when its import cannot be read, without the file's details", async () => {
@@ -352,23 +403,22 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
 
   it('does not navigate again when the already-selected run is chosen, but does for another run', async () => {
     const user = userEvent.setup();
-    const selected = createProcessInstanceDetail();
     renderSelectedRun({
-      detail: selected,
+      detail: createProcessInstanceDetail(),
       logs: createExecutionLogList(),
       trace: createImport(),
     });
 
     await screen.findByRole('list', { name: 'Steps' });
-    const selectedRow = screen.getByRole('row', { name: /^6645057045ca…/ });
+    const selectedRow = screen.getByRole('row', { name: /^0d41a4449881…/ });
     expect(selectedRow).toHaveAttribute('aria-selected', 'true');
 
     await user.click(selectedRow);
     expect(mockPush).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole('row', { name: /^b7c8d9e0f1a2…/ }));
+    await user.click(screen.getByRole('row', { name: /^3c9d5e7f1a2b…/ }));
     expect(mockPush).toHaveBeenCalledWith(
-      '/workflow-monitor?instance=b7c8d9e0f1a24b3c8d9e0f1a2b3c4d5e',
+      '/workflow-monitor?instance=3c9d5e7f1a2b4c6d8e0f1a2b3c4d5e6f',
       { scroll: false },
     );
   });

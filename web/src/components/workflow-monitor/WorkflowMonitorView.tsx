@@ -9,12 +9,14 @@ import { useSelectedInstance } from './useSelectedInstance';
  * list, and below it the run selected in the URL (`?instance=<Id>`).
  */
 export function WorkflowMonitorView() {
-  const { selectedId, select } = useSelectedInstance();
+  const { selectedId, select, singleView, showAll } = useSelectedInstance();
 
   return (
     <div className="flex flex-col gap-4">
       <ProcessInstanceList
         selectedId={selectedId}
+        singleView={singleView}
+        onShowAll={showAll}
         onSelect={(instance) => {
           if (instance.ProcessInstanceId) select(instance.ProcessInstanceId);
         }}

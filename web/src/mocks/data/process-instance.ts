@@ -4,11 +4,15 @@
  * `GET /v1/process-instances?Status=&ProcessName=&Page=&Size=`.
  *
  * Rows are derived from the detail factories (`./process-instance-detail`) by
- * dropping `Steps`, so a list row and its detail never drift. The collection
- * covers every `CurrentStatus` (Idle, Running, Suspended, Finished, Cancelled,
- * Faulted), two process names (so the name filter has something to narrow), and
- * more than 5 rows (so the smallest page size pages). It is ordered newest first
- * by `CreatedAt`, as the service returns it.
+ * dropping `Steps`, so a list row and its detail never drift. Like the live
+ * service, rows carry NO `ContextId`.
+ *
+ * The collection (11 rows, newest first by `CreatedAt`) mixes both process names
+ * and covers every `CurrentStatus`:
+ * - Each `ImportFile` row's `ProcessInstanceId` is a seeded file's `Woid` in
+ *   `./file` (files 103, 102, 101, 98, 97, 95), so its import resolves.
+ * - Each `LoadYieldCurves` row matches no import; two of them are the
+ *   `WorkflowInstanceId`s of the Imported files 101 and 98 in `./file-detail`.
  *
  * Import discipline: `import type` only, sibling factories by relative path.
  */
@@ -21,9 +25,12 @@ import {
   createCancelledProcessInstanceDetail,
   createFaultedProcessInstanceDetail,
   createIdleProcessInstanceDetail,
+  createLoadYieldCurvesProcessInstanceDetail,
   createProcessInstanceDetail,
   createRunningProcessInstanceDetail,
   createSuspendedProcessInstanceDetail,
+  IMPORT_FILE,
+  LOAD_YIELD_CURVES,
 } from './process-instance-detail';
 
 /** Every `CurrentStatus` value the service can return. */
@@ -36,8 +43,8 @@ export const PROCESS_STATUSES = [
   'Faulted',
 ] as const;
 
-/** Process names present in the mixed collection (canonical first). */
-export const PROCESS_NAMES = ['ImportCurveFile', 'ReprocessCurveFile'] as const;
+/** The two process names the service runs (canonical first). */
+export const PROCESS_NAMES = [IMPORT_FILE, LOAD_YIELD_CURVES] as const;
 
 /** Strip `Steps` from a detail to get the matching list row. */
 export function toProcessInstanceRow(
@@ -48,7 +55,7 @@ export function toProcessInstanceRow(
   return row;
 }
 
-/** Canonical Finished row (same instance as `createProcessInstanceDetail()`). */
+/** Canonical Finished ImportFile row (same instance as `createProcessInstanceDetail()`). */
 export function createProcessInstance(
   overrides: Partial<ProcessInstanceRead> = {},
 ): ProcessInstanceRead {
@@ -58,43 +65,54 @@ export function createProcessInstance(
   };
 }
 
-/**
- * Mixed collection, newest first. The first three rows are the Running / Faulted /
- * Finished instances behind the Processing / Failed / Imported files in `./file`
- * (WOIDs and `WorkflowInstanceId`s line up); the rest add history and the
- * remaining statuses.
- */
+/** Mixed collection, newest first. */
 export function createProcessInstances(): ProcessInstanceRead[] {
   return [
+    // ImportFile, Running — file 103 (Processing)
     toProcessInstanceRow(createRunningProcessInstanceDetail()),
+    // ImportFile, Faulted — file 102 (Failed, "Row 12: invalid rate")
     toProcessInstanceRow(createFaultedProcessInstanceDetail()),
+    // LoadYieldCurves, Finished — file 101's WorkflowInstanceId (no import)
+    toProcessInstanceRow(createLoadYieldCurvesProcessInstanceDetail()),
+    // ImportFile, Finished — file 101 (Imported, current)
     createProcessInstance(),
-    createProcessInstance({
-      ProcessInstanceId: '9b0c1d2e3f4a45b6c7d8e9f0a1b2c3d4',
-      ContextId: '5e6f7a8b9c0d41e2f3a4b5c6d7e8f901',
-      CreatedAt: '2026-09-29 18:00:15',
-      LastExecutedAt: '2026-09-29 18:00:22',
-      FinishedAt: '2026-09-29 18:00:22',
-    }),
-    toProcessInstanceRow(createCancelledProcessInstanceDetail()),
+    // LoadYieldCurves, Finished — file 98's WorkflowInstanceId (no import)
     toProcessInstanceRow(
-      createFaultedProcessInstanceDetail({
-        ProcessInstanceId: '0a1b2c3d4e5f46a7b8c9d0e1f2a3b4c5',
-        ContextId: '1f2e3d4c5b6a47980a1b2c3d4e5f6071',
-        CreatedAt: '2026-09-28 18:03:33',
-        LastExecutedAt: '2026-09-28 18:03:37',
-        FaultedAt: '2026-09-28 18:03:37',
+      createLoadYieldCurvesProcessInstanceDetail({
+        ProcessInstanceId: '2a3b4c5d6e7f40819a0b1c2d3e4f5a6b',
+        CreatedAt: '2026-09-29 18:01:55',
+        LastExecutedAt: '2026-09-29 18:02:04',
+        FinishedAt: '2026-09-29 18:02:04',
       }),
     ),
-    toProcessInstanceRow(createSuspendedProcessInstanceDetail()),
+    // ImportFile, Finished — file 98 (Imported, superseded)
     createProcessInstance({
-      ProcessInstanceId: '2a3b4c5d6e7f40819a0b1c2d3e4f5a6b',
-      ProcessName: 'ReprocessCurveFile',
-      ContextId: '7b2e19c4a5f04e0d9c1f3a6b8d2e4f10',
-      CreatedAt: '2026-09-28 09:41:50',
-      LastExecutedAt: '2026-09-28 09:41:58',
-      FinishedAt: '2026-09-28 09:41:58',
+      ProcessInstanceId: '7b2e19c4a5f04e0d9c1f3a6b8d2e4f10',
+      CreatedAt: '2026-09-29 18:01:47',
+      LastExecutedAt: '2026-09-29 18:01:54',
+      FinishedAt: '2026-09-29 18:01:54',
     }),
+    // ImportFile, Finished — file 97 (Imported, current)
+    createProcessInstance({
+      ProcessInstanceId: '5e6f7a8b9c0d41e2f3a4b5c6d7e8f901',
+      CreatedAt: '2026-09-29 18:00:12',
+      LastExecutedAt: '2026-09-29 18:00:19',
+      FinishedAt: '2026-09-29 18:00:19',
+    }),
+    // LoadYieldCurves, Cancelled (no import)
+    toProcessInstanceRow(createCancelledProcessInstanceDetail()),
+    // ImportFile, Faulted — file 95 (Failed)
+    toProcessInstanceRow(
+      createFaultedProcessInstanceDetail({
+        ProcessInstanceId: '1f2e3d4c5b6a47980a1b2c3d4e5f6071',
+        CreatedAt: '2026-09-28 18:03:30',
+        LastExecutedAt: '2026-09-28 18:03:34',
+        FaultedAt: '2026-09-28 18:03:34',
+      }),
+    ),
+    // LoadYieldCurves, Suspended (no import)
+    toProcessInstanceRow(createSuspendedProcessInstanceDetail()),
+    // LoadYieldCurves, Idle (no import)
     toProcessInstanceRow(createIdleProcessInstanceDetail()),
   ];
 }
@@ -127,8 +145,8 @@ export function createEmptyProcessInstanceList(
 /**
  * The collection filtered and paged the way the service's `Status` / `ProcessName`
  * / `Page` (1-based) / `Size` query parameters do — for mocking
- * `GET /v1/process-instances?...` responses. `Status` matches exactly;
- * `ProcessName` matches case-insensitively as a substring (free-text filter).
+ * `GET /v1/process-instances?...` responses. `Status` and `ProcessName` both
+ * match exactly (`ProcessName` is one of `PROCESS_NAMES`).
  */
 export function queryProcessInstances(
   instances: ProcessInstanceRead[],
@@ -139,11 +157,10 @@ export function queryProcessInstances(
     Size?: number;
   },
 ): ProcessInstanceReadList {
-  const name = query.ProcessName?.toLowerCase();
   const matching = instances.filter(
     (p) =>
       (!query.Status || p.CurrentStatus === query.Status) &&
-      (!name || (p.ProcessName ?? '').toLowerCase().includes(name)),
+      (!query.ProcessName || p.ProcessName === query.ProcessName),
   );
   const page = query.Page ?? 1;
   const size = query.Size ?? 20;

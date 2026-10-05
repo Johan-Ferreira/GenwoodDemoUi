@@ -49,7 +49,7 @@ function entry(
   return log;
 }
 
-/** Log for the canonical Finished run (`createProcessInstanceDetail()`), oldest first. */
+/** Log for the canonical Finished ImportFile run (`createProcessInstanceDetail()`), oldest first. */
 export function createExecutionLogs(): ExecutionLogRead[] {
   return [
     entry('2026-09-30 18:02:11', 'ReceiveFile', 'Started'),
@@ -101,6 +101,21 @@ export function createRunningExecutionLogs(): ExecutionLogRead[] {
       'File received from inbox',
     ),
     entry('2026-09-30 18:09:05', 'BackupFile', 'Started'),
+  ];
+}
+
+/**
+ * Log for the Finished LoadYieldCurves run
+ * (`createLoadYieldCurvesProcessInstanceDetail()`), which has no import.
+ */
+export function createLoadYieldCurvesExecutionLogs(): ExecutionLogRead[] {
+  return [
+    entry('2026-09-30 18:02:20', 'LoadRates', 'Started'),
+    entry('2026-09-30 18:02:23', 'LoadRates', 'Completed', 'Loaded 26 rates'),
+    entry('2026-09-30 18:02:23', 'BuildCurves', 'Started'),
+    entry('2026-09-30 18:02:28', 'BuildCurves', 'Completed', 'Built 1 curve'),
+    entry('2026-09-30 18:02:28', 'StoreCurves', 'Started'),
+    entry('2026-09-30 18:02:31', 'StoreCurves', 'Completed', 'Stored 1 curve'),
   ];
 }
 

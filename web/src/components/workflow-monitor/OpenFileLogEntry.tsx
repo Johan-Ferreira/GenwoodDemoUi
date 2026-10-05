@@ -22,7 +22,10 @@ type ResolveState =
   | { status: 'not-found' }
   | { status: 'error'; error: ServiceErrorShape };
 
-/** ContextId (the WOID) → `GET /v1/imports/{Woid}` → File.Id; null when it cannot be found. */
+/**
+ * The run's ProcessInstanceId (an ImportFile run's ID is its file's Woid) →
+ * `GET /v1/imports/{ProcessInstanceId}` → File.Id; null when no import exists.
+ */
 async function resolveFileId(woid: string | undefined): Promise<number | null> {
   if (woid === undefined || woid.trim() === '') return null;
   const lookup = await lookUp(() => getImport(encodeURIComponent(woid.trim())));
@@ -33,15 +36,16 @@ async function resolveFileId(woid: string | undefined): Promise<number | null> {
 /**
  * "Open file log entry" (R7, BR3): opens the File log with the run's file
  * selected. Uses the file already resolved with the run when there is one;
- * otherwise resolves the run's ContextId on click. A 404 shows
- * "Import not found" with the route back, never the raw service error.
+ * otherwise looks the run's own ID up as the import WOID on click. A 404 (for
+ * example a LoadYieldCurves run, which has no import) shows "Import not found"
+ * with the route back, never the raw service error.
  */
 export function OpenFileLogEntry({
-  contextId,
+  instanceId,
   fileId,
 }: {
-  /** The run's ContextId (the import's WOID). */
-  contextId: string | undefined;
+  /** The run's ProcessInstanceId (equals the import's WOID for ImportFile runs). */
+  instanceId: string | undefined;
   /** The run's file, when it was already resolved with the run. */
   fileId: number | null;
 }) {
@@ -55,7 +59,7 @@ export function OpenFileLogEntry({
     }
     setState({ status: 'resolving' });
     try {
-      const resolved = await resolveFileId(contextId);
+      const resolved = await resolveFileId(instanceId);
       if (resolved === null) {
         setState({ status: 'not-found' });
         return;

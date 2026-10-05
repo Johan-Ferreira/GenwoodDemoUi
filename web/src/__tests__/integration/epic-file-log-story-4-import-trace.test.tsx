@@ -99,7 +99,7 @@ describe('Epic file-log, Story 4: import trace', () => {
     expect(within(fileEntry).getByText('Failed')).toBeInTheDocument();
 
     const workflow = screen.getByRole('region', { name: /workflow instance/i });
-    expect(within(workflow).getByText('ImportCurveFile')).toBeInTheDocument();
+    expect(within(workflow).getByText('ImportFile')).toBeInTheDocument();
     expect(within(workflow).getByText('Faulted')).toBeInTheDocument();
     expect(
       within(workflow).getByText('2026-09-30 18:05:41'),

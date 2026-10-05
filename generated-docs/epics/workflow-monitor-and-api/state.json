@@ -12,40 +12,40 @@
     "introducesSharedSurface": false,
     "unverifiedAssumptions": [
       "Verify the run list order: the app assumes the data service returns process instances newest first. If it returns them in another order, the Workflow monitor will not open with the latest runs at the top. Column sorting only reorders the page you are on.",
-      "Verify Open workflow lands on the right run: the app assumes a file's 'Workflow instance' value is the same ID the Workflow monitor uses for that run. If they differ, choosing Open workflow will show 'Process instance not found' for a run that does exist.",
       "Verify Pending steps appear: the app assumes the service returns every step of a run, including ones that have not run yet, marked Pending. If it only returns steps that actually ran, a failed run will show fewer tiles and no Pending steps after the failure.",
       "Workflow monitor sorting only reorders the page currently on screen: the service pages the list itself and has no sort option, so with more than one page of runs a column sort will not pull rows in from other pages.",
-      "The API page example request shows the data service address the app proxies to (by default http://localhost:10020/curve-data). Confirm this is the address actuarial-model consumers should see, or whether a different public address should be shown."
+      "The API page example request shows the data service address the app proxies to (by default http://localhost:10020/curve-data). Confirm this is the address actuarial-model consumers should see, or whether a different public address should be shown.",
+      "Verify Open workflow opens the file's own import run: the app assumes a file's WOID is the ID of its ImportFile workflow run (confirmed on the live service), so Open workflow works for every file, and that the later LoadYieldCurves run has no link back to a file."
     ],
     "manualTestResults": []
   },
-  "phase": "EPIC-END",
+  "phase": "BUILD",
   "stories": {
     "1": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-05T08:55:20.254Z",
       "completedAt": "2026-10-05T09:02:24.460Z"
     },
     "2": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-05T09:03:04.494Z",
       "completedAt": "2026-10-05T09:16:43.335Z"
     },
     "3": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-05T09:16:43.336Z",
       "completedAt": "2026-10-05T09:23:23.206Z"
     },
     "4": {
       "status": "complete",
       "commit": null,
-      "e2eStatus": "deferred",
+      "e2eStatus": "passed",
       "startedAt": "2026-10-05T09:23:23.208Z",
       "completedAt": "2026-10-05T09:32:49.905Z"
     }

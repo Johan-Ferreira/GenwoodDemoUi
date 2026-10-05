@@ -8,7 +8,8 @@ import { DEFAULT_PAGE_SIZE } from '@/components/table-pagination/useClientPagina
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getProcessInstances } from '@/lib/api/endpoints';
+import { getProcessInstance, getProcessInstances } from '@/lib/api/endpoints';
+import { lookUp } from '@/lib/api/not-found';
 import { nextSort } from '@/lib/utils/sort';
 import {
   sortProcessInstances,
@@ -136,22 +137,113 @@ function ProcessInstancesCard({
   );
 }
 
+/** The selected run as a list row; null when the service has no such run. */
+async function loadSingleInstance(
+  id: string,
+): Promise<ProcessInstanceRead | null> {
+  const lookup = await lookUp(() => getProcessInstance(encodeURIComponent(id)));
+  if (!lookup.found) return null;
+  const row: ProcessInstanceRead & { Steps?: unknown } = { ...lookup.value };
+  delete row.Steps;
+  return row;
+}
+
+/**
+ * `view=single`: the "Process instances" card lists only the selected run, with
+ * "Show all process instances" to return to the full list (selection kept).
+ */
+function SingleInstanceCard({
+  instanceId,
+  onSelect,
+  onShowAll,
+}: {
+  instanceId: string;
+  onSelect?: (instance: ProcessInstanceRead) => void;
+  onShowAll: () => void;
+}) {
+  const titleId = useId();
+  const [sort, setSort] = useState<ProcessInstanceSort | null>(null);
+
+  return (
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      className="gap-0 overflow-hidden py-0"
+    >
+      <h2 id={titleId} className="border-b px-3 py-2.5 font-semibold">
+        Process instances
+      </h2>
+      <DataState
+        key={instanceId}
+        load={() => loadSingleInstance(instanceId)}
+        skeleton={<ProcessInstancesSkeleton />}
+      >
+        {(instance) =>
+          instance === null ? (
+            <p className="px-3 py-4 text-muted-foreground">
+              {NO_PROCESS_INSTANCES}
+            </p>
+          ) : (
+            <ProcessInstanceTable
+              instances={[instance]}
+              sort={sort}
+              onSortChange={(key) =>
+                setSort((current) => nextSort(current, key))
+              }
+              selectedId={instanceId}
+              onSelect={onSelect}
+            />
+          )
+        }
+      </DataState>
+      <div className="flex flex-wrap items-center justify-end gap-4 border-t bg-muted px-3 py-2.5">
+        <Button type="button" variant="outline" size="sm" onClick={onShowAll}>
+          Show all process instances
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 export interface ProcessInstanceListProps {
   /** ID of the selected run, highlighted in the table. */
   selectedId?: string | null;
   /** When given, rows are selectable and report the chosen run. */
   onSelect?: (instance: ProcessInstanceRead) => void;
+  /** List only the selected run (`view=single`); needs `selectedId` and `onShowAll`. */
+  singleView?: boolean;
+  /** Leaves the single-run view, keeping the selection. */
+  onShowAll?: () => void;
 }
 
 /**
  * Every workflow run (R1): filters and paging are sent to the service as
  * Status / ProcessName / Page / Size; the loaded page shows newest first and
- * sorts in the browser. A filter change returns to page 1.
+ * sorts in the browser. A filter change returns to page 1. In the single-run
+ * view only the selected run is listed.
  */
 export function ProcessInstanceList({
   selectedId,
   onSelect,
+  singleView = false,
+  onShowAll,
 }: ProcessInstanceListProps) {
+  if (singleView && selectedId && onShowAll) {
+    return (
+      <SingleInstanceCard
+        instanceId={selectedId}
+        onSelect={onSelect}
+        onShowAll={onShowAll}
+      />
+    );
+  }
+  return <AllInstancesList selectedId={selectedId} onSelect={onSelect} />;
+}
+
+function AllInstancesList({
+  selectedId,
+  onSelect,
+}: Pick<ProcessInstanceListProps, 'selectedId' | 'onSelect'>) {
   const filterState = useProcessInstanceFilters();
   const { filters, filtersKey, activeFilters, clearAll } = filterState;
   const hasFilters = activeFilters.length > 0;

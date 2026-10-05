@@ -173,11 +173,10 @@ function FileDetails({
   const id = detail.Id ?? fileId;
   const status = text(detail.Status);
   const failed = detail.Status === 'Failed';
-  // "Open workflow" only when the file has a run to open (R7, BR3).
-  const workflowInstanceId =
-    detail.WorkflowInstanceId && detail.WorkflowInstanceId.trim() !== ''
-      ? detail.WorkflowInstanceId.trim()
-      : null;
+  // The file's own ImportFile run has the file's Woid as its ID (R7, BR3); the
+  // WorkflowInstanceId is a later LoadYieldCurves run with no link back.
+  const woid =
+    detail.Woid && detail.Woid.trim() !== '' ? detail.Woid.trim() : null;
 
   return (
     <section
@@ -222,9 +221,9 @@ function FileDetails({
       <DownloadFailure state={downloadState} onRetry={download} />
 
       <div className="flex flex-wrap gap-2">
-        {workflowInstanceId !== null && (
+        {woid !== null && (
           <Button asChild variant="secondary">
-            <Link href={workflowMonitorSelectionPath(workflowInstanceId)}>
+            <Link href={workflowMonitorSelectionPath(woid, { single: true })}>
               <Workflow aria-hidden="true" />
               Open workflow
             </Link>
@@ -239,9 +238,9 @@ function FileDetails({
           <Download aria-hidden="true" />
           Download original
         </Button>
-        {detail.Woid && detail.Woid.trim() !== '' && (
+        {woid !== null && (
           <Button asChild variant="ghost">
-            <Link href={importTracePath(detail.Woid)}>
+            <Link href={importTracePath(woid)}>
               <Route aria-hidden="true" />
               Trace import
             </Link>
