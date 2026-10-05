@@ -32,3 +32,7 @@
 
 - The Import trace now shows two runs instead of one "Workflow instance" block: "Staging run" (ImportPro, ImportFile) and "Rate load run" (RateLoad, LoadYieldCurves) or "Not started yet". Each has its own "Open workflow" link that opens the Workflow monitor on just that run. The File log entry section also shows Stage and, for failed files, the failed step.
 - A file's details have two buttons where "Open workflow" used to be: "Open staging run" (always) and "Open import run" (only once RateLoad has started). Both carry the file Id so the Workflow monitor can return to the file.
+
+## Story 7: Workflow monitor understands the two processes
+
+- A RateLoad run that failed is clearly shown as a failure on the Workflow monitor: "Finished (Error)" in red in the run list, the step card and the audit history. Its steps always show as Register, Validate, Transform, Import, Complete. If you opened the run from a file, "Open file log entry" takes you straight back to that file; picking another run in the list forgets that file.

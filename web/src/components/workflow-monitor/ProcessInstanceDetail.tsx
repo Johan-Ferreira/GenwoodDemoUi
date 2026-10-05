@@ -89,9 +89,19 @@ function RunDetailSkeleton() {
   );
 }
 
-/** The selected run: steps card, audit history and execution log. */
-function RunDetailView({ run }: { run: RunDetail }) {
-  const fileId = run.trace?.File?.Id ?? null;
+/**
+ * The selected run: steps card, audit history and execution log. The run's
+ * file is its resolved import's file, else the file it was opened from (a
+ * RateLoad run has no import of its own — `/v1/imports/{id}` 404s for it).
+ */
+function RunDetailView({
+  run,
+  fromFileId,
+}: {
+  run: RunDetail;
+  fromFileId: number | null;
+}) {
+  const fileId = run.trace?.File?.Id ?? fromFileId;
   return (
     <div className="flex flex-col gap-4">
       <RunSteps instance={run.instance} fileName={run.trace?.File?.FileName} />
@@ -106,7 +116,14 @@ function RunDetailView({ run }: { run: RunDetail }) {
 }
 
 /** Loads the selected run through DataState (NFR-2, NFR-3); 404 → "Process instance not found". */
-export function ProcessInstanceDetail({ instanceId }: { instanceId: string }) {
+export function ProcessInstanceDetail({
+  instanceId,
+  fromFileId = null,
+}: {
+  instanceId: string;
+  /** The file the run was opened from (`file=<Id>`), when one was carried. */
+  fromFileId?: number | null;
+}) {
   return (
     <DataState
       load={() => loadRunDetail(instanceId)}
@@ -114,7 +131,7 @@ export function ProcessInstanceDetail({ instanceId }: { instanceId: string }) {
     >
       {(lookup) =>
         lookup.found ? (
-          <RunDetailView run={lookup.value} />
+          <RunDetailView run={lookup.value} fromFileId={fromFileId} />
         ) : (
           <NotFoundMessage
             message={PROCESS_INSTANCE_NOT_FOUND}

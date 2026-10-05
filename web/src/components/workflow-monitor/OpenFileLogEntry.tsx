@@ -35,10 +35,11 @@ async function resolveFileId(woid: string | undefined): Promise<number | null> {
 
 /**
  * "Open file log entry" (R7, BR3): opens the File log with the run's file
- * selected. Uses the file already resolved with the run when there is one;
- * otherwise looks the run's own ID up as the import WOID on click. A 404 (for
- * example a LoadYieldCurves run, which has no import) shows "Import not found"
- * with the route back, never the raw service error.
+ * selected. Uses the file already known for the run when there is one (its
+ * resolved import's file, or the file carried on the link it was opened from —
+ * no lookup); otherwise looks the run's own ID up as the import WOID on click.
+ * A 404 (for example a LoadYieldCurves run picked from the list, which has no
+ * import) shows "Import not found" with the route back, never the raw error.
  */
 export function OpenFileLogEntry({
   instanceId,
@@ -46,7 +47,7 @@ export function OpenFileLogEntry({
 }: {
   /** The run's ProcessInstanceId (equals the import's WOID for ImportFile runs). */
   instanceId: string | undefined;
-  /** The run's file, when it was already resolved with the run. */
+  /** The run's file, when already known (resolved import or carried `file=<Id>`). */
   fileId: number | null;
 }) {
   const router = useRouter();

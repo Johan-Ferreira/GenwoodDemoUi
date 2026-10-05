@@ -7,7 +7,7 @@ import {
   PENDING_STEP_STATE,
   stepStateTone,
 } from '@/lib/workflow/execution-log';
-import { processStatusTone } from '@/lib/workflow/process-status';
+import { orderRunSteps, runStatusDisplay } from '@/lib/workflow/process-status';
 import type { ProcessInstanceDetailRead } from '@/types/api-generated';
 
 const CARD_CLASS =
@@ -27,7 +27,8 @@ function text(value: string | undefined): string {
 
 /**
  * The steps card (R2, R3, BR1): titled by the process name, subtitle
- * "{id} · {status} · {file name}", one tile per service step in service order.
+ * "{id} · {status chip} · {file name}", one tile per step — service order,
+ * except RateLoad runs, whose steps show in their real order (orderRunSteps).
  */
 export function RunSteps({
   instance,
@@ -37,12 +38,8 @@ export function RunSteps({
   fileName: string | undefined;
 }) {
   const titleId = useId();
-  const steps = instance.Steps ?? [];
-  const subtitle = [
-    text(instance.ProcessInstanceId),
-    text(instance.CurrentStatus),
-    text(fileName),
-  ].join(' · ');
+  const steps = orderRunSteps(instance.ProcessName, instance.Steps ?? []);
+  const status = runStatusDisplay(instance);
 
   return (
     <section aria-labelledby={titleId} className={CARD_CLASS}>
@@ -50,8 +47,20 @@ export function RunSteps({
         <h2 id={titleId} className="text-base font-semibold">
           {text(instance.ProcessName)}
         </h2>
-        <p className="mt-1 font-mono text-xs break-all text-muted-foreground">
-          {subtitle}
+        <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-xs break-all text-muted-foreground">
+          <span>{text(instance.ProcessInstanceId)}</span>
+          <span aria-hidden="true">·</span>
+          {status ? (
+            <StatusChip
+              tone={status.tone}
+              label={status.label}
+              className="font-sans"
+            />
+          ) : (
+            <span>{NO_VALUE}</span>
+          )}
+          <span aria-hidden="true">·</span>
+          <span>{text(fileName)}</span>
         </p>
       </div>
       <ol
@@ -91,7 +100,7 @@ export function AuditHistory({
   instance: ProcessInstanceDetailRead;
 }) {
   const titleId = useId();
-  const status = instance.CurrentStatus;
+  const status = runStatusDisplay(instance);
   const fields: Array<{
     label: string;
     value: React.ReactNode;
@@ -99,12 +108,11 @@ export function AuditHistory({
   }> = [
     {
       label: 'Status',
-      value:
-        status !== undefined && status.trim() !== '' ? (
-          <StatusChip tone={processStatusTone(status)} label={status} />
-        ) : (
-          NO_VALUE
-        ),
+      value: status ? (
+        <StatusChip tone={status.tone} label={status.label} />
+      ) : (
+        NO_VALUE
+      ),
     },
     { label: 'Created', value: text(instance.CreatedAt), mono: true },
     {

@@ -34,12 +34,20 @@ export function workflowMonitorSelectionPath(
   return `${WORKFLOW_MONITOR_PATH}?${params.toString()}`;
 }
 
+/** A carried `file=<Id>` value as a positive integer File.Id, else null. */
+function parseFileId(raw: string | null): number | null {
+  if (raw === null || !/^\d+$/.test(raw.trim())) return null;
+  const id = Number(raw.trim());
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
 /**
  * The run selected in the Workflow monitor, kept in the URL (`?instance=<Id>`)
  * so the selection is linkable. `select` updates the URL without scrolling,
  * and does nothing when the run is already selected. `singleView` is true when
  * the URL asks for only the selected run (`view=single`); `showAll` drops that
- * and keeps the selection.
+ * and keeps the selection (and any carried file). `fromFileId` is the file the
+ * run was opened from (`file=<Id>`), or null.
  */
 export function useSelectedInstance() {
   const searchParams = useSearchParams();
@@ -49,6 +57,7 @@ export function useSelectedInstance() {
   const selectedId = raw !== null && raw.trim() !== '' ? raw.trim() : null;
   const singleView =
     selectedId !== null && searchParams.get(VIEW_QUERY_PARAM) === SINGLE_VIEW;
+  const fromFileId = parseFileId(searchParams.get(FROM_FILE_QUERY_PARAM));
 
   const select = useCallback(
     (id: string) => {
@@ -56,6 +65,8 @@ export function useSelectedInstance() {
       if (id.trim() === selectedId) return;
       const params = new URLSearchParams(searchParams.toString());
       params.set(INSTANCE_QUERY_PARAM, id);
+      // The carried file belongs to the run it was opened with, not this one.
+      params.delete(FROM_FILE_QUERY_PARAM);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [pathname, router, searchParams, selectedId],
@@ -68,5 +79,5 @@ export function useSelectedInstance() {
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
 
-  return { selectedId, select, singleView, showAll };
+  return { selectedId, select, singleView, showAll, fromFileId };
 }

@@ -9,7 +9,8 @@ import { useSelectedInstance } from './useSelectedInstance';
  * list, and below it the run selected in the URL (`?instance=<Id>`).
  */
 export function WorkflowMonitorView() {
-  const { selectedId, select, singleView, showAll } = useSelectedInstance();
+  const { selectedId, select, singleView, showAll, fromFileId } =
+    useSelectedInstance();
 
   return (
     <div className="flex flex-col gap-4">
@@ -23,7 +24,11 @@ export function WorkflowMonitorView() {
       />
       {selectedId !== null && (
         // Keyed by the run: a new selection loads afresh.
-        <ProcessInstanceDetail key={selectedId} instanceId={selectedId} />
+        <ProcessInstanceDetail
+          key={selectedId}
+          instanceId={selectedId}
+          fromFileId={fromFileId}
+        />
       )}
     </div>
   );

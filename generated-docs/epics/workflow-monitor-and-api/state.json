@@ -20,11 +20,13 @@
       "Verify that Importing files really are still in progress: many files show Importing because their RateLoad run is paused at its Complete step. If those runs never resume, the files stay at Importing for good, with no 'Import complete.' notice.",
       "Verify the failed step wording for files that failed while staging: the service reports internal step names such as 'HoldImportDetailsLog' for ImportPro failures, and the alert and details show that name as-is.",
       "When every Files received count on the Overview is zero, the card shows the total (\"0\") with no breakdown line. Confirm that is right.",
-      "The file details still label the RateLoad run ID row \"Workflow instance\". Check whether that label is clear enough next to the new \"Open import run\" button, or name the label you want."
+      "The file details still label the RateLoad run ID row \"Workflow instance\". Check whether that label is clear enough next to the new \"Open import run\" button, or name the label you want.",
+      "The Import trace page (File log) still shows a failed RateLoad run as a green \"Finished\"; only the Workflow monitor shows \"Finished (Error)\" for now. Confirm whether the trace should match.",
+      "Picking a different run from the list after opening one from a file drops the carried file, so \"Open file log entry\" looks the new run up itself instead of returning to the original file. Confirm that is the behaviour you want."
     ],
     "manualTestResults": []
   },
-  "phase": "BUILD",
+  "phase": "EPIC-END",
   "stories": {
     "1": {
       "status": "complete",
@@ -69,11 +71,11 @@
       "completedAt": "2026-10-05T13:38:39.069Z"
     },
     "7": {
-      "status": "in-progress",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
       "startedAt": "2026-10-05T13:38:39.070Z",
-      "completedAt": null
+      "completedAt": "2026-10-05T13:43:11.199Z"
     }
   },
   "halt": null,

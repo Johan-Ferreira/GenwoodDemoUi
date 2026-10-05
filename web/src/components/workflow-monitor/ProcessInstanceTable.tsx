@@ -15,7 +15,7 @@ import {
   type ProcessInstanceSort,
   type ProcessInstanceSortKey,
 } from '@/lib/workflow/process-instances';
-import { processStatusTone } from '@/lib/workflow/process-status';
+import { runStatusDisplay } from '@/lib/workflow/process-status';
 import type { ProcessInstanceRead } from '@/types/api-generated';
 
 const HEAD_CLASS =
@@ -82,7 +82,7 @@ export function ProcessInstanceTable({
         {instances.map((instance, index) => {
           const id = instance.ProcessInstanceId ?? '';
           const woid = instance.ContextId ?? '';
-          const status = instance.CurrentStatus ?? '';
+          const status = runStatusDisplay(instance);
           return (
             <TableRow
               key={id || `row-${index}`}
@@ -125,7 +125,7 @@ export function ProcessInstanceTable({
               </TableCell>
               <TableCell className={CELL_CLASS}>
                 {status ? (
-                  <StatusChip tone={processStatusTone(status)} label={status} />
+                  <StatusChip tone={status.tone} label={status.label} />
                 ) : (
                   NO_VALUE
                 )}
