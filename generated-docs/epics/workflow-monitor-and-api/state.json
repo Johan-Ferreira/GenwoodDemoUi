@@ -18,7 +18,8 @@
       "Verify Open workflow opens the file's own import run: the app assumes a file's WOID is the ID of its ImportFile workflow run (confirmed on the live service), so Open workflow works for every file, and that the later LoadYieldCurves run has no link back to a file.",
       "Verify the 'current' label: the live service now marks every file as current, including Failed ones, so the file details subtitle says '· current' on failed files. If 'current' should still mean the latest successful import for its family, the service needs to change or the app should stop showing the label.",
       "Verify that Importing files really are still in progress: many files show Importing because their RateLoad run is paused at its Complete step. If those runs never resume, the files stay at Importing for good, with no 'Import complete.' notice.",
-      "Verify the failed step wording for files that failed while staging: the service reports internal step names such as 'HoldImportDetailsLog' for ImportPro failures, and the alert and details show that name as-is."
+      "Verify the failed step wording for files that failed while staging: the service reports internal step names such as 'HoldImportDetailsLog' for ImportPro failures, and the alert and details show that name as-is.",
+      "When every Files received count on the Overview is zero, the card shows the total (\"0\") with no breakdown line. Confirm that is right."
     ],
     "manualTestResults": []
   },
@@ -53,17 +54,17 @@
       "completedAt": "2026-10-05T09:32:49.905Z"
     },
     "5": {
-      "status": "pending",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
-      "completedAt": null
+      "startedAt": "2026-10-05T13:20:51.868Z",
+      "completedAt": "2026-10-05T13:32:54.962Z"
     },
     "6": {
-      "status": "pending",
+      "status": "in-progress",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
+      "startedAt": "2026-10-05T13:32:54.963Z",
       "completedAt": null
     },
     "7": {

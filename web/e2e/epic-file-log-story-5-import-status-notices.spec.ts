@@ -9,7 +9,7 @@
  *   backend (see testing-policy.md § "Playwright runs against mocks, never live").
  *   Intercept via: page.route() (default)
  *   - `GET /curve-data/v1/files` (any query string) is fulfilled from the shared
- *     factories in web/src/mocks/data/. The test flips a flag once the Processing
+ *     factories in web/src/mocks/data/. The test flips a flag once the Importing
  *     row is on screen; every later list request returns the same file as Imported.
  *   - Every other data-service request (`**\/v1/**`) is aborted, so the page never
  *     depends on the live service.
@@ -22,7 +22,7 @@
  *   - The demo session is client-only: "Sign in with Genwood SSO" on /sign-in lands
  *     on Overview, and the side nav "File log" link opens /file-log.
  *   - Rows are table rows (`role="row"`) whose accessible name includes the file
- *     name; the status badge shows its text label ("Processing" / "Imported").
+ *     name; the status badge shows its text label ("Importing" / "Imported").
  *   - "Import complete." is shown via the app toast (useToast()).
  * - If the implementation diverges from these assumptions, this spec will not pass.
  *
@@ -36,7 +36,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 // Shared project-wide factories — relative imports so Playwright resolves them
 // without alias plumbing. Never inline response bodies here.
-import { createFile, createProcessingFile } from '../src/mocks/data/file';
+import { createFile, createImportingFile } from '../src/mocks/data/file';
 import { createFileList } from '../src/mocks/data/file-list';
 
 import type { Page } from '@playwright/test';
@@ -45,11 +45,11 @@ const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const FILES_LIST_URL = /\/curve-data\/v1\/files(\?.*)?$/;
 
-const processingFile = createProcessingFile();
+const importingFile = createImportingFile();
 const otherFile = createFile();
 
 /**
- * Mock the data service. The list returns the file as Processing until
+ * Mock the data service. The list returns the file as Importing until
  * `markImported()` is called, then as Imported on every later request.
  */
 async function mockFilesService(
@@ -62,14 +62,14 @@ async function mockFilesService(
 
   await page.route(FILES_LIST_URL, (route) => {
     const file = imported
-      ? createProcessingFile({
+      ? createImportingFile({
           Status: 'Imported',
           SizeBytes: '412300',
           RecordCount: 26,
           RecordsInserted: '26',
           IsCurrent: true,
         })
-      : processingFile;
+      : importingFile;
     return route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -104,7 +104,7 @@ test.describe('Epic file-log, Story 5: Import finished and failed notices', () =
   });
 
   // AC-1
-  test('a Processing file that becomes Imported updates its badge and shows "Import complete." once', async ({
+  test('an Importing file that becomes Imported updates its badge and shows "Import complete." once', async ({
     page,
   }) => {
     await page.clock.install();
@@ -114,8 +114,8 @@ test.describe('Epic file-log, Story 5: Import finished and failed notices', () =
 
     const row = page
       .getByRole('row')
-      .filter({ hasText: String(processingFile.FileName) });
-    await expect(row.getByText('Processing', { exact: true })).toBeVisible();
+      .filter({ hasText: String(importingFile.FileName) });
+    await expect(row.getByText('Importing', { exact: true })).toBeVisible();
     // First load never raises an import notice.
     await expect(
       page.getByText('Import complete.', { exact: true }),
@@ -126,7 +126,7 @@ test.describe('Epic file-log, Story 5: Import finished and failed notices', () =
     await page.clock.runFor(11_000);
 
     await expect(row.getByText('Imported', { exact: true })).toBeVisible();
-    await expect(row.getByText('Processing', { exact: true })).toHaveCount(0);
+    await expect(row.getByText('Importing', { exact: true })).toHaveCount(0);
     const notice = page.getByText('Import complete.', { exact: true });
     await expect(notice).toBeVisible();
     await expect(notice).toHaveCount(1);

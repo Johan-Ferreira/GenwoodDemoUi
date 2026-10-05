@@ -89,13 +89,27 @@ function count(value: number | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
-/** "{n} failed, {m} current", or "{m} current" when none have failed. */
-export function filesReceivedLine(counts: FileCountsItem): string {
-  const failed = count(counts.Failed);
-  const current = count(counts.Current).toLocaleString('en-GB');
-  return failed > 0
-    ? `${failed.toLocaleString('en-GB')} failed, ${current} current`
-    : `${current} current`;
+/** The order of the "Files received" breakdown (keys of `FileCountsItem`). */
+export const FILE_COUNT_BREAKDOWN_ORDER = [
+  'Imported',
+  'Importing',
+  'Staged',
+  'Staging',
+  'Failed',
+] as const;
+
+/**
+ * The non-zero status counts, lower-cased and comma separated, e.g.
+ * "2 imported, 19 importing, 10 failed". `null` when every count is zero.
+ */
+export function filesReceivedLine(counts: FileCountsItem): string | null {
+  const parts = FILE_COUNT_BREAKDOWN_ORDER.flatMap((status) => {
+    const value = count(counts[status]);
+    return value > 0
+      ? [`${value.toLocaleString('en-GB')} ${status.toLowerCase()}`]
+      : [];
+  });
+  return parts.length > 0 ? parts.join(', ') : null;
 }
 
 /** The total file count, or `null` when the service gave none. */

@@ -90,32 +90,61 @@ export function createFaultedExecutionLogs(): ExecutionLogRead[] {
   ];
 }
 
-/** Log for the Running run (`createRunningProcessInstanceDetail()`): BackupFile in progress. */
+/** Log for the Running run (`createRunningProcessInstanceDetail()`, file 104 Staging): BackupFile in progress. */
 export function createRunningExecutionLogs(): ExecutionLogRead[] {
   return [
-    entry('2026-09-30 18:09:02', 'ReceiveFile', 'Started'),
+    entry('2026-09-30 18:12:30', 'ReceiveFile', 'Started'),
     entry(
-      '2026-09-30 18:09:04',
+      '2026-09-30 18:12:32',
       'ReceiveFile',
       'Completed',
       'File received from inbox',
     ),
-    entry('2026-09-30 18:09:05', 'BackupFile', 'Started'),
+    entry('2026-09-30 18:12:33', 'BackupFile', 'Started'),
   ];
 }
 
 /**
- * Log for the Finished LoadYieldCurves run
- * (`createLoadYieldCurvesProcessInstanceDetail()`), which has no import.
+ * Log for the Finished RateLoad run (`createLoadYieldCurvesProcessInstanceDetail()`,
+ * file 101's WorkflowInstanceId): Register -> Validate -> Transform -> Import -> Complete.
  */
 export function createLoadYieldCurvesExecutionLogs(): ExecutionLogRead[] {
   return [
-    entry('2026-09-30 18:02:20', 'LoadRates', 'Started'),
-    entry('2026-09-30 18:02:23', 'LoadRates', 'Completed', 'Loaded 26 rates'),
-    entry('2026-09-30 18:02:23', 'BuildCurves', 'Started'),
-    entry('2026-09-30 18:02:28', 'BuildCurves', 'Completed', 'Built 1 curve'),
-    entry('2026-09-30 18:02:28', 'StoreCurves', 'Started'),
-    entry('2026-09-30 18:02:31', 'StoreCurves', 'Completed', 'Stored 1 curve'),
+    entry('2026-09-30 18:02:20', 'Start', 'Started'),
+    entry('2026-09-30 18:02:20', 'Start', 'Completed'),
+    entry('2026-09-30 18:02:21', 'Register', 'Started'),
+    entry('2026-09-30 18:02:22', 'Register', 'Completed'),
+    entry('2026-09-30 18:02:22', 'Validate', 'Started'),
+    entry('2026-09-30 18:02:24', 'Validate', 'Completed'),
+    entry('2026-09-30 18:02:24', 'ValidationSuccessful?', 'Started'),
+    entry('2026-09-30 18:02:24', 'ValidationSuccessful?', 'Completed'),
+    entry('2026-09-30 18:02:25', 'Transform', 'Started'),
+    entry('2026-09-30 18:02:27', 'Transform', 'Completed'),
+    entry('2026-09-30 18:02:27', 'Import', 'Started'),
+    entry('2026-09-30 18:02:30', 'Import', 'Completed', 'Loaded 26 rates'),
+    entry('2026-09-30 18:02:30', 'Complete', 'Started'),
+    entry('2026-09-30 18:02:31', 'Complete', 'Completed'),
+  ];
+}
+
+/**
+ * Log for the RateLoad run that ended on its Error step
+ * (`createRateLoadErrorProcessInstanceDetail()`, file 106's WorkflowInstanceId):
+ * Register and Validate ran, the validation decision went to `Error`. Like the
+ * live service, entries carry no message (and the file has no ExceptionNote).
+ */
+export function createRateLoadErrorExecutionLogs(): ExecutionLogRead[] {
+  return [
+    entry('2026-09-30 18:07:25', 'Start', 'Started'),
+    entry('2026-09-30 18:07:25', 'Start', 'Completed'),
+    entry('2026-09-30 18:07:26', 'Register', 'Started'),
+    entry('2026-09-30 18:07:26', 'Register', 'Completed'),
+    entry('2026-09-30 18:07:26', 'Validate', 'Started'),
+    entry('2026-09-30 18:07:27', 'Validate', 'Completed'),
+    entry('2026-09-30 18:07:28', 'ValidationSuccessful?', 'Started'),
+    entry('2026-09-30 18:07:28', 'ValidationSuccessful?', 'Completed'),
+    entry('2026-09-30 18:07:28', 'Error', 'Started'),
+    entry('2026-09-30 18:07:28', 'Error', 'Completed'),
   ];
 }
 

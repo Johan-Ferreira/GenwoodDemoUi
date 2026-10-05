@@ -10,6 +10,7 @@ import { toServiceErrorShape } from '@/components/data-state/useDataState';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { StatusChip } from '@/components/status-chip/StatusChip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { workflowMonitorSelectionPath } from '@/components/workflow-monitor/useSelectedInstance';
 import { useToast } from '@/contexts/ToastContext';
@@ -20,6 +21,7 @@ import { parseNullableNumber } from '@/lib/api/nullable-number';
 import { isServiceError } from '@/lib/api/service-error';
 import {
   formatByteCount,
+  fileStatusTone,
   formatCount,
   importTracePath,
   NO_VALUE,
@@ -39,11 +41,38 @@ function text(value: string | undefined): string {
   return value && value.trim() !== '' ? value : NO_VALUE;
 }
 
+function present(value: string | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+/**
+ * The failed-file alert's first line: the exception note when there is one,
+ * otherwise "Failed at the {step} step of {stage}." (RateLoad failures carry no
+ * note). `null` when the service sent neither a note nor a stage or step.
+ */
+export function failureLine(detail: FileDetailRead): string | null {
+  const note = present(detail.ExceptionNote);
+  if (note) return note;
+  const step = present(detail.FailedStep);
+  const stage = present(detail.Stage);
+  if (step && stage) return `Failed at the ${step} step of ${stage}.`;
+  if (step) return `Failed at the ${step} step.`;
+  if (stage) return `Failed during ${stage}.`;
+  return null;
+}
+
 /** The key/value grid, in the design's order. */
 function detailFields(detail: FileDetailRead): Array<[string, string]> {
+  const failedStep: Array<[string, string]> =
+    detail.Status === 'Failed'
+      ? [['Failed step', text(detail.FailedStep)]]
+      : [];
   return [
     ['WOID', text(detail.Woid)],
     ['Workflow instance', text(detail.WorkflowInstanceId)],
+    ['Stage', text(detail.Stage)],
+    ...failedStep,
     ['Received', text(detail.ReceivedAt)],
     ['Size', formatByteCount(parseNullableNumber(detail.SizeBytes))],
     ['Inbox location', text(detail.InboxLocation)],
@@ -173,6 +202,7 @@ function FileDetails({
   const id = detail.Id ?? fileId;
   const status = text(detail.Status);
   const failed = detail.Status === 'Failed';
+  const firstLine = failed ? failureLine(detail) : null;
   // The file's own ImportFile run has the file's Woid as its ID (R7, BR3); the
   // WorkflowInstanceId is a later LoadYieldCurves run with no link back.
   const woid =
@@ -183,21 +213,30 @@ function FileDetails({
       aria-labelledby={titleId}
       className="flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground shadow-sm"
     >
-      <div>
-        <h2 id={titleId} className="font-mono text-base font-semibold">
-          {text(detail.FileName)}
-        </h2>
-        <p className="mt-1 text-muted-foreground">
-          {`File log entry ${id} · ${status}${detail.IsCurrent === true ? ' · current' : ''}`}
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 id={titleId} className="font-mono text-base font-semibold">
+            {text(detail.FileName)}
+          </h2>
+          <p className="mt-1 text-muted-foreground">
+            {`File log entry ${id} · ${status}${detail.IsCurrent === true ? ' · current' : ''}`}
+          </p>
+        </div>
+        {present(detail.Status) && (
+          <StatusChip
+            tone={fileStatusTone(status)}
+            label={status}
+            className="shrink-0"
+          />
+        )}
       </div>
 
       {failed && (
         <Alert className="border-danger-border bg-danger-surface text-danger">
           <CircleAlert aria-hidden="true" />
-          {detail.ExceptionNote && (
+          {firstLine && (
             <AlertTitle className="line-clamp-none font-semibold">
-              {detail.ExceptionNote}
+              {firstLine}
             </AlertTitle>
           )}
           <AlertDescription className="text-danger">

@@ -30,7 +30,8 @@
  *   - The details card is a landmark region named by its title (e.g. a `<section>`
  *     with `aria-labelledby` pointing at the file-name heading).
  *   - The key/value grid is a description list (`<dl>` with `<dt>`/`<dd>`) in the
- *     story's order: WOID, Workflow instance, Received, Size, Inbox location,
+ *     story's order: WOID, Workflow instance, Stage (then Failed step for Failed
+ *     files), Received, Size, Inbox location,
  *     Backup file, SHA-256, Record count, Records inserted, Created by.
  *   - "Download original" saves the file under the file's own FileName (the
  *     service sends no Content-Disposition; its name is preferred only when sent)
@@ -51,7 +52,7 @@ import { createFileList } from '../src/mocks/data/file-list';
 import {
   createFailedFileDetail,
   createFileDetail,
-  createProcessingFileDetail,
+  createStagingFileDetail,
   createSupersededFileDetail,
 } from '../src/mocks/data/file-detail';
 
@@ -64,9 +65,11 @@ const DOWNLOAD_TOAST = 'Original file downloaded from the Backup folder.';
 const NOT_FOUND = 'File not found';
 const MISSING_ID = 999999;
 
+// Imported files: no "Failed step" row (it follows "Stage" only for Failed files).
 const GRID_LABELS = [
   'WOID',
   'Workflow instance',
+  'Stage',
   'Received',
   'Size',
   'Inbox location',
@@ -102,7 +105,7 @@ function knownDetails(): Map<number, FileDetailRead> {
       createFileDetail(),
       supersededWithoutHash(),
       createFailedFileDetail(),
-      createProcessingFileDetail(),
+      createStagingFileDetail(),
     ].map((detail) => [present(detail.Id, 'Id'), detail]),
   );
 }
@@ -186,6 +189,7 @@ function expectedGridValues(
   return [
     present(detail.Woid, 'Woid'),
     present(detail.WorkflowInstanceId, 'WorkflowInstanceId'),
+    present(detail.Stage, 'Stage'),
     present(detail.ReceivedAt, 'ReceivedAt'),
     sizePattern(present(detail.SizeBytes, 'SizeBytes')),
     present(detail.InboxLocation, 'InboxLocation'),

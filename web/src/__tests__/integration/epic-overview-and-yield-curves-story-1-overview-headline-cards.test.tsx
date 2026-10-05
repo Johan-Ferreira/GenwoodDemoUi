@@ -19,7 +19,8 @@
  *   line reads "+2.1 bp vs prior day" / "−1.4 bp vs prior day" (U+2212 minus,
  *   1 decimal) and its element (or an ancestor inside the card) carries
  *   `data-tone="success"` for an increase and `data-tone="danger"` for a decrease.
- * - The Files received detail line carries `data-tone="neutral"`.
+ * - The Files received detail line (the non-zero status counts) carries
+ *   `data-tone="neutral"`.
  * - A failed load shows DataState's persistent role="alert" message with Retry.
  *
  * Only the API boundary (`get` in @/lib/api/client) is mocked; next/navigation
@@ -175,13 +176,15 @@ describe('Epic overview-and-yield-curves, Story 1: Overview headline cards', () 
   });
 
   // AC-5
-  it('shows the Files received total with a neutral failed/current line, even when no rates exist', async () => {
+  it('shows the Files received total with a neutral status breakdown line, even when no rates exist', async () => {
     mockOverview(() => createOverview({ FileCounts: createFileCounts() }));
     const { unmount } = render(<OverviewPage />);
 
     const files = await card('Files received');
-    expect(within(files).getByText('6')).toBeInTheDocument();
-    const detail = within(files).getByText('2 failed, 2 current');
+    expect(within(files).getByText('9')).toBeInTheDocument();
+    const detail = within(files).getByText(
+      '3 imported, 1 importing, 1 staged, 1 staging, 3 failed',
+    );
     expect(toneOf(detail)).toBe('neutral');
     unmount();
 
@@ -190,9 +193,11 @@ describe('Epic overview-and-yield-curves, Story 1: Overview headline cards', () 
 
     const filesNoRates = await card('Files received');
     expect(within(filesNoRates).getByText('4')).toBeInTheDocument();
-    const currentOnly = within(filesNoRates).getByText('4 current');
-    expect(toneOf(currentOnly)).toBe('neutral');
-    expect(filesNoRates).not.toHaveTextContent(/failed/);
+    const breakdown = within(filesNoRates).getByText(
+      '1 importing, 1 staged, 1 staging, 1 failed',
+    );
+    expect(toneOf(breakdown)).toBe('neutral');
+    expect(filesNoRates).not.toHaveTextContent(/imported/);
   });
 
   // AC-6

@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { useToast } from '@/contexts/ToastContext';
 import { FILE_STATUS_POLL_MS } from '@/lib/utils/constants';
-import type { FileRow } from '@/types/files';
+import { IN_PROGRESS_FILE_STATUSES, type FileRow } from '@/types/files';
 
 export const IMPORT_COMPLETE = 'Import complete.';
 export const IMPORT_FAILED = 'Import failed. See the file log for details.';
@@ -20,9 +20,10 @@ export function fileStatusRefreshDelay(): number {
 
 /**
  * Compares each loaded file's status with the one previously seen and raises
- * "Import complete." / "Import failed. …" on an observed Processing → Imported /
- * Processing → Failed change (R19, R20). Files seen for the first time never
- * raise a notice. `statuses` holds the latest seen status per file Id.
+ * "Import complete." / "Import failed. …" on an observed change from an
+ * in-progress status (Staging / Staged / Importing) to Imported / Failed (R19,
+ * R20). Moves between in-progress statuses, and files seen for the first time,
+ * never raise a notice. `statuses` holds the latest seen status per file Id.
  */
 export function useImportStatusNotices() {
   const { showToast } = useToast();
@@ -40,12 +41,11 @@ export function useImportStatusNotices() {
         const previous = seen.current.get(file.id);
         if (previous === file.status) continue;
         changed = true;
-        if (previous === 'Processing' && file.status === 'Imported') {
-          completed = true;
-        }
-        if (previous === 'Processing' && file.status === 'Failed') {
-          failed = true;
-        }
+        const wasInProgress =
+          previous !== undefined &&
+          IN_PROGRESS_FILE_STATUSES.includes(previous);
+        if (wasInProgress && file.status === 'Imported') completed = true;
+        if (wasInProgress && file.status === 'Failed') failed = true;
         seen.current.set(file.id, file.status);
       }
       if (completed) showToast({ variant: 'success', title: IMPORT_COMPLETE });

@@ -82,7 +82,7 @@ import {
 import {
   createFailedImport,
   createImport,
-  createProcessingImport,
+  createStagingImport,
 } from '../src/mocks/data/import';
 import {
   PROCESS_INSTANCE_NOT_FOUND,
@@ -166,12 +166,14 @@ function knownLogs(): Map<string, ExecutionLogReadList> {
  */
 function knownImports(): Map<string, ImportRead> {
   return new Map(
-    [createImport(), createFailedImport(), createProcessingImport()]
-      .filter((trace) => trace.ProcessInstance?.ProcessName === IMPORT_FILE)
+    [createImport(), createFailedImport(), createStagingImport()]
+      .filter(
+        (trace) => trace.StagingProcessInstance?.ProcessName === IMPORT_FILE,
+      )
       .map((trace) => [
         required(
-          trace.ProcessInstance?.ProcessInstanceId,
-          'ProcessInstance.ProcessInstanceId',
+          trace.StagingProcessInstance?.ProcessInstanceId,
+          'StagingProcessInstance.ProcessInstanceId',
         ),
         trace,
       ]),

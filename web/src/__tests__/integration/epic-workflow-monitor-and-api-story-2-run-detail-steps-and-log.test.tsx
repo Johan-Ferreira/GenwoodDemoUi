@@ -70,7 +70,7 @@ import {
 import {
   createFailedImport,
   createImport,
-  createProcessingImport,
+  createStagingImport,
 } from '@/mocks/data/import';
 import { createProcessInstanceList } from '@/mocks/data/process-instance';
 import {
@@ -216,11 +216,11 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
 
     first.unmount();
 
-    // Running ImportFile run 9a8b7c6d… (file 103): a running step is tinted info.
+    // Running ImportFile run b4c5d6e7… (file 104): a running step is tinted info.
     renderSelectedRun({
       detail: createRunningProcessInstanceDetail(),
       logs: createExecutionLogList(createRunningExecutionLogs()),
-      trace: createProcessingImport(),
+      trace: createStagingImport(),
     });
 
     const runningSteps = await screen.findByRole('list', { name: 'Steps' });

@@ -50,6 +50,9 @@ export function OverviewHeadlineCards({
 }) {
   const date = latestValuationDate(overview.LatestValuationDate);
   const total = filesReceivedTotal(overview.FileCounts);
+  const breakdown = overview.FileCounts
+    ? filesReceivedLine(overview.FileCounts)
+    : null;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -71,11 +74,11 @@ export function OverviewHeadlineCards({
           overview={overview}
         />
       ))}
-      {total !== null && overview.FileCounts ? (
+      {total !== null ? (
         <StatCard
           label="Files received"
           value={total}
-          detail={{ text: filesReceivedLine(overview.FileCounts) }}
+          detail={breakdown === null ? undefined : { text: breakdown }}
         />
       ) : (
         <StatCard label="Files received" value={NO_DATA} numeric={false} />

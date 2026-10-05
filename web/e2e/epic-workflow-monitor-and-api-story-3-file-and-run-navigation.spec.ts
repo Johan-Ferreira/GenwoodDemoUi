@@ -66,13 +66,16 @@ import { createFileList } from '../src/mocks/data/file-list';
 import {
   createFailedFileDetail,
   createFileDetail,
-  createProcessingFileDetail,
+  createImportingFileDetail,
+  createRateLoadFailedFileDetail,
+  createStagedFileDetail,
+  createStagingFileDetail,
   createSupersededFileDetail,
 } from '../src/mocks/data/file-detail';
 import {
   createFailedImport,
   createImport,
-  createProcessingImport,
+  createStagingImport,
 } from '../src/mocks/data/import';
 import {
   createCancelledProcessInstanceDetail,
@@ -127,12 +130,15 @@ function detailForFile(file: FileRead): FileDetailRead {
     createFileDetail(),
     createSupersededFileDetail(),
     createFailedFileDetail(),
-    createProcessingFileDetail(),
+    createRateLoadFailedFileDetail(),
+    createStagingFileDetail(),
+    createStagedFileDetail(),
+    createImportingFileDetail(),
   ].find((detail) => detail.Id === file.Id);
   if (named) return named;
   if (file.Status === 'Failed') return createFailedFileDetail({ ...file });
-  if (file.Status === 'Processing') {
-    return createProcessingFileDetail({ ...file });
+  if (file.Status === 'Staging') {
+    return createStagingFileDetail({ ...file });
   }
   return createFileDetail({ ...file });
 }
@@ -194,11 +200,15 @@ function knownImports(
   for (const [id, run] of runs) {
     const file = filesByWoid.get(id);
     if (run.ProcessName !== IMPORT_FILE || !file) continue;
-    const parts = { File: file, ProcessInstance: run };
+    const parts = {
+      File: file,
+      ProcessInstance: run,
+      StagingProcessInstance: run,
+    };
     if (run.CurrentStatus === 'Faulted') {
       imports.set(id, createFailedImport(parts));
     } else if (run.CurrentStatus === 'Running') {
-      imports.set(id, createProcessingImport(parts));
+      imports.set(id, createStagingImport(parts));
     } else {
       imports.set(id, createImport(parts));
     }

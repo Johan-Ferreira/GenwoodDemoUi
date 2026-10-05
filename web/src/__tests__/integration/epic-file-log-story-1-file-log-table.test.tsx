@@ -18,7 +18,7 @@
  * - Missing/null SizeBytes or RecordsInserted render the neutral placeholder
  *   "—" (em dash) and never break the row.
  * - Status is a StatusChip (text label + `data-tone`): Imported=success,
- *   Failed=danger, Processing=info.
+ *   Failed=danger, Staging=info.
  * - No files -> "No files have been received yet." and no table.
  * - Load failure -> DataState's persistent role="alert" message with Retry,
  *   which reloads the list.
@@ -44,7 +44,7 @@ import {
   createFailedFile,
   createFile,
   createFiles,
-  createProcessingFile,
+  createStagingFile,
 } from '@/mocks/data/file';
 import { createEmptyFileList, createFileList } from '@/mocks/data/file-list';
 
@@ -117,11 +117,21 @@ describe('Epic file-log, Story 1: File log table', () => {
       ).toBeInTheDocument();
     }
 
-    // Newest first by ReceivedAt (103 at 18:09:02 ... 95 on 2026-09-28).
+    // Newest first by ReceivedAt (104 at 18:12:30 ... 95 on 2026-09-28).
     const leadingIds = bodyRows().map((row) =>
       within(row).getAllByRole('cell')[0].textContent?.trim(),
     );
-    expect(leadingIds).toEqual(['103', '102', '101', '98', '97', '95']);
+    expect(leadingIds).toEqual([
+      '104',
+      '105',
+      '103',
+      '106',
+      '102',
+      '101',
+      '98',
+      '97',
+      '95',
+    ]);
 
     // Canonical Imported file 101: size 350925 bytes, 26 inserted, WOID cut to 8.
     const imported = rowForFile(101);
@@ -139,15 +149,15 @@ describe('Epic file-log, Story 1: File log table', () => {
       within(imported).queryByText('0d41a44498814111bcce69d60f7a823a'),
     ).not.toBeInTheDocument();
 
-    // Processing file 103: size and records inserted both absent -> two placeholders.
-    expect(within(rowForFile(103)).getAllByText('—')).toHaveLength(2);
+    // Staging file 104: size and records inserted both absent -> two placeholders.
+    expect(within(rowForFile(104)).getAllByText('—')).toHaveLength(2);
   });
 
   // AC-2
   it('shows exactly one labelled status badge per file, toned by meaning', async () => {
     mockGet.mockResolvedValue(
       createFileList({
-        Files: [createProcessingFile(), createFailedFile(), createFile()],
+        Files: [createStagingFile(), createFailedFile(), createFile()],
       }),
     );
 
@@ -157,9 +167,9 @@ describe('Epic file-log, Story 1: File log table', () => {
     const expectations: Array<[number, string, string]> = [
       [101, 'Imported', 'success'],
       [102, 'Failed', 'danger'],
-      [103, 'Processing', 'info'],
+      [104, 'Staging', 'info'],
     ];
-    const statusLabels = ['Imported', 'Failed', 'Processing'];
+    const statusLabels = ['Imported', 'Failed', 'Staging'];
 
     for (const [id, label, tone] of expectations) {
       const row = rowForFile(id);

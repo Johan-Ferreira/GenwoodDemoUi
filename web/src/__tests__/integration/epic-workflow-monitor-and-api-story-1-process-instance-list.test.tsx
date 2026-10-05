@@ -273,7 +273,7 @@ describe('Epic workflow-monitor-and-api, Story 1: Process instance list', () => 
     const expectations: Array<[string, string, string]> = [
       ['0d41a44498814111bcce69d60f7a823a', 'Finished', 'success'],
       ['3c9d5e7f1a2b4c6d8e0f1a2b3c4d5e6f', 'Faulted', 'danger'],
-      ['9a8b7c6d5e4f40312a1b2c3d4e5f6a7b', 'Running', 'info'],
+      ['b4c5d6e7f8a94b0c9d1e2f3a4b5c6d7e', 'Running', 'info'],
       ['d4e5f6a7b8c94d0e1f2a3b4c5d6e7f80', 'Cancelled', 'neutral'],
       ['e5f6a7b8c9d04e1f2a3b4c5d6e7f8091', 'Suspended', 'neutral'],
       ['f6a7b8c9d0e14f2a3b4c5d6e7f8091a2', 'Idle', 'neutral'],

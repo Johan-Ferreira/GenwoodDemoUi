@@ -24,7 +24,7 @@
  *   - The demo session is client-only (sign in via "Sign in with Genwood SSO", as in
  *     the app-shell spec); no credentials, no userinfo endpoint.
  *   - Filter controls: Shadcn Select comboboxes labelled "Status" (options "All
- *     statuses", Imported, Failed, Processing) and "Curve family" (options All,
+ *     statuses", Staging, Staged, Importing, Imported, Failed) and "Curve family" (options All,
  *     Nominal, Real, Inflation, OIS); text inputs labelled "Received from" and
  *     "Received to", applied when the field is committed (blur / Tab).
  *   - Paging: default 20 rows per page with a "Next page" button (story 1).
@@ -54,19 +54,19 @@ const NO_MATCHES = 'No files match these filters.';
 const DEFAULT_PAGE_SIZE = 20;
 
 /**
- * 25 files: the canonical mixed collection (Ids 103, 102, 101, 98, 97, 95 — every
- * status and curve family, received 2026-09-28..30) plus 19 older Imported Nominal
- * files (Ids 60–78, received 2026-09-01..19), so the default 20-row page has a
- * second page.
+ * 25 files: the canonical mixed collection (Ids 104, 105, 103, 106, 102, 101, 98,
+ * 97, 95 — every status and curve family, received 2026-09-28..30) plus 16 older
+ * Imported Nominal files (Ids 60–75, received 2026-09-04..19), so the default
+ * 20-row page has a second page.
  */
 function buildAllFiles(): FileRead[] {
-  const older = Array.from({ length: 19 }, (_, i) => {
+  const older = Array.from({ length: 16 }, (_, i) => {
     const day = String(19 - i).padStart(2, '0');
     return createFile({
-      Id: 78 - i,
+      Id: 75 - i,
       ReceivedAt: `2026-09-${day} 18:00:00`,
       IsCurrent: false,
-      Woid: `${78 - i}${'0'.repeat(30)}`,
+      Woid: `${75 - i}${'0'.repeat(30)}`,
     });
   });
   return [...createFiles(), ...older];
@@ -191,7 +191,7 @@ test.describe('Epic file-log, Story 2: Filter and sort the file log', () => {
 
     // Status: only the failed files — shown on page 1, not an empty page 2.
     await chooseOption(page, 'Status', 'Failed');
-    await expectRows(page, [102, 95]);
+    await expectRows(page, [106, 102, 95]);
 
     // Curve family narrows further: the failed Inflation file only.
     await chooseOption(page, 'Curve family', 'Inflation');

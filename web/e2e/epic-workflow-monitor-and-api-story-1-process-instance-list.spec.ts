@@ -54,7 +54,7 @@ import type { ProcessInstanceRead } from '../src/types/api-generated';
 const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
-/** The 11-row mixed collection, newest first, as the service returns it. */
+/** The 15-row mixed collection, newest first, as the service returns it. */
 const ALL_INSTANCES = createProcessInstances();
 const TOTAL = ALL_INSTANCES.length;
 

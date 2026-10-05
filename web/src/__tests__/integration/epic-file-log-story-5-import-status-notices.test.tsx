@@ -8,16 +8,16 @@
  *
  * Production contract these tests define (implement to it):
  * - While the File log is visible, the list re-reads GET /v1/files (same query)
- *   every 10 s — even when no loaded file is Processing — so a file newly dropped
+ *   every 10 s — even when no loaded file is Importing — so a file newly dropped
  *   into the Inbox appears by itself. It pauses while the tab is hidden
  *   (`document.visibilityState` 'hidden' + a `visibilitychange` event) and, when
  *   the tab becomes visible again, refreshes immediately and resumes the 10 s poll.
- * - Each file's Status is compared with the previously seen one. Processing→Failed
+ * - Each file's Status is compared with the previously seen one. Importing→Failed
  *   raises a transient toast whose title is exactly
- *   "Import failed. See the file log for details."; Processing→Imported raises
+ *   "Import failed. See the file log for details."; Importing→Imported raises
  *   "Import complete.". No notice on first load, on polls where nothing changed,
  *   or for a file that newly appears in the list (whatever its status) — only a
- *   file already seen as Processing can raise a notice.
+ *   file already seen as Importing can raise a notice.
  * - Background re-reads never show the DataState loading skeleton
  *   (role="status", name "Loading") — the rows stay on screen (silent refresh on
  *   useDataState).
@@ -40,7 +40,7 @@ import { get } from '@/lib/api/client';
 import {
   createFailedFile,
   createFile,
-  createProcessingFile,
+  createImportingFile,
 } from '@/mocks/data/file';
 import { createFileList } from '@/mocks/data/file-list';
 import type { FileRead, FileReadList } from '@/types/api-generated';
@@ -65,7 +65,7 @@ const IMPORT_FAILED = 'Import failed. See the file log for details.';
 const IMPORT_COMPLETE = 'Import complete.';
 
 /** File names from the shared factories (each distinct within a scenario). */
-const PROCESSING_NAME = 'OIS daily data current month.xlsx'; // createProcessingFile, Id 103
+const PROCESSING_NAME = 'OIS daily data current month.xlsx'; // createImportingFile, Id 103
 const IMPORTED_NAME = 'GLC Nominal daily data current month.xlsx'; // createFile, Id 101
 const FAILED_NAME = 'GLC Inflation daily data current month.xlsx'; // createFailedFile, Id 102
 /** Files that newly arrive in the Inbox during a background check. */
@@ -144,17 +144,17 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
   });
 
   // AC-2
-  it('updates the badge and shows "Import failed. See the file log for details." once when a Processing file fails', async () => {
-    serverFiles = [createProcessingFile(), createFile(), createFailedFile()];
+  it('updates the badge and shows "Import failed. See the file log for details." once when a Importing file fails', async () => {
+    serverFiles = [createImportingFile(), createFile(), createFailedFile()];
     await renderFileLog();
 
     expect(
-      within(fileRow(PROCESSING_NAME)).getByText('Processing'),
+      within(fileRow(PROCESSING_NAME)).getByText('Importing'),
     ).toBeInTheDocument();
     expect(screen.queryByText(IMPORT_FAILED)).not.toBeInTheDocument();
 
     serverFiles = [
-      createProcessingFile({ Status: 'Failed' }),
+      createImportingFile({ Status: 'Failed' }),
       createFile(),
       createFailedFile(),
     ];
@@ -162,7 +162,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
 
     const row = fileRow(PROCESSING_NAME);
     expect(within(row).getByText('Failed')).toBeInTheDocument();
-    expect(within(row).queryByText('Processing')).not.toBeInTheDocument();
+    expect(within(row).queryByText('Importing')).not.toBeInTheDocument();
 
     const notifications = screen.getByRole('region', { name: 'Notifications' });
     expect(within(notifications).getAllByText(IMPORT_FAILED)).toHaveLength(1);
@@ -186,7 +186,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
   // AC-3
   it('shows no notice on first load or on unchanged polls, and never repeats a notice for an unchanged status', async () => {
     const SECOND_PROCESSING_NAME = 'GLC Real daily data current month.xlsx';
-    const secondProcessing = createProcessingFile({
+    const secondProcessing = createImportingFile({
       Id: 104,
       FileName: SECOND_PROCESSING_NAME,
       CurveFamily: 'Real',
@@ -195,13 +195,13 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     });
     serverFiles = [
       secondProcessing,
-      createProcessingFile(),
+      createImportingFile(),
       createFile(),
       createFailedFile(),
     ];
     await renderFileLog();
 
-    // First load with Imported, Failed and Processing files: no notices.
+    // First load with Imported, Failed and Importing files: no notices.
     expect(
       within(fileRow(IMPORTED_NAME)).getByText('Imported'),
     ).toBeInTheDocument();
@@ -219,7 +219,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     // One file fails: exactly one notice.
     serverFiles = [
       secondProcessing,
-      createProcessingFile({ Status: 'Failed' }),
+      createImportingFile({ Status: 'Failed' }),
       createFile(),
       createFailedFile(),
     ];
@@ -230,7 +230,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
       ).getAllByText(IMPORT_FAILED),
     ).toHaveLength(1);
 
-    // Let it leave; polling continues (another file is still Processing) but the
+    // Let it leave; polling continues (another file is still Importing) but the
     // already-Failed file never raises the notice again.
     await advance(3_000);
     expect(screen.queryByText(IMPORT_FAILED)).not.toBeInTheDocument();
@@ -239,15 +239,15 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
       within(fileRow(PROCESSING_NAME)).getByText('Failed'),
     ).toBeInTheDocument();
     expect(
-      within(fileRow(SECOND_PROCESSING_NAME)).getByText('Processing'),
+      within(fileRow(SECOND_PROCESSING_NAME)).getByText('Importing'),
     ).toBeInTheDocument();
     expect(screen.queryByText(IMPORT_FAILED)).not.toBeInTheDocument();
     expect(screen.queryByText(IMPORT_COMPLETE)).not.toBeInTheDocument();
   });
 
   // AC-4
-  it('keeps checking every 10 s even when nothing is Processing, without a skeleton, pausing while the tab is hidden', async () => {
-    // Everything on screen is finished — nothing is Processing.
+  it('keeps checking every 10 s even when nothing is Importing, without a skeleton, pausing while the tab is hidden', async () => {
+    // Everything on screen is finished — nothing is Importing.
     serverFiles = [createFile(), createFailedFile()];
     await renderFileLog();
     expect(
@@ -255,7 +255,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     ).toBeInTheDocument();
 
     // A file is dropped into the Inbox: the next 10 s check shows it by itself.
-    const firstArrival = createProcessingFile({
+    const firstArrival = createImportingFile({
       Id: 105,
       FileName: FIRST_ARRIVAL_NAME,
       CurveFamily: 'Nominal',
@@ -265,7 +265,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     serverFiles = [firstArrival, createFile(), createFailedFile()];
     await advance(POLL_MS);
     expect(
-      within(fileRow(FIRST_ARRIVAL_NAME)).getByText('Processing'),
+      within(fileRow(FIRST_ARRIVAL_NAME)).getByText('Importing'),
     ).toBeInTheDocument();
 
     // Background check that takes a while: no loading skeleton, rows stay.
@@ -323,13 +323,13 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
   });
 
   // AC-5
-  it('shows a newly arrived file as a new row with no notice, and notices only a file already seen as Processing', async () => {
+  it('shows a newly arrived file as a new row with no notice, and notices only a file already seen as Importing', async () => {
     serverFiles = [createFile(), createFailedFile()];
     await renderFileLog();
 
-    // New files appear during a background check — one Processing, one already
+    // New files appear during a background check — one Importing, one already
     // Imported, one already Failed. None of them raises an import notice.
-    const newProcessing = createProcessingFile({
+    const newProcessing = createImportingFile({
       Id: 105,
       FileName: FIRST_ARRIVAL_NAME,
       CurveFamily: 'Nominal',
@@ -360,7 +360,7 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     await advance(POLL_MS);
 
     expect(
-      within(fileRow(FIRST_ARRIVAL_NAME)).getByText('Processing'),
+      within(fileRow(FIRST_ARRIVAL_NAME)).getByText('Importing'),
     ).toBeInTheDocument();
     expect(
       within(fileRow(SECOND_ARRIVAL_NAME)).getByText('Imported'),
@@ -371,11 +371,11 @@ describe('Epic file-log, Story 5: import finished and failed notices', () => {
     expect(screen.queryByText(IMPORT_COMPLETE)).not.toBeInTheDocument();
     expect(screen.queryByText(IMPORT_FAILED)).not.toBeInTheDocument();
 
-    // The file first seen as Processing finishes: exactly one "Import complete.".
+    // The file first seen as Importing finishes: exactly one "Import complete.".
     serverFiles = [
       newFailed,
       newImported,
-      createProcessingFile({
+      createImportingFile({
         ...newProcessing,
         Status: 'Imported',
         SizeBytes: '412300',

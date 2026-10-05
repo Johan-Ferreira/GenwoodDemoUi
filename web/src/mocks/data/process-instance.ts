@@ -7,12 +7,14 @@
  * dropping `Steps`, so a list row and its detail never drift. Like the live
  * service, rows carry NO `ContextId`.
  *
- * The collection (11 rows, newest first by `CreatedAt`) mixes both process names
- * and covers every `CurrentStatus`:
+ * The collection (15 rows, newest first by `CreatedAt`) mixes both process names
+ * and covers every `CurrentStatus`, plus a RateLoad run that ended on 'Error':
  * - Each `ImportFile` row's `ProcessInstanceId` is a seeded file's `Woid` in
- *   `./file` (files 103, 102, 101, 98, 97, 95), so its import resolves.
- * - Each `LoadYieldCurves` row matches no import; two of them are the
- *   `WorkflowInstanceId`s of the Imported files 101 and 98 in `./file-detail`.
+ *   `./file` (files 104, 105, 103, 106, 102, 101, 98, 97, 95), so its import
+ *   resolves.
+ * - `LoadYieldCurves` rows are the `WorkflowInstanceId`s of files 103
+ *   (Suspended), 106 (Finished, 'Error'), 101 and 98 (Finished, 'Complete') in
+ *   `./file-detail`; the Cancelled and Idle rows belong to no file.
  *
  * Import discipline: `import type` only, sibling factories by relative path.
  */
@@ -25,9 +27,13 @@ import {
   createCancelledProcessInstanceDetail,
   createFaultedProcessInstanceDetail,
   createIdleProcessInstanceDetail,
+  createImportingStagingProcessInstanceDetail,
   createLoadYieldCurvesProcessInstanceDetail,
   createProcessInstanceDetail,
+  createRateLoadErrorProcessInstanceDetail,
+  createRateLoadFailedStagingProcessInstanceDetail,
   createRunningProcessInstanceDetail,
+  createStagedProcessInstanceDetail,
   createSuspendedProcessInstanceDetail,
   IMPORT_FILE,
   LOAD_YIELD_CURVES,
@@ -68,15 +74,25 @@ export function createProcessInstance(
 /** Mixed collection, newest first. */
 export function createProcessInstances(): ProcessInstanceRead[] {
   return [
-    // ImportFile, Running — file 103 (Processing)
+    // ImportFile, Running — file 104 (Staging)
     toProcessInstanceRow(createRunningProcessInstanceDetail()),
-    // ImportFile, Faulted — file 102 (Failed, "Row 12: invalid rate")
+    // ImportFile, Finished — file 105 (Staged; RateLoad not started)
+    toProcessInstanceRow(createStagedProcessInstanceDetail()),
+    // LoadYieldCurves, Suspended at Complete — file 103's WorkflowInstanceId (Importing)
+    toProcessInstanceRow(createSuspendedProcessInstanceDetail()),
+    // ImportFile, Finished — file 103 (Importing)
+    toProcessInstanceRow(createImportingStagingProcessInstanceDetail()),
+    // LoadYieldCurves, Finished on 'Error' — file 106's WorkflowInstanceId (RateLoad failed)
+    toProcessInstanceRow(createRateLoadErrorProcessInstanceDetail()),
+    // ImportFile, Finished — file 106 (staging succeeded, RateLoad failed)
+    toProcessInstanceRow(createRateLoadFailedStagingProcessInstanceDetail()),
+    // ImportFile, Faulted — file 102 (Failed in ImportPro, "Row 12: invalid rate")
     toProcessInstanceRow(createFaultedProcessInstanceDetail()),
-    // LoadYieldCurves, Finished — file 101's WorkflowInstanceId (no import)
+    // LoadYieldCurves, Finished on 'Complete' — file 101's WorkflowInstanceId
     toProcessInstanceRow(createLoadYieldCurvesProcessInstanceDetail()),
     // ImportFile, Finished — file 101 (Imported, current)
     createProcessInstance(),
-    // LoadYieldCurves, Finished — file 98's WorkflowInstanceId (no import)
+    // LoadYieldCurves, Finished on 'Complete' — file 98's WorkflowInstanceId
     toProcessInstanceRow(
       createLoadYieldCurvesProcessInstanceDetail({
         ProcessInstanceId: '2a3b4c5d6e7f40819a0b1c2d3e4f5a6b',
@@ -99,9 +115,9 @@ export function createProcessInstances(): ProcessInstanceRead[] {
       LastExecutedAt: '2026-09-29 18:00:19',
       FinishedAt: '2026-09-29 18:00:19',
     }),
-    // LoadYieldCurves, Cancelled (no import)
+    // LoadYieldCurves, Cancelled (no file)
     toProcessInstanceRow(createCancelledProcessInstanceDetail()),
-    // ImportFile, Faulted — file 95 (Failed)
+    // ImportFile, Faulted — file 95 (Failed in ImportPro)
     toProcessInstanceRow(
       createFaultedProcessInstanceDetail({
         ProcessInstanceId: '1f2e3d4c5b6a47980a1b2c3d4e5f6071',
@@ -110,9 +126,7 @@ export function createProcessInstances(): ProcessInstanceRead[] {
         FaultedAt: '2026-09-28 18:03:34',
       }),
     ),
-    // LoadYieldCurves, Suspended (no import)
-    toProcessInstanceRow(createSuspendedProcessInstanceDetail()),
-    // LoadYieldCurves, Idle (no import)
+    // LoadYieldCurves, Idle (no file)
     toProcessInstanceRow(createIdleProcessInstanceDetail()),
   ];
 }

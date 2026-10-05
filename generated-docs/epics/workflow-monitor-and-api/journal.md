@@ -21,3 +21,9 @@
 
 - The live service has no ContextId on process runs. An ImportFile run ID is the same as its file WOID, so the app finds a run's file using the run ID. Open workflow on any file (failed ones included) opens that file's own import run, and the monitor lists only that run until you choose "Show all process instances". LoadYieldCurves runs have no file, so Open file log entry on one shows "Import not found" with a link back.
 - The Process name filter is now a dropdown: All processes, ImportFile, LoadYieldCurves (hardcoded for the demo).
+
+## Story 5: Two-stage import statuses
+
+- Files now move through Staging, Staged and Importing before they end Imported or Failed. The File log filter, the status chips (Staged is grey) and the "Import complete" / "Import failed" notices all follow the new statuses.
+- A file's details now show its Stage, plus the Failed step for failed files. When a RateLoad failure has no error note, the red alert reads "Failed at the {step} step of {stage}."
+- The Overview "Files received" card lists only the statuses that have files, for example "2 imported, 19 importing, 10 failed".

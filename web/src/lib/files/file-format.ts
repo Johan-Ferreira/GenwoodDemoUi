@@ -3,11 +3,16 @@ import type { StatusTone } from '@/components/status-chip/StatusChip';
 /** Neutral placeholder shown where the service has no value. */
 export const NO_VALUE = '—';
 
-/** Status → chip tone: Imported success, Failed danger, Processing info. */
+/**
+ * Status → chip tone: Imported success, Failed danger, Staging and Importing
+ * info, Staged neutral (grey).
+ */
 export const FILE_STATUS_TONE: Readonly<Record<string, StatusTone>> = {
+  Staging: 'info',
+  Staged: 'neutral',
+  Importing: 'info',
   Imported: 'success',
   Failed: 'danger',
-  Processing: 'info',
 };
 
 /** Tone for a service status; anything unrecognised is neutral. */

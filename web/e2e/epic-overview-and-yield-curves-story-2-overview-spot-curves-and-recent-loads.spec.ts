@@ -15,7 +15,7 @@
  *                              newest files); createEmptyOverview() for the empty
  *                              accessibility state
  *     - GET /v1/files        → createFileList()
- *     - GET /v1/files/{Id}   → createFileDetail() for the canonical file (Id 101);
+ *     - GET /v1/files/{Id}   → createFailedFileDetail() for file 102 (in Recent loads);
  *                              unknown Id → 404 `{ "Message": "File not found" }`
  *     - anything else        → aborted (never reaches the live service)
  *   - Auth is the client-only demo session (project.md: custom); sign-in is the
@@ -53,7 +53,7 @@ import {
   createOverview,
 } from '../src/mocks/data/overview';
 import { createFileList } from '../src/mocks/data/file-list';
-import { createFileDetail } from '../src/mocks/data/file-detail';
+import { createFailedFileDetail } from '../src/mocks/data/file-detail';
 
 import type { Locator, Page } from '@playwright/test';
 import type { FileRead, OverviewRead } from '../src/types/api-generated';
@@ -81,7 +81,7 @@ async function mockDataService(
   page: Page,
   overview: () => OverviewRead,
 ): Promise<void> {
-  const detail = createFileDetail();
+  const detail = createFailedFileDetail();
   const detailId = present(detail.Id, 'Id');
   const list = createFileList();
 
@@ -175,7 +175,7 @@ test.describe('Epic overview-and-yield-curves, Story 2: Overview spot curves and
   test('clicking a Recent loads row opens the File log with that file selected and its details showing', async ({
     page,
   }) => {
-    const file = createFileDetail();
+    const file = createFailedFileDetail();
     const id = present(file.Id, 'Id');
 
     const recentRow = rowFor(recentLoads(page), file);
@@ -210,7 +210,9 @@ test.describe('Epic overview-and-yield-curves, Story 2: Overview spot curves and
     for (const series of SERIES) {
       await expect(figure).toHaveAccessibleDescription(new RegExp(series));
     }
-    await expect(rowFor(recentLoads(page), createFileDetail())).toBeVisible();
+    await expect(
+      rowFor(recentLoads(page), createFailedFileDetail()),
+    ).toBeVisible();
 
     // Loaded state.
     await expectNoA11yViolations(page);
