@@ -10,3 +10,6 @@
 
 ## Story 3: Yield curves across dates
 - Yield curves now shows the Across dates chart. You pick a long-end curve, and the valuation and comparison dates default to the curve's latest and previous dates with data. The comparison line is dashed. Clearing Compare with leaves one curve on the chart. A date with no imported rates is left out and named in the subtitle. A curve with no dates at all says "No data has been imported for {curve}." The Across dates / Across families buttons are in place, but Across families has no chart yet; that comes in the next story.
+
+## Story 4: Yield curves across families
+- Across families mode now works on Yield curves. The chart shows the Nominal, Real, Inflation and OIS curves that share the selected curve's rate type (spot or forward) and segment, for the chosen valuation date, in that order and named by family. The title is "Spot curves by family" or "Forward curves by family", and the subtitle is "{date}, long end". A family curve with no data for that date is left out and named in the subtitle instead. Compare with is hidden in this mode, and the curve, valuation date and comparison date are all kept when you switch back.

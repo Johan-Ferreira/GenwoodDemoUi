@@ -17,9 +17,11 @@ import {
 import type { AvailabilityRead, CurveRead } from '@/types/api-generated';
 
 import { AcrossDatesChart } from './AcrossDatesChart';
+import { AcrossFamiliesChart } from './AcrossFamiliesChart';
 import { ChartModeToggle } from './ChartModeToggle';
 
 interface YieldCurvesPanelProps {
+  catalogue: readonly CurveRead[];
   curve: CurveRead;
   availability: AvailabilityRead;
   mode: YieldCurvesMode;
@@ -32,6 +34,7 @@ interface YieldCurvesPanelProps {
  * latest and previous dates with data and are kept while switching modes.
  */
 function YieldCurvesPanel({
+  catalogue,
   curve,
   availability,
   mode,
@@ -78,6 +81,13 @@ function YieldCurvesPanel({
             compare={compare.applied}
           />
         )}
+        {mode === 'families' && (
+          <AcrossFamiliesChart
+            catalogue={catalogue}
+            curve={curve}
+            valuation={valuation.applied}
+          />
+        )}
       </div>
     </>
   );
@@ -106,6 +116,7 @@ function YieldCurvesExplorer({ curves }: { curves: readonly CurveRead[] }) {
         >
           {(availability) => (
             <YieldCurvesPanel
+              catalogue={curves}
               curve={curve}
               availability={availability}
               mode={mode}
