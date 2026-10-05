@@ -14,7 +14,9 @@
       "Verify the size of the daily change: the app assumes the service already sends the change in basis points. If it actually sends a percentage difference, a real move of a few basis points will show as something like \"+0.0 bp\".",
       "Verify Across families shows four lines: the app assumes the curve list has exactly one Nominal, Real, Inflation and OIS curve for each rate type and segment. If OIS has no long-end forward curve, or the families are labelled differently, lines will be missing and wrongly reported as \"No data has been imported\".",
       "Check the Overview chart when no spot curves exist: the card shows only its title and the empty message, without the \"Nominal, real and implied inflation, long end\" subtitle. Confirm that is what you want.",
-      "Check the spot chart's rate axis range: it is chosen automatically (0.000 to 8.000 with the sample data). Confirm that range reads well, or whether it should fit closer to the data."
+      "Check the spot chart's rate axis range: it is chosen automatically (0.000 to 8.000 with the sample data). Confirm that range reads well, or whether it should fit closer to the data.",
+      "Check Yield curves with Compare with cleared: the chart subtitle shows just the valuation date (e.g. \"2026-09-30\"). Confirm a bare date is the right subtitle for a single-date chart.",
+      "Check the Compare with calendar: its button is labelled \"Choose comparison date\", and the \"Dates with data\" line appears only under Valuation date. Confirm that is acceptable."
     ],
     "manualTestResults": []
   },
@@ -22,7 +24,7 @@
   "stories": {
     "1": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-05T06:25:00.000Z", "completedAt": "2026-10-05T06:40:00.000Z" },
     "2": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-05T06:42:00.000Z", "completedAt": "2026-10-05T07:00:00.000Z" },
-    "3": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null },
+    "3": { "status": "complete", "commit": null, "e2eStatus": "deferred", "startedAt": "2026-10-05T07:02:00.000Z", "completedAt": "2026-10-05T07:20:00.000Z" },
     "4": { "status": "pending", "commit": null, "e2eStatus": "deferred", "startedAt": null, "completedAt": null }
   },
   "halt": null,

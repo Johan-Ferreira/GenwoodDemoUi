@@ -7,3 +7,6 @@
 - Added a chart library (Recharts, via the Shadcn chart component) and built one shared line chart that the Overview and both Yield curves views will use. It draws the curves in the design's colours, shows a tooltip with a vertical guide on hover, and includes a hidden text list of the series for screen readers.
 - The Overview now shows the spot curves chart under the headline cards, and a Recent loads table of the five newest files. Clicking a row opens that file in the File log. Both come from the same single overview request.
 - Added three colour tokens for the chart's grid lines, axis lines and axis labels, taken from the design's chart guidance.
+
+## Story 3: Yield curves across dates
+- Yield curves now shows the Across dates chart. You pick a long-end curve, and the valuation and comparison dates default to the curve's latest and previous dates with data. The comparison line is dashed. Clearing Compare with leaves one curve on the chart. A date with no imported rates is left out and named in the subtitle. A curve with no dates at all says "No data has been imported for {curve}." The Across dates / Across families buttons are in place, but Across families has no chart yet; that comes in the next story.

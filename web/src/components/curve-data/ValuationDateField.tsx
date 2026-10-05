@@ -28,6 +28,14 @@ export const DAY_HAS_DATA = 'data imported';
 
 interface ValuationDateFieldProps {
   availability: AvailabilityRead;
+  /** Field label; defaults to "Valuation date". */
+  label?: string;
+  /** Accessible name of the calendar button; defaults to "Choose valuation date". */
+  calendarButtonLabel?: string;
+  /** Accessible name of the calendar dialog; defaults to "Valuation date calendar". */
+  calendarLabel?: string;
+  /** Show the "Dates with data: earliest …, latest …" line (default true). */
+  showRange?: boolean;
   /** The text as typed. */
   draft: string;
   /** The last valid date applied; the calendar falls back to it. */
@@ -69,6 +77,10 @@ const HAS_DATA_CLASS =
  */
 export function ValuationDateField({
   availability,
+  label = 'Valuation date',
+  calendarButtonLabel = OPEN_VALUATION_CALENDAR,
+  calendarLabel = VALUATION_CALENDAR,
+  showRange = true,
   draft,
   applied,
   invalid,
@@ -90,10 +102,14 @@ export function ValuationDateField({
   const selected =
     isoDateToUtc(draft.trim()) ?? isoDateToUtc(applied ?? '') ?? undefined;
   const canPick = minDate !== null && maxDate !== null;
+  const describedBy =
+    [showRange ? rangeId : null, invalid ? errorId : null]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>Valuation date</Label>
+      <Label htmlFor={id}>{label}</Label>
       <div className="flex items-center gap-1">
         <Input
           id={id}
@@ -103,7 +119,7 @@ export function ValuationDateField({
           className="focus-ring w-36 font-mono"
           value={draft}
           aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? `${rangeId} ${errorId}` : rangeId}
+          aria-describedby={describedBy}
           onChange={(event) => onType(event.target.value)}
           onBlur={onCommit}
           onKeyDown={(event) => {
@@ -113,7 +129,7 @@ export function ValuationDateField({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <IconButton
-              label={OPEN_VALUATION_CALENDAR}
+              label={calendarButtonLabel}
               variant="outline"
               disabled={!canPick}
             >
@@ -125,7 +141,7 @@ export function ValuationDateField({
               align="start"
               className="w-auto p-0"
               role="dialog"
-              aria-label={VALUATION_CALENDAR}
+              aria-label={calendarLabel}
             >
               <Calendar
                 mode="single"
@@ -164,9 +180,11 @@ export function ValuationDateField({
           )}
         </Popover>
       </div>
-      <p id={rangeId} className="text-xs text-muted-foreground">
-        {rangeText(availability)}
-      </p>
+      {showRange && (
+        <p id={rangeId} className="text-xs text-muted-foreground">
+          {rangeText(availability)}
+        </p>
+      )}
       {invalid && (
         <p id={errorId} className="text-danger">
           {OBSERVATION_DATE_MESSAGE}

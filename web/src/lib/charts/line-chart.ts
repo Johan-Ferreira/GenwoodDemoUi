@@ -30,6 +30,41 @@ const AXIS_EXTENT: Record<MaturitySegment, { max: number; step: number }> = {
   short: { max: 5, step: 1 },
 };
 
+/** A service curve point (`CurvePointItem`): maturity in years and rate in percent. */
+export interface ServiceCurvePoint {
+  TenorYears?: number;
+  RatePercent?: number;
+}
+
+/** Service points with a finite maturity and rate, as chart points sorted by maturity. */
+export function toChartPoints(
+  points: readonly ServiceCurvePoint[] | undefined,
+): ChartPoint[] {
+  return (points ?? [])
+    .flatMap((p) =>
+      Number.isFinite(p.TenorYears) && Number.isFinite(p.RatePercent)
+        ? [{ x: p.TenorYears as number, y: p.RatePercent as number }]
+        : [],
+    )
+    .sort((a, b) => a.x - b.x);
+}
+
+/** Y-axis labels by the curve's rate type. */
+export const SPOT_RATE_LABEL = 'Spot rate (%)';
+export const FORWARD_RATE_LABEL = 'Forward rate (%)';
+
+/** "Forward rate (%)" for forward curves, else "Spot rate (%)". */
+export function rateAxisLabel(rateType: string | null | undefined): string {
+  return rateType === 'Forward' ? FORWARD_RATE_LABEL : SPOT_RATE_LABEL;
+}
+
+/** The maturity axis for a catalogue `Segment`: "ShortEnd" → short, else long. */
+export function maturitySegment(
+  segment: string | null | undefined,
+): MaturitySegment {
+  return segment === 'ShortEnd' ? 'short' : 'long';
+}
+
 /** Number of chart colour tokens (`--chart-1` … `--chart-6`). */
 export const CHART_COLOUR_COUNT = 6;
 

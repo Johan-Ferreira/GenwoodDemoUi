@@ -18,30 +18,43 @@ export interface ValuationDateState {
   pick: (date: string) => void;
 }
 
+export interface DateFieldOptions {
+  /** An empty field is allowed and applies "no date" (null) rather than an error. */
+  optional?: boolean;
+}
+
 /**
- * The valuation date for one curve: starts at the latest date with data and is
- * applied on commit (blur / Enter) when it is a real YYYY-MM-DD date. A date
+ * A typed date field starting at `initial`: applied on commit (blur / Enter)
+ * when it is a real YYYY-MM-DD date (or, when `optional`, empty). A date
  * picked from the calendar applies straight away.
  */
-export function useValuationDate(
-  availability: AvailabilityRead,
+export function useDateField(
+  initial: string,
+  { optional = false }: DateFieldOptions = {},
 ): ValuationDateState {
-  const initial = availability.MaxDate ?? '';
   const [draft, setDraft] = useState(initial);
   const [applied, setApplied] = useState<string | null>(
     isIsoDate(initial) ? initial : null,
   );
   const [invalid, setInvalid] = useState(false);
 
-  const apply = useCallback((value: string) => {
-    const date = value.trim();
-    if (!isIsoDate(date)) {
-      setInvalid(true);
-      return;
-    }
-    setInvalid(false);
-    setApplied(date);
-  }, []);
+  const apply = useCallback(
+    (value: string) => {
+      const date = value.trim();
+      if (optional && date === '') {
+        setInvalid(false);
+        setApplied(null);
+        return;
+      }
+      if (!isIsoDate(date)) {
+        setInvalid(true);
+        return;
+      }
+      setInvalid(false);
+      setApplied(date);
+    },
+    [optional],
+  );
 
   const type = useCallback((value: string) => setDraft(value), []);
 
@@ -56,4 +69,14 @@ export function useValuationDate(
   );
 
   return { draft, applied, invalid, type, commit, pick };
+}
+
+/**
+ * The valuation date for one curve: starts at the latest date with data
+ * (`MaxDate`); see `useDateField`.
+ */
+export function useValuationDate(
+  availability: AvailabilityRead,
+): ValuationDateState {
+  return useDateField(availability.MaxDate ?? '');
 }
