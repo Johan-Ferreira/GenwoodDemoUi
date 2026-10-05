@@ -27,3 +27,8 @@
 - Files now move through Staging, Staged and Importing before they end Imported or Failed. The File log filter, the status chips (Staged is grey) and the "Import complete" / "Import failed" notices all follow the new statuses.
 - A file's details now show its Stage, plus the Failed step for failed files. When a RateLoad failure has no error note, the red alert reads "Failed at the {step} step of {stage}."
 - The Overview "Files received" card lists only the statuses that have files, for example "2 imported, 19 importing, 10 failed".
+
+## Story 6: Import trace shows both processes
+
+- The Import trace now shows two runs instead of one "Workflow instance" block: "Staging run" (ImportPro, ImportFile) and "Rate load run" (RateLoad, LoadYieldCurves) or "Not started yet". Each has its own "Open workflow" link that opens the Workflow monitor on just that run. The File log entry section also shows Stage and, for failed files, the failed step.
+- A file's details have two buttons where "Open workflow" used to be: "Open staging run" (always) and "Open import run" (only once RateLoad has started). Both carry the file Id so the Workflow monitor can return to the file.

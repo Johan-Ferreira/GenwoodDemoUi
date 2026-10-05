@@ -14,16 +14,23 @@ export const VIEW_QUERY_PARAM = 'view';
 /** `view` value that lists only the selected run. */
 export const SINGLE_VIEW = 'single';
 
+/** Query parameter carrying the file log entry the run was opened from (`file=<Id>`). */
+export const FROM_FILE_QUERY_PARAM = 'file';
+
 /**
  * Link to the Workflow monitor with one run selected (its detail open). With
  * `single`, the Process instances table lists only that run (`view=single`).
+ * With `fileId`, the link carries the file it was opened from (`file=<Id>`).
  */
 export function workflowMonitorSelectionPath(
   id: string,
-  options: { single?: boolean } = {},
+  options: { single?: boolean; fileId?: number | null } = {},
 ): string {
   const params = new URLSearchParams({ [INSTANCE_QUERY_PARAM]: id });
   if (options.single) params.set(VIEW_QUERY_PARAM, SINGLE_VIEW);
+  if (options.fileId !== undefined && options.fileId !== null) {
+    params.set(FROM_FILE_QUERY_PARAM, String(options.fileId));
+  }
   return `${WORKFLOW_MONITOR_PATH}?${params.toString()}`;
 }
 

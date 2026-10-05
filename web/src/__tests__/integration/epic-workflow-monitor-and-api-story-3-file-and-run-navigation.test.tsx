@@ -10,10 +10,11 @@
  * "Contract correction": the live service returns NO ContextId; a file's Woid IS
  * the ProcessInstanceId of its ImportFile run; the file's WorkflowInstanceId
  * points at a later LoadYieldCurves run that has no link back to a file.
- * - `FileDetailCard` (File log file detail panel) offers an "Open workflow" link
+ * - `FileDetailCard` (File log file detail panel) offers an "Open staging run" link
  *   for EVERY file (Imported, Failed, Processing — with or without a
  *   WorkflowInstanceId). Its href is
- *   `/workflow-monitor?instance=<file.Woid>&view=single` (R7, BR3).
+ *   `/workflow-monitor?instance=<file.Woid>&view=single&file=<file.Id>` (R7, BR3;
+ *   renamed from "Open workflow" by story 6).
  * - The Workflow monitor page default export reads the selected run from
  *   `useSearchParams().get('instance')`. The selected run view offers an
  *   "Open file log entry" BUTTON that resolves the run's own ProcessInstanceId as
@@ -172,7 +173,7 @@ describe('Epic workflow-monitor-and-api, Story 3: move between a file and its ru
   });
 
   // AC-4
-  it('offers "Open workflow" for every file, opening the file\'s own import run on its own', async () => {
+  it('offers "Open staging run" for every file, opening the file\'s own import run on its own', async () => {
     // Imported file: its WorkflowInstanceId is the later LoadYieldCurves run, but
     // the link must open its own ImportFile run (the run id is the file's Woid).
     const imported = createFileDetail();
@@ -180,7 +181,7 @@ describe('Epic workflow-monitor-and-api, Story 3: move between a file and its ru
     const first = renderFileDetail(imported);
 
     const importedLink = parseHref(
-      await screen.findByRole('link', { name: 'Open workflow' }),
+      await screen.findByRole('link', { name: 'Open staging run' }),
     );
     expect(importedLink.pathname).toBe('/workflow-monitor');
     expect(importedLink.searchParams.get('instance')).toBe(
@@ -190,14 +191,14 @@ describe('Epic workflow-monitor-and-api, Story 3: move between a file and its ru
 
     first.unmount();
 
-    // Failed file: no WorkflowInstanceId at all, yet "Open workflow" is still
+    // Failed file: no WorkflowInstanceId at all, yet "Open staging run" is still
     // offered and opens its ImportFile run at its Woid.
     const failed = createFailedFileDetail();
     serveFileDetail(failed);
     renderFileDetail(failed);
 
     const failedLink = parseHref(
-      await screen.findByRole('link', { name: 'Open workflow' }),
+      await screen.findByRole('link', { name: 'Open staging run' }),
     );
     expect(failedLink.pathname).toBe('/workflow-monitor');
     expect(failedLink.searchParams.get('instance')).toBe(

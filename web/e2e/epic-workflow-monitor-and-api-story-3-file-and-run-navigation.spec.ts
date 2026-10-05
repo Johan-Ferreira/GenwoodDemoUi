@@ -33,9 +33,10 @@
  *   - The live service returns no ContextId. A file's Woid IS the ProcessInstanceId
  *     of its ImportFile run; the file's WorkflowInstanceId points at the later
  *     LoadYieldCurves run and is NOT used for navigation.
- *   - FileDetailCard shows an "Open workflow" LINK (Button asChild + next/link) to
- *     /workflow-monitor?instance=<file.Woid>&view=single — for every file, failed
- *     ones included.
+ *   - FileDetailCard shows an "Open staging run" LINK (Button asChild + next/link;
+ *     renamed from "Open workflow" by story 6) to
+ *     /workflow-monitor?instance=<file.Woid>&view=single (plus file=<File.Id>) —
+ *     for every file, failed ones included.
  *   - With view=single the "Process instances" region (a card named by its
  *     "Process instances" heading) lists ONLY the selected run; its row carries
  *     aria-selected="true". A "Show all process instances" BUTTON removes view=single
@@ -380,7 +381,7 @@ test.describe('Epic workflow-monitor-and-api, Story 3: Move between a file and i
   });
 
   // AC-1
-  test('"Open workflow" on a file\'s details opens the Workflow monitor with only that file\'s run, selected', async ({
+  test('"Open staging run" on a file\'s details opens the Workflow monitor with only that file\'s run, selected', async ({
     page,
   }) => {
     const file = createFileDetail();
@@ -396,7 +397,7 @@ test.describe('Epic workflow-monitor-and-api, Story 3: Move between a file and i
       }),
     ).toBeVisible();
 
-    await details.getByRole('link', { name: 'Open workflow' }).click();
+    await details.getByRole('link', { name: 'Open staging run' }).click();
 
     // The link opens the file's own ImportFile run (its Woid), in single-run view.
     await expect(page).toHaveURL((url) => isSingleRunView(url, runId));
@@ -488,7 +489,7 @@ test.describe('Epic workflow-monitor-and-api, Story 3: Move between a file and i
     await page.goto('/file-log');
     await fileRow(page, file).click();
     const details = fileDetails(page, file);
-    await details.getByRole('link', { name: 'Open workflow' }).click();
+    await details.getByRole('link', { name: 'Open staging run' }).click();
 
     // A failed file (no WorkflowInstanceId) still opens its faulted ImportFile run.
     await expect(page).toHaveURL((url) => isSingleRunView(url, runId));

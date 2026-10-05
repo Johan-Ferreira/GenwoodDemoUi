@@ -203,10 +203,11 @@ function FileDetails({
   const status = text(detail.Status);
   const failed = detail.Status === 'Failed';
   const firstLine = failed ? failureLine(detail) : null;
-  // The file's own ImportFile run has the file's Woid as its ID (R7, BR3); the
-  // WorkflowInstanceId is a later LoadYieldCurves run with no link back.
-  const woid =
-    detail.Woid && detail.Woid.trim() !== '' ? detail.Woid.trim() : null;
+  // The file's ImportPro (ImportFile) staging run has the file's Woid as its ID
+  // (R7, BR3); the WorkflowInstanceId is its RateLoad (LoadYieldCurves) run,
+  // present only once RateLoad has picked the file up.
+  const woid = present(detail.Woid);
+  const rateLoadRunId = present(detail.WorkflowInstanceId);
 
   return (
     <section
@@ -262,9 +263,27 @@ function FileDetails({
       <div className="flex flex-wrap gap-2">
         {woid !== null && (
           <Button asChild variant="secondary">
-            <Link href={workflowMonitorSelectionPath(woid, { single: true })}>
+            <Link
+              href={workflowMonitorSelectionPath(woid, {
+                single: true,
+                fileId: id,
+              })}
+            >
               <Workflow aria-hidden="true" />
-              Open workflow
+              Open staging run
+            </Link>
+          </Button>
+        )}
+        {rateLoadRunId !== null && (
+          <Button asChild variant="secondary">
+            <Link
+              href={workflowMonitorSelectionPath(rateLoadRunId, {
+                single: true,
+                fileId: id,
+              })}
+            >
+              <Workflow aria-hidden="true" />
+              Open import run
             </Link>
           </Button>
         )}
