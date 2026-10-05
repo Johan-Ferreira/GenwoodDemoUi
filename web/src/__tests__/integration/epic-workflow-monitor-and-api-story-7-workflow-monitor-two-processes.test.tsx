@@ -249,13 +249,11 @@ describe('Epic workflow-monitor-and-api, Story 7: the two processes', () => {
       trace: importNotFound(),
     });
 
-    // Each tile keeps its own step's state; "{n}" is the displayed position.
+    // "{n}" is the displayed position. Story 8: a run Finished on Error ends at
+    // its failed step (shown as "Error"); the Pending steps after it are hidden.
     expect(await shownSteps()).toEqual([
       ['Register', '1 · completed'],
-      ['Validate', '2 · completed'],
-      ['Transform', '3 · pending'],
-      ['Import', '4 · pending'],
-      ['Complete', '5 · pending'],
+      ['Validate', '2 · error'],
     ]);
 
     first.unmount();

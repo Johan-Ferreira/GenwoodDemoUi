@@ -36,3 +36,8 @@
 ## Story 7: Workflow monitor understands the two processes
 
 - A RateLoad run that failed is clearly shown as a failure on the Workflow monitor: "Finished (Error)" in red in the run list, the step card and the audit history. Its steps always show as Register, Validate, Transform, Import, Complete. If you opened the run from a file, "Open file log entry" takes you straight back to that file; picking another run in the list forgets that file.
+
+## Story 8: Workflow monitor refinements
+
+- The live service never reports Faulted, so the Status filter now offers "Finished (Error)". The service cannot filter on the last activity, so for that choice the app fetches the Finished runs (50 per request, following pages) and keeps the ones that ended on Error; paging then happens in the browser.
+- Run cards stop where the run stopped: ImportFile runs hide the unused Hold/Clear steps, a failed RateLoad run ends on a red "Error" card for the step that failed, and the execution log shows one "Executed" row per activity instead of the Executing/Executed pair.

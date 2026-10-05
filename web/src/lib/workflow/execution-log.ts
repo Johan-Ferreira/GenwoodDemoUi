@@ -33,6 +33,25 @@ export function logEventTone(eventName: string): StatusTone {
 }
 
 /**
+ * Drops an "Executing" entry when the next entry for the same activity is its
+ * "Executed" entry (the service writes both for every activity). An "Executing"
+ * entry with no "Executed" after it (still running) is kept. Pass the log in
+ * display (oldest-first) order; order is preserved.
+ */
+export function collapseExecutingPairs(
+  logs: readonly ExecutionLogRead[],
+): ExecutionLogRead[] {
+  const event = (log: ExecutionLogRead) => plainEventName(log.EventName ?? '');
+  return logs.filter((log, index) => {
+    if (event(log) !== 'Executing') return true;
+    const next = logs
+      .slice(index + 1)
+      .find((later) => later.ActivityName === log.ActivityName);
+    return next === undefined || event(next) !== 'Executed';
+  });
+}
+
+/**
  * Log entries oldest first by `Timestamp` (BR2), whatever order the service
  * sends; entries with the same time keep the service's order.
  */

@@ -2,7 +2,7 @@
 
 import { FilterSelect } from '@/components/filter-select/FilterSelect';
 import { PROCESS_NAMES } from '@/lib/workflow/process-instances';
-import { PROCESS_STATUSES } from '@/lib/workflow/process-status';
+import { PROCESS_STATUS_FILTER_OPTIONS } from '@/lib/workflow/process-status';
 
 import type { ProcessInstanceFiltersState } from './useProcessInstanceFilters';
 
@@ -22,7 +22,7 @@ export function ProcessInstanceFilters({
         label="Status"
         value={state.status}
         allLabel="All statuses"
-        options={PROCESS_STATUSES}
+        options={PROCESS_STATUS_FILTER_OPTIONS}
         onChange={state.setStatus}
       />
       <FilterSelect

@@ -7,8 +7,10 @@
  * dropping `Steps`, so a list row and its detail never drift. Like the live
  * service, rows carry NO `ContextId`.
  *
- * The collection (15 rows, newest first by `CreatedAt`) mixes both process names
- * and covers every `CurrentStatus`, plus a RateLoad run that ended on 'Error':
+ * The collection (16 rows, newest first by `CreatedAt`) mixes both process names
+ * and covers every `CurrentStatus`, plus two RateLoad runs that are Finished with
+ * last activity 'Error' (`b8c9d0e1f2a3…` = file 106, `3e4f5a6b7c8d…` = no file),
+ * so a "Finished (Error)" filter has data:
  * - Each `ImportFile` row's `ProcessInstanceId` is a seeded file's `Woid` in
  *   `./file` (files 104, 105, 103, 106, 102, 101, 98, 97, 95), so its import
  *   resolves.
@@ -29,6 +31,7 @@ import {
   createIdleProcessInstanceDetail,
   createImportingStagingProcessInstanceDetail,
   createLoadYieldCurvesProcessInstanceDetail,
+  createOlderRateLoadErrorProcessInstanceDetail,
   createProcessInstanceDetail,
   createRateLoadErrorProcessInstanceDetail,
   createRateLoadFailedStagingProcessInstanceDetail,
@@ -51,6 +54,17 @@ export const PROCESS_STATUSES = [
 
 /** The two process names the service runs (canonical first). */
 export const PROCESS_NAMES = [IMPORT_FILE, LOAD_YIELD_CURVES] as const;
+
+/**
+ * True for a run the "Finished (Error)" filter lists: `Finished` with
+ * `LastExecutedActivityName` `'Error'` (the failed RateLoad runs).
+ */
+export function isFinishedWithError(instance: ProcessInstanceRead): boolean {
+  return (
+    instance.CurrentStatus === 'Finished' &&
+    instance.LastExecutedActivityName === 'Error'
+  );
+}
 
 /** Strip `Steps` from a detail to get the matching list row. */
 export function toProcessInstanceRow(
@@ -115,6 +129,8 @@ export function createProcessInstances(): ProcessInstanceRead[] {
       LastExecutedAt: '2026-09-29 18:00:19',
       FinishedAt: '2026-09-29 18:00:19',
     }),
+    // LoadYieldCurves, Finished on 'Error' — an older failed RateLoad run (no file)
+    toProcessInstanceRow(createOlderRateLoadErrorProcessInstanceDetail()),
     // LoadYieldCurves, Cancelled (no file)
     toProcessInstanceRow(createCancelledProcessInstanceDetail()),
     // ImportFile, Faulted — file 95 (Failed in ImportPro)
@@ -161,6 +177,11 @@ export function createEmptyProcessInstanceList(
  * / `Page` (1-based) / `Size` query parameters do — for mocking
  * `GET /v1/process-instances?...` responses. `Status` and `ProcessName` both
  * match exactly (`ProcessName` is one of `PROCESS_NAMES`).
+ *
+ * There is deliberately NO "Finished (Error)" status here: the service cannot
+ * filter on the last activity. The app asks for `Status=Finished` and filters
+ * (and pages) the result on the page with `isFinishedWithError`; mock that
+ * option by serving `Status: 'Finished'` and letting the app narrow it.
  */
 export function queryProcessInstances(
   instances: ProcessInstanceRead[],

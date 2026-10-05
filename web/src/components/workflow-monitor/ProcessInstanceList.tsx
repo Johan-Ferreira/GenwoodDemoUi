@@ -10,12 +10,14 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getProcessInstance, getProcessInstances } from '@/lib/api/endpoints';
 import { lookUp } from '@/lib/api/not-found';
+import { getAllProcessInstances } from '@/lib/api/process-instances';
 import { nextSort } from '@/lib/utils/sort';
 import {
   sortProcessInstances,
   type ProcessInstanceSort,
   type ProcessInstanceSortKey,
 } from '@/lib/workflow/process-instances';
+import { isFinishedOnError } from '@/lib/workflow/process-status';
 import type {
   ProcessInstanceRead,
   ProcessInstanceReadList,
@@ -26,6 +28,7 @@ import { ProcessInstanceTable } from './ProcessInstanceTable';
 import {
   useProcessInstanceFilters,
   type ActiveFilter,
+  type ProcessInstanceFilters as ProcessInstanceFilterParams,
 } from './useProcessInstanceFilters';
 
 export const NO_PROCESS_INSTANCES = 'No process instances found.';
@@ -42,6 +45,34 @@ function ProcessInstancesSkeleton() {
   );
 }
 
+/** The applied filters as "{label}: {value}" chips. */
+function ActiveFilterList({
+  activeFilters,
+}: {
+  activeFilters: readonly ActiveFilter[];
+}) {
+  return (
+    <ul aria-label="Active filters" className="flex flex-wrap gap-2">
+      {activeFilters.map((filter) => (
+        <li
+          key={filter.label}
+          className="rounded-full border bg-muted px-2.5 py-0.5 text-muted-foreground"
+        >
+          {filter.label}: {filter.value}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ClearAllButton({ onClearAll }: { onClearAll: () => void }) {
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={onClearAll}>
+      Clear all
+    </Button>
+  );
+}
+
 /** Filters matched nothing: name the active filters and offer Clear all (NFR-6). */
 function NoMatchingInstances({
   activeFilters,
@@ -53,21 +84,44 @@ function NoMatchingInstances({
   return (
     <Card className="items-start gap-3 p-6">
       <p className="font-medium">{NO_MATCHES_MESSAGE}</p>
-      <ul aria-label="Active filters" className="flex flex-wrap gap-2">
-        {activeFilters.map((filter) => (
-          <li
-            key={filter.label}
-            className="rounded-full border bg-muted px-2.5 py-0.5 text-muted-foreground"
-          >
-            {filter.label}: {filter.value}
-          </li>
-        ))}
-      </ul>
-      <Button type="button" variant="outline" size="sm" onClick={onClearAll}>
-        Clear all
-      </Button>
+      <ActiveFilterList activeFilters={activeFilters} />
+      <ClearAllButton onClearAll={onClearAll} />
     </Card>
   );
+}
+
+/**
+ * Every Finished run (optionally of one process) whose last activity is Error,
+ * newest first, as one list — the service cannot filter on the last activity,
+ * so the page narrows and pages it.
+ */
+async function loadFinishedOnError(
+  filters: ProcessInstanceFilterParams,
+): Promise<ProcessInstanceReadList> {
+  const all = await getAllProcessInstances(filters);
+  const matching = sortProcessInstances(all.filter(isFinishedOnError), null);
+  return {
+    ProcessInstances: matching,
+    TotalItems: matching.length,
+    Page: 1,
+    Size: matching.length,
+  };
+}
+
+/** One page of a list loaded whole (page-level paging). */
+function pageOf(
+  list: ProcessInstanceReadList,
+  page: number,
+  pageSize: number,
+): ProcessInstanceReadList {
+  const all = list.ProcessInstances ?? [];
+  const start = (page - 1) * pageSize;
+  return {
+    ProcessInstances: all.slice(start, start + pageSize),
+    TotalItems: all.length,
+    Page: page,
+    Size: pageSize,
+  };
 }
 
 interface Paging {
@@ -245,7 +299,8 @@ function AllInstancesList({
   onSelect,
 }: Pick<ProcessInstanceListProps, 'selectedId' | 'onSelect'>) {
   const filterState = useProcessInstanceFilters();
-  const { filters, filtersKey, activeFilters, clearAll } = filterState;
+  const { filters, filtersKey, finishedOnErrorOnly, activeFilters, clearAll } =
+    filterState;
   const hasFilters = activeFilters.length > 0;
 
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -256,15 +311,23 @@ function AllInstancesList({
   // Kept across page and filter changes; applies to the loaded page.
   const [sort, setSort] = useState<ProcessInstanceSort | null>(null);
 
-  const query = { ...filters, Page: page, Size: pageSize };
+  // "Finished (Error)" loads every matching run once and pages on the page;
+  // every other choice pages through the service.
+  const query = finishedOnErrorOnly
+    ? filters
+    : { ...filters, Page: page, Size: pageSize };
 
   return (
     <div className="flex flex-col gap-4">
       <ProcessInstanceFilters state={filterState} />
-      {/* Keyed by the request: a filter or page change reloads. */}
+      {/* Keyed by the request: a filter (or service page) change reloads. */}
       <DataState
-        key={JSON.stringify(query)}
-        load={() => getProcessInstances(query)}
+        key={JSON.stringify({ query, finishedOnErrorOnly })}
+        load={() =>
+          finishedOnErrorOnly
+            ? loadFinishedOnError(filters)
+            : getProcessInstances(query)
+        }
         skeleton={<ProcessInstancesSkeleton />}
         isEmpty={
           hasFilters
@@ -280,24 +343,32 @@ function AllInstancesList({
               onClearAll={clearAll}
             />
           ) : (
-            <ProcessInstancesCard
-              list={list}
-              paging={{
-                page,
-                pageSize,
-                onPageChange: (next) => setPaging({ filtersKey, page: next }),
-                onPageSizeChange: (size) => {
-                  setPageSize(size);
-                  setPaging({ filtersKey, page: 1 });
-                },
-              }}
-              sort={sort}
-              onSortChange={(key) =>
-                setSort((current) => nextSort(current, key))
-              }
-              selectedId={selectedId}
-              onSelect={onSelect}
-            />
+            <div className="flex flex-col gap-3">
+              {hasFilters && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <ActiveFilterList activeFilters={activeFilters} />
+                  <ClearAllButton onClearAll={clearAll} />
+                </div>
+              )}
+              <ProcessInstancesCard
+                list={finishedOnErrorOnly ? pageOf(list, page, pageSize) : list}
+                paging={{
+                  page,
+                  pageSize,
+                  onPageChange: (next) => setPaging({ filtersKey, page: next }),
+                  onPageSizeChange: (size) => {
+                    setPageSize(size);
+                    setPaging({ filtersKey, page: 1 });
+                  },
+                }}
+                sort={sort}
+                onSortChange={(key) =>
+                  setSort((current) => nextSort(current, key))
+                }
+                selectedId={selectedId}
+                onSelect={onSelect}
+              />
+            </div>
           )
         }
       </DataState>

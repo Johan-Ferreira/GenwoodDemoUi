@@ -35,7 +35,13 @@
  * - Finished/Complete `2a3b4c5d6e7f40819a0b1c2d3e4f5a6b` = file 98
  * - Suspended         `e5f6a7b8c9d04e1f2a3b4c5d6e7f8091` = file 103 (Importing)
  * - Finished/Error    `b8c9d0e1f2a34b4c9d5e6f7a8b9c0d1e` = file 106 (failed at Validate)
+ * - Finished/Error    `3e4f5a6b7c8d4e9fa0b1c2d3e4f5a6b7` = older failed run (no file)
  * - Cancelled / Idle cover the remaining `CurrentStatus` values (no file).
+ *
+ * Live-shaped ImportFile variants (steps = `IMPORT_FILE_LIVE_STEPS`, incl. the
+ * Hold… / Clear… branch; not in the list collection, no file):
+ * - Finished at 'End'          `d1e2f3a4b5c64d7e8f9a0b1c2d3e4f5a`
+ * - Suspended on a Hold step   `e2f3a4b5c6d74e8f9a0b1c2d3e4f5a6b` (HoldValidateDuplidate Running)
  *
  * Import discipline: `import type` only, sibling factories by relative path.
  */
@@ -187,6 +193,93 @@ export function createImportingStagingProcessInstanceDetail(
   });
 }
 
+/**
+ * ImportFile steps exactly as the live service sends them (verified by curl,
+ * 2026-10-05), in service order. The `Hold…` / `Clear…` steps are the
+ * alternative hold / clean-up branch: they stay `Pending` on a normal run, and
+ * one of them runs only when the process stops on it. (`HoldValidateDuplidate`
+ * is the service's own spelling.)
+ */
+export const IMPORT_FILE_LIVE_STEPS = [
+  'LogNewImport',
+  'LogImportDetails',
+  'ValidateDuplicate',
+  'ValidateFormat',
+  'ImportData',
+  'HoldImportData',
+  'HoldValidateFormat',
+  'HoldValidateDuplidate',
+  'HoldImportDetailsLog',
+  'ClearNewImportLog',
+  'HoldLogNewImport',
+] as const;
+export type ImportFileLiveStep = (typeof IMPORT_FILE_LIVE_STEPS)[number];
+
+/** Live-shaped ImportFile steps; any step not listed in `states` is `Pending`. */
+function importFileLiveSteps(
+  states: Partial<Record<ImportFileLiveStep, string>>,
+): ProcessInstanceDetailRead['Steps'] {
+  return IMPORT_FILE_LIVE_STEPS.map((Name) => ({
+    Name,
+    State: states[Name] ?? 'Pending',
+  }));
+}
+
+/**
+ * Finished ImportFile run shaped like the live service: LogNewImport through
+ * ImportData Completed, every `Hold…` / `Clear…` step Pending, last activity
+ * `'End'`. (A variant — the canonical `createProcessInstanceDetail()` keeps its
+ * older step names so existing tests stay valid.) Not in the list collection.
+ */
+export function createFinishedImportFileWithHoldStepsDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  return {
+    ProcessInstanceId: 'd1e2f3a4b5c64d7e8f9a0b1c2d3e4f5a',
+    ProcessName: IMPORT_FILE,
+    CurrentStatus: 'Finished',
+    CreatedAt: '2026-10-01 09:15:02',
+    LastExecutedAt: '2026-10-01 09:15:09',
+    FinishedAt: '2026-10-01 09:15:09',
+    LastExecutedActivityName: 'End',
+    Steps: importFileLiveSteps({
+      LogNewImport: 'Completed',
+      LogImportDetails: 'Completed',
+      ValidateDuplicate: 'Completed',
+      ValidateFormat: 'Completed',
+      ImportData: 'Completed',
+    }),
+    ...overrides,
+  };
+}
+
+/**
+ * ImportFile run that STOPPED on a Hold step (duplicate detected): `Suspended`
+ * at `HoldValidateDuplidate` (Running). LogNewImport, LogImportDetails and
+ * ValidateDuplicate Completed; ValidateFormat and ImportData never ran (Pending,
+ * non-Hold — so they still show as Pending cards); every other `Hold…` /
+ * `Clear…` step Pending. No terminal timestamp. Not in the list collection.
+ */
+export function createHoldStoppedImportFileProcessInstanceDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  const instance = createFinishedImportFileWithHoldStepsDetail({
+    ProcessInstanceId: 'e2f3a4b5c6d74e8f9a0b1c2d3e4f5a6b',
+    CurrentStatus: 'Suspended',
+    CreatedAt: '2026-10-01 09:40:11',
+    LastExecutedAt: '2026-10-01 09:40:15',
+    LastExecutedActivityName: 'HoldValidateDuplidate',
+    Steps: importFileLiveSteps({
+      LogNewImport: 'Completed',
+      LogImportDetails: 'Completed',
+      ValidateDuplicate: 'Completed',
+      HoldValidateDuplidate: 'Running',
+    }),
+  });
+  delete instance.FinishedAt;
+  return { ...instance, ...overrides };
+}
+
 /** Finished ImportFile run behind the RateLoad-failed file 106 (staging succeeded). */
 export function createRateLoadFailedStagingProcessInstanceDetail(
   overrides: Partial<ProcessInstanceDetailRead> = {},
@@ -240,6 +333,23 @@ export function createRateLoadErrorProcessInstanceDetail(
     FinishedAt: '2026-09-30 18:07:28',
     LastExecutedActivityName: 'Error',
     Steps: rateLoadSteps({ Register: 'Completed', Validate: 'Completed' }),
+    ...overrides,
+  });
+}
+
+/**
+ * A second, older RateLoad run that failed the same way (Finished, last activity
+ * `'Error'`, Register + Validate Completed, rest Pending in service order) —
+ * belongs to no seeded file. Gives the "Finished (Error)" status filter two rows.
+ */
+export function createOlderRateLoadErrorProcessInstanceDetail(
+  overrides: Partial<ProcessInstanceDetailRead> = {},
+): ProcessInstanceDetailRead {
+  return createRateLoadErrorProcessInstanceDetail({
+    ProcessInstanceId: '3e4f5a6b7c8d4e9fa0b1c2d3e4f5a6b7',
+    CreatedAt: '2026-09-29 12:30:05',
+    LastExecutedAt: '2026-09-29 12:30:09',
+    FinishedAt: '2026-09-29 12:30:09',
     ...overrides,
   });
 }

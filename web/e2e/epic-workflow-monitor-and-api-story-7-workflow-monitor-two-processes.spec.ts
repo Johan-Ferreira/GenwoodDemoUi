@@ -380,7 +380,7 @@ test.describe('Epic workflow-monitor-and-api, Story 7: Workflow monitor understa
   });
 
   // AC-3
-  test('"Open import run" on a RateLoad-failed file shows its RateLoad run with the steps after the failure Pending and the Error step in the log', async ({
+  test('"Open import run" on a RateLoad-failed file shows its RateLoad run ending on the failed step, without the Pending steps after it, and the Error step in the log', async ({
     page,
   }) => {
     const file = createRateLoadFailedFileDetail();
@@ -411,13 +411,15 @@ test.describe('Epic workflow-monitor-and-api, Story 7: Workflow monitor understa
     await expect(processInstanceRows(page)).toHaveCount(1);
     await expect(runRow(page, runId)).toHaveAttribute('aria-selected', 'true');
 
-    // Its steps card is the LoadYieldCurves run; the steps after the failure are Pending.
+    // Its steps card is the LoadYieldCurves run. Story 8: it ends on a red
+    // "Error" tile for the failed step (Validate); the Pending steps after it are hidden.
     const card = stepsCard(page, run);
     await expect(card).toContainText(runId);
+    await expect(stepTile(page, card, 'Validate')).toContainText(/error/i);
     for (const step of pendingSteps) {
       await expect(
         stepTile(page, card, required(step.Name, 'Step.Name')),
-      ).toContainText(/pending/i);
+      ).toHaveCount(0);
     }
 
     // The Error step's entries are in the execution log.

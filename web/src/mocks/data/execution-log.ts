@@ -13,6 +13,10 @@
  * `createPrefixedExecutionLogs()` gives the "Activity"-prefixed form the design
  * strips, for exercising both.
  *
+ * The live service actually writes "Executing" + "Executed" PAIRS per activity;
+ * the `createPaired…ExecutionLogs()` factories below mirror that shape (the
+ * single-row factories above are kept unchanged for the existing tests).
+ *
  * Import discipline: `import type` only, sibling factories by relative path.
  */
 import type {
@@ -145,6 +149,79 @@ export function createRateLoadErrorExecutionLogs(): ExecutionLogRead[] {
     entry('2026-09-30 18:07:28', 'ValidationSuccessful?', 'Completed'),
     entry('2026-09-30 18:07:28', 'Error', 'Started'),
     entry('2026-09-30 18:07:28', 'Error', 'Completed'),
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Live-shaped PAIRED logs (verified by curl, 2026-10-05): the service writes an
+// "Executing" row and then an "Executed" row for every activity, oldest first.
+// An activity still running has an "Executing" row and no "Executed" row yet.
+// ---------------------------------------------------------------------------
+
+/** An "Executing" + "Executed" pair for one activity. */
+function pair(
+  executingAt: string,
+  executedAt: string,
+  ActivityName: string,
+): ExecutionLogRead[] {
+  return [
+    entry(executingAt, ActivityName, 'Executing'),
+    entry(executedAt, ActivityName, 'Executed'),
+  ];
+}
+
+/**
+ * Paired log for the live-shaped Finished ImportFile run
+ * (`createFinishedImportFileWithHoldStepsDetail()`): Start, LogNewImport,
+ * LogImportDetails, ValidateDuplicate, ValidateFormat, ImportData, End — each an
+ * Executing + Executed pair. 14 rows.
+ */
+export function createPairedImportFileExecutionLogs(): ExecutionLogRead[] {
+  return [
+    ...pair('2026-10-01 09:15:02', '2026-10-01 09:15:02', 'Start'),
+    ...pair('2026-10-01 09:15:02', '2026-10-01 09:15:03', 'LogNewImport'),
+    ...pair('2026-10-01 09:15:03', '2026-10-01 09:15:04', 'LogImportDetails'),
+    ...pair('2026-10-01 09:15:04', '2026-10-01 09:15:05', 'ValidateDuplicate'),
+    ...pair('2026-10-01 09:15:05', '2026-10-01 09:15:06', 'ValidateFormat'),
+    ...pair('2026-10-01 09:15:06', '2026-10-01 09:15:09', 'ImportData'),
+    ...pair('2026-10-01 09:15:09', '2026-10-01 09:15:09', 'End'),
+  ];
+}
+
+/**
+ * Paired log for the RateLoad Error runs (`createRateLoadErrorProcessInstanceDetail()`,
+ * same shape for `createOlderRateLoadErrorProcessInstanceDetail()`): Start,
+ * Register, Validate, ValidationSuccessful?, Error — each an Executing + Executed
+ * pair, no messages (as live). 10 rows.
+ */
+export function createPairedRateLoadErrorExecutionLogs(): ExecutionLogRead[] {
+  return [
+    ...pair('2026-09-30 18:07:25', '2026-09-30 18:07:25', 'Start'),
+    ...pair('2026-09-30 18:07:25', '2026-09-30 18:07:26', 'Register'),
+    ...pair('2026-09-30 18:07:26', '2026-09-30 18:07:27', 'Validate'),
+    ...pair(
+      '2026-09-30 18:07:27',
+      '2026-09-30 18:07:28',
+      'ValidationSuccessful?',
+    ),
+    ...pair('2026-09-30 18:07:28', '2026-09-30 18:07:28', 'Error'),
+  ];
+}
+
+/**
+ * Paired log for the ImportFile run stopped on a Hold step
+ * (`createHoldStoppedImportFileProcessInstanceDetail()`): Start, LogNewImport,
+ * LogImportDetails, ValidateDuplicate as pairs, then a TRAILING
+ * `HoldValidateDuplidate` "Executing" row with NO "Executed" row (still running).
+ * 9 rows.
+ */
+export function createPairedRunningExecutionLogs(): ExecutionLogRead[] {
+  return [
+    ...pair('2026-10-01 09:40:11', '2026-10-01 09:40:11', 'Start'),
+    ...pair('2026-10-01 09:40:11', '2026-10-01 09:40:12', 'LogNewImport'),
+    ...pair('2026-10-01 09:40:12', '2026-10-01 09:40:13', 'LogImportDetails'),
+    ...pair('2026-10-01 09:40:13', '2026-10-01 09:40:15', 'ValidateDuplicate'),
+    entry('2026-10-01 09:40:15', 'HoldValidateDuplidate', 'Executing'),
   ];
 }
 

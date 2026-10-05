@@ -4,10 +4,9 @@ import { StatusChip } from '@/components/status-chip/StatusChip';
 import type { StatusTone } from '@/components/status-chip/StatusChip';
 import { NO_VALUE } from '@/lib/files/file-format';
 import {
-  PENDING_STEP_STATE,
-  stepStateTone,
-} from '@/lib/workflow/execution-log';
-import { orderRunSteps, runStatusDisplay } from '@/lib/workflow/process-status';
+  displayRunSteps,
+  runStatusDisplay,
+} from '@/lib/workflow/process-status';
 import type { ProcessInstanceDetailRead } from '@/types/api-generated';
 
 const CARD_CLASS =
@@ -27,8 +26,8 @@ function text(value: string | undefined): string {
 
 /**
  * The steps card (R2, R3, BR1): titled by the process name, subtitle
- * "{id} · {status chip} · {file name}", one tile per step — service order,
- * except RateLoad runs, whose steps show in their real order (orderRunSteps).
+ * "{id} · {status chip} · {file name}", one tile per shown step
+ * (displayRunSteps: real order, stopping where the run stopped).
  */
 export function RunSteps({
   instance,
@@ -38,7 +37,7 @@ export function RunSteps({
   fileName: string | undefined;
 }) {
   const titleId = useId();
-  const steps = orderRunSteps(instance.ProcessName, instance.Steps ?? []);
+  const steps = displayRunSteps(instance);
   const status = runStatusDisplay(instance);
 
   return (
@@ -67,27 +66,18 @@ export function RunSteps({
         aria-label="Steps"
         className="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2"
       >
-        {steps.map((step, index) => {
-          const state =
-            step.State !== undefined && step.State.trim() !== ''
-              ? step.State
-              : PENDING_STEP_STATE;
-          const tone = stepStateTone(state);
-          return (
-            <li
-              key={`${index}-${step.Name ?? ''}`}
-              data-tone={tone}
-              className={`flex flex-col gap-1 rounded-lg border p-3 ${TILE_TONE_CLASS[tone]}`}
-            >
-              <span className="text-overline font-semibold uppercase tracking-overline">
-                {`${index + 1} · ${state}`}
-              </span>
-              <span className="font-semibold break-words">
-                {text(step.Name)}
-              </span>
-            </li>
-          );
-        })}
+        {steps.map((step, index) => (
+          <li
+            key={`${index}-${step.name ?? ''}`}
+            data-tone={step.tone}
+            className={`flex flex-col gap-1 rounded-lg border p-3 ${TILE_TONE_CLASS[step.tone]}`}
+          >
+            <span className="text-overline font-semibold uppercase tracking-overline">
+              {`${index + 1} · ${step.state}`}
+            </span>
+            <span className="font-semibold break-words">{text(step.name)}</span>
+          </li>
+        ))}
       </ol>
     </section>
   );

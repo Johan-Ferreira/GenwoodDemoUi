@@ -1,24 +1,50 @@
 import type { StatusTone } from '@/components/status-chip/StatusChip';
+import {
+  PENDING_STEP_STATE,
+  stepStateTone,
+} from '@/lib/workflow/execution-log';
 import type { ProcessInstanceRead } from '@/types/api-generated';
 
-/** Every workflow instance `CurrentStatus` the service can return. */
+/** The workflow instance `CurrentStatus` values the live service reports. */
 export const PROCESS_STATUSES = [
   'Idle',
   'Running',
   'Suspended',
   'Finished',
   'Cancelled',
-  'Faulted',
 ] as const;
 
 /** The RateLoad run's process name (the service has no process called RateLoad). */
 export const RATE_LOAD_PROCESS_NAME = 'LoadYieldCurves';
+
+/** The staging run's process name. */
+export const IMPORT_FILE_PROCESS_NAME = 'ImportFile';
 
 /** The RateLoad activity a failed run ends on (the service never reports Faulted). */
 export const RATE_LOAD_ERROR_ACTIVITY = 'Error';
 
 /** Label for a RateLoad run that finished on its Error activity. */
 export const FINISHED_ON_ERROR_LABEL = 'Finished (Error)';
+
+/**
+ * The Status filter's options: the service statuses, then "Finished (Error)"
+ * (Finished runs whose last activity is Error — narrowed on the page, since the
+ * service cannot filter on the last activity).
+ */
+export const PROCESS_STATUS_FILTER_OPTIONS = [
+  ...PROCESS_STATUSES,
+  FINISHED_ON_ERROR_LABEL,
+] as const;
+
+/** True for any run that is Finished with last activity 'Error'. */
+export function isFinishedOnError(
+  run: Pick<ProcessInstanceRead, 'CurrentStatus' | 'LastExecutedActivityName'>,
+): boolean {
+  return (
+    run.CurrentStatus === 'Finished' &&
+    run.LastExecutedActivityName?.trim() === RATE_LOAD_ERROR_ACTIVITY
+  );
+}
 
 /**
  * Workflow instance status → chip tone (BR4): Finished success, Faulted danger,
@@ -42,11 +68,7 @@ export function isRateLoadFinishedOnError(
     'ProcessName' | 'CurrentStatus' | 'LastExecutedActivityName'
   >,
 ): boolean {
-  return (
-    run.ProcessName === RATE_LOAD_PROCESS_NAME &&
-    run.CurrentStatus === 'Finished' &&
-    run.LastExecutedActivityName?.trim() === RATE_LOAD_ERROR_ACTIVITY
-  );
+  return run.ProcessName === RATE_LOAD_PROCESS_NAME && isFinishedOnError(run);
 }
 
 /**
@@ -94,4 +116,68 @@ export function orderRunSteps<T extends { Name?: string }>(
   };
   // Array.prototype.sort is stable, so unknown steps keep service order.
   return [...steps].sort((a, b) => rank(a) - rank(b));
+}
+
+/** The state label of the step a failed RateLoad run stopped on. */
+export const ERROR_STEP_STATE = 'Error';
+
+/** A step tile as shown: name, state label and tone. */
+export interface DisplayedRunStep {
+  name: string | undefined;
+  state: string;
+  tone: StatusTone;
+}
+
+/** ImportFile's alternative hold / clean-up branch steps ("Hold…", "Clear…"). */
+function isHoldOrClearStep(name: string | undefined): boolean {
+  return /^(Hold|Clear)/.test(name ?? '');
+}
+
+/**
+ * The step tiles of a run, in `orderRunSteps` order (a missing state reads
+ * Pending), stopping where the run stopped:
+ * - ImportFile: Pending "Hold…" / "Clear…" steps are left out (a Hold/Clear step
+ *   the run actually reached shows in its own state).
+ * - A LoadYieldCurves run Finished on 'Error': the last step that ran shows as
+ *   "Error" (danger) and the Pending steps after it are left out.
+ * Everything else shows every step.
+ */
+export function displayRunSteps(
+  run: Pick<
+    ProcessInstanceRead,
+    'ProcessName' | 'CurrentStatus' | 'LastExecutedActivityName'
+  > & { Steps?: ReadonlyArray<{ Name?: string; State?: string }> },
+): DisplayedRunStep[] {
+  const steps: DisplayedRunStep[] = orderRunSteps(
+    run.ProcessName,
+    run.Steps ?? [],
+  ).map((step) => {
+    const state =
+      step.State !== undefined && step.State.trim() !== ''
+        ? step.State
+        : PENDING_STEP_STATE;
+    return { name: step.Name, state, tone: stepStateTone(state) };
+  });
+
+  if (run.ProcessName === IMPORT_FILE_PROCESS_NAME) {
+    return steps.filter(
+      (step) =>
+        !(step.state === PENDING_STEP_STATE && isHoldOrClearStep(step.name)),
+    );
+  }
+
+  if (isRateLoadFinishedOnError(run)) {
+    let failed = -1;
+    steps.forEach((step, index) => {
+      if (step.state !== PENDING_STEP_STATE) failed = index;
+    });
+    // No step ran: nothing to mark, show the steps as the service sent them.
+    if (failed < 0) return steps;
+    return [
+      ...steps.slice(0, failed),
+      { name: steps[failed].name, state: ERROR_STEP_STATE, tone: 'danger' },
+    ];
+  }
+
+  return steps;
 }

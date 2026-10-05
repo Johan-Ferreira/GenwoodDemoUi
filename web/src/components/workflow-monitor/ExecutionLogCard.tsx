@@ -14,6 +14,7 @@ import {
 import { NO_VALUE } from '@/lib/files/file-format';
 import { FILE_LOG_PATH } from '@/lib/navigation/nav-items';
 import {
+  collapseExecutingPairs,
   logEventTone,
   plainEventName,
   sortLogsOldestFirst,
@@ -88,7 +89,7 @@ function LogTable({ logs }: { logs: readonly ExecutionLogRead[] }) {
 
 /**
  * The run's execution log (R4, BR2, BR5): Timestamp, Activity, Event, Message,
- * always oldest first; empty → "No log entries exist" with the file route (R5).
+ * always oldest first, one row per Executing/Executed pair; empty → "No log entries exist" with the file route (R5).
  */
 export function ExecutionLogCard({
   logs,
@@ -99,7 +100,10 @@ export function ExecutionLogCard({
   fileId: number | null;
 }) {
   const titleId = useId();
-  const ordered = useMemo(() => sortLogsOldestFirst(logs), [logs]);
+  const ordered = useMemo(
+    () => collapseExecutingPairs(sortLogsOldestFirst(logs)),
+    [logs],
+  );
 
   return (
     <section

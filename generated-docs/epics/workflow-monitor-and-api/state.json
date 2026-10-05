@@ -22,7 +22,8 @@
       "When every Files received count on the Overview is zero, the card shows the total (\"0\") with no breakdown line. Confirm that is right.",
       "The file details still label the RateLoad run ID row \"Workflow instance\". Check whether that label is clear enough next to the new \"Open import run\" button, or name the label you want.",
       "The Import trace page (File log) still shows a failed RateLoad run as a green \"Finished\"; only the Workflow monitor shows \"Finished (Error)\" for now. Confirm whether the trace should match.",
-      "Picking a different run from the list after opening one from a file drops the carried file, so \"Open file log entry\" looks the new run up itself instead of returning to the original file. Confirm that is the behaviour you want."
+      "Picking a different run from the list after opening one from a file drops the carried file, so \"Open file log entry\" looks the new run up itself instead of returning to the original file. Confirm that is the behaviour you want.",
+      "\"Finished (Error)\" reads at most 2,000 Finished runs (40 pages of 50) from the service and filters them in the browser; older failed runs beyond that would not be listed."
     ],
     "manualTestResults": []
   },
@@ -78,17 +79,17 @@
       "completedAt": "2026-10-05T13:43:11.199Z"
     },
     "8": {
-      "status": "pending",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
-      "completedAt": null
+      "startedAt": "2026-10-05T14:47:31.361Z",
+      "completedAt": "2026-10-05T14:54:11.278Z"
     },
     "9": {
-      "status": "pending",
+      "status": "in-progress",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
+      "startedAt": "2026-10-05T14:54:11.279Z",
       "completedAt": null
     }
   },

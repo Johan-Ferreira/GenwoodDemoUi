@@ -24,7 +24,7 @@
  *     the app-shell spec); no credentials, no userinfo endpoint.
  *   - Filter controls: two Shadcn Select comboboxes (FilterSelect) — "Status"
  *     (options "All statuses", Idle, Running, Suspended, Finished, Cancelled,
- *     Faulted) and "Process name" (hardcoded options "All processes", "ImportFile",
+ *     Finished (Error) — story 8 replaced Faulted) and "Process name" (hardcoded options "All processes", "ImportFile",
  *     "LoadYieldCurves"; not populated dynamically).
  *   - Paging uses the shared TablePagination: "Rows per page" select (5, 10, 20, 50;
  *     default 20), a "first–last of total" range line, Previous / Next page buttons.
@@ -41,6 +41,7 @@ import AxeBuilder from '@axe-core/playwright';
 // Shared project-wide factories (relative imports — no @/ alias in the e2e layer).
 import {
   createProcessInstances,
+  isFinishedWithError,
   queryProcessInstances,
 } from '../src/mocks/data/process-instance';
 import {
@@ -155,9 +156,13 @@ test.describe('Epic workflow-monitor-and-api, Story 1: Process instance list', (
     await openWorkflowMonitor(page);
     await expectRows(page, ALL_INSTANCES);
 
-    // Status: only the faulted runs remain, newest first.
-    await chooseOption(page, 'Status', 'Faulted');
-    await expectRows(page, withStatus('Faulted'));
+    // Status: only the finished runs remain, newest first.
+    await chooseOption(page, 'Status', 'Finished');
+    await expectRows(page, withStatus('Finished'));
+
+    // Story 8: "Finished (Error)" replaced "Faulted" — only the failed RateLoad runs.
+    await chooseOption(page, 'Status', 'Finished (Error)');
+    await expectRows(page, ALL_INSTANCES.filter(isFinishedWithError));
 
     // Back to every status, then narrow by the Process name dropdown.
     await chooseOption(page, 'Status', 'All statuses');

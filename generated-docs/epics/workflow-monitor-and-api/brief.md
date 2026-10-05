@@ -27,9 +27,9 @@ Entities this epic reads (from `documentation/CurveData.yaml`, authoritative; th
 
 Enumerations and observed vocabularies:
 
-- Process `CurrentStatus`: Idle, Running, Suspended, Finished, Cancelled, Faulted (requirements). The design only styles Finished, Faulted and Running; the others need a neutral badge (see Notes).
+- Process `CurrentStatus`: Idle, Running, Suspended, Finished, Cancelled, Faulted (requirements). The design only styles Finished, Faulted and Running; the others need a neutral badge (see Notes). The live service reports Idle, Running, Suspended, Finished and Cancelled only (never Faulted); a failed RateLoad run is Finished with last activity "Error", so the Status filter offers "Finished (Error)" in place of "Faulted".
 - Step `State`: Pending, Running, Completed, Faulted (requirements and spec example "Completed").
-- Log `EventName`: spec example "Completed"; the design shows Started / Completed / Faulted.
+- Log `EventName`: spec example "Completed"; the design shows Started / Completed / Faulted. The live service writes an "Executing" then an "Executed" entry for every activity (a still-running activity has only "Executing").
 
 ---
 
