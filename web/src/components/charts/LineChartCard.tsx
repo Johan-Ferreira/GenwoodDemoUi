@@ -200,7 +200,10 @@ export function LineChartCard({
               >
                 <LineChart
                   data={rows}
-                  title={title}
+                  // Name the keyboard-focusable chart surface by the visible
+                  // heading rather than an SVG <title>, which would duplicate
+                  // the title text in the page.
+                  aria-labelledby={titleId}
                   margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
                 >
                   <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
