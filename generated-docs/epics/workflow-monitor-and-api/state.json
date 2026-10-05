@@ -35,17 +35,17 @@
       "completedAt": "2026-10-05T09:16:43.335Z"
     },
     "3": {
-      "status": "in-progress",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
       "startedAt": "2026-10-05T09:16:43.336Z",
-      "completedAt": null
+      "completedAt": "2026-10-05T09:23:23.206Z"
     },
     "4": {
-      "status": "pending",
+      "status": "in-progress",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
+      "startedAt": "2026-10-05T09:23:23.208Z",
       "completedAt": null
     }
   },

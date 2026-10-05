@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleAlert, Download, Route } from 'lucide-react';
+import { CircleAlert, Download, Route, Workflow } from 'lucide-react';
 import Link from 'next/link';
 import { useId, useState } from 'react';
 
@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { workflowMonitorSelectionPath } from '@/components/workflow-monitor/useSelectedInstance';
 import { useToast } from '@/contexts/ToastContext';
 import { downloadFile } from '@/lib/api/download';
 import { getFile } from '@/lib/api/endpoints';
@@ -172,6 +173,11 @@ function FileDetails({
   const id = detail.Id ?? fileId;
   const status = text(detail.Status);
   const failed = detail.Status === 'Failed';
+  // "Open workflow" only when the file has a run to open (R7, BR3).
+  const workflowInstanceId =
+    detail.WorkflowInstanceId && detail.WorkflowInstanceId.trim() !== ''
+      ? detail.WorkflowInstanceId.trim()
+      : null;
 
   return (
     <section
@@ -216,6 +222,14 @@ function FileDetails({
       <DownloadFailure state={downloadState} onRetry={download} />
 
       <div className="flex flex-wrap gap-2">
+        {workflowInstanceId !== null && (
+          <Button asChild variant="secondary">
+            <Link href={workflowMonitorSelectionPath(workflowInstanceId)}>
+              <Workflow aria-hidden="true" />
+              Open workflow
+            </Link>
+          </Button>
+        )}
         <Button
           type="button"
           variant="ghost"

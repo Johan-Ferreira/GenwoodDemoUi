@@ -18,6 +18,7 @@ import type {
 } from '@/types/api-generated';
 
 import { ExecutionLogCard } from './ExecutionLogCard';
+import { OpenFileLogEntry } from './OpenFileLogEntry';
 import { AuditHistory, RunSteps } from './RunSteps';
 
 export const PROCESS_INSTANCE_NOT_FOUND = 'Process instance not found';
@@ -85,6 +86,7 @@ function RunDetailView({ run }: { run: RunDetail }) {
       <RunSteps instance={run.instance} fileName={run.trace?.File?.FileName} />
       <AuditHistory instance={run.instance} />
       <ExecutionLogCard logs={run.logs} fileId={fileId} />
+      <OpenFileLogEntry contextId={run.instance.ContextId} fileId={fileId} />
     </div>
   );
 }

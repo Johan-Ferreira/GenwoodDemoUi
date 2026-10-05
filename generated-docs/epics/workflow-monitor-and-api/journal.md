@@ -8,3 +8,7 @@
 ## Story 2: Run detail
 
 - Selecting a run puts its ID in the address (?instance=...), so the selection can be shared as a link. Below the table: the steps card (tiles in service order), the audit history, and the execution log (oldest first). Missing timestamps show as an em dash.
+
+## Story 3: File and run navigation
+
+- "Open file log entry" reuses the file found when the run was loaded, so it usually opens the File log at once; it only asks the service again when that file could not be found, and then shows "Import not found" with a link back to the process instance list.
