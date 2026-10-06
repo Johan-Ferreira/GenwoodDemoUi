@@ -3,7 +3,10 @@ import {
   PENDING_STEP_STATE,
   stepStateTone,
 } from '@/lib/workflow/execution-log';
-import type { ProcessInstanceRead } from '@/types/api-generated';
+import type {
+  FileDetailRead,
+  ProcessInstanceRead,
+} from '@/types/api-generated';
 
 /** The workflow instance `CurrentStatus` values the live service reports. */
 export const PROCESS_STATUSES = [
@@ -87,6 +90,33 @@ export function runStatusDisplay(
     return { label: FINISHED_ON_ERROR_LABEL, tone: 'danger' };
   }
   return { label: status, tone: processStatusTone(status) };
+}
+
+/** The file stage of the staging (ImportPro) workflow. */
+export const STAGING_FILE_STAGE = 'ImportPro';
+
+/**
+ * The exception note to show in a run's Audit history (BR4), or null. Shown
+ * only for an ImportFile run whose import resolved to a file, that did not
+ * finish successfully (CurrentStatus other than Finished, FaultedAt set, or the
+ * file Failed at the ImportPro stage), and whose file has a non-blank note.
+ */
+export function stagingExceptionNote(
+  run: Pick<ProcessInstanceRead, 'ProcessName' | 'CurrentStatus'> & {
+    FaultedAt?: string;
+  },
+  file: Pick<FileDetailRead, 'Status' | 'Stage' | 'ExceptionNote'> | undefined,
+): string | null {
+  if (run.ProcessName !== IMPORT_FILE_PROCESS_NAME || file === undefined) {
+    return null;
+  }
+  const note = file.ExceptionNote?.trim() ?? '';
+  if (note === '') return null;
+  const finishedSuccessfully =
+    run.CurrentStatus?.trim() === 'Finished' &&
+    (run.FaultedAt === undefined || run.FaultedAt.trim() === '') &&
+    !(file.Status === 'Failed' && file.Stage === STAGING_FILE_STAGE);
+  return finishedSuccessfully ? null : note;
 }
 
 /** RateLoad steps in their real order (the service sends them out of order). */

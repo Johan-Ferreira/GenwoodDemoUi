@@ -6,8 +6,12 @@ import { NO_VALUE } from '@/lib/files/file-format';
 import {
   displayRunSteps,
   runStatusDisplay,
+  stagingExceptionNote,
 } from '@/lib/workflow/process-status';
-import type { ProcessInstanceDetailRead } from '@/types/api-generated';
+import type {
+  FileDetailRead,
+  ProcessInstanceDetailRead,
+} from '@/types/api-generated';
 
 const CARD_CLASS =
   'flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground shadow-sm';
@@ -83,11 +87,17 @@ export function RunSteps({
   );
 }
 
-/** The run's audit history (R8, NFR-5): status, every timestamp, last activity. */
+/**
+ * The run's audit history (R8, NFR-5): status, every timestamp, last activity,
+ * plus the file's exception note when `stagingExceptionNote` returns one (BR4).
+ */
 export function AuditHistory({
   instance,
+  file,
 }: {
   instance: ProcessInstanceDetailRead;
+  /** The run's resolved import file; undefined when the lookup failed. */
+  file?: FileDetailRead;
 }) {
   const titleId = useId();
   const status = runStatusDisplay(instance);
@@ -118,6 +128,15 @@ export function AuditHistory({
       value: text(instance.LastExecutedActivityName),
     },
   ];
+  const exceptionNote = stagingExceptionNote(instance, file);
+  if (exceptionNote !== null) {
+    fields.push({
+      label: 'Exception note',
+      value: (
+        <span className="whitespace-pre-wrap break-words">{exceptionNote}</span>
+      ),
+    });
+  }
 
   return (
     <section aria-labelledby={titleId} className={CARD_CLASS}>

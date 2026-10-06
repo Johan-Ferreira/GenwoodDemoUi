@@ -12,3 +12,9 @@ The File log's Received from and Received to filters now each have a calendar bu
 
 On Curve data's By maturity table, the last column no longer shows the "Source import (WOID)" heading. Screen readers still announce it as "Source import". Each row's link now just says "View Import Trace" and opens the same import trace as before. On Yield curves, the "Dates with data…" note under Valuation date now wraps under its own field, so Compare with sits right beside it instead of being pushed away or onto a new line.
 
+## Story 4: Workflow monitor run selection and exception note in Audit history
+
+Clicking a run in the Workflow monitor now narrows the list to that run, the same as "Open workflow" from the File log. Clicking the same run again after "Show all process instances" narrows it again.
+
+Audit history now shows an "Exception note" row for a staging (ImportFile) run that didn't finish successfully and whose file has a note. That covers a run that isn't Finished, a run with a fault time, or a run whose file failed at the ImportPro stage. Rate load runs, successful runs and files with no note look the same as before.
+
