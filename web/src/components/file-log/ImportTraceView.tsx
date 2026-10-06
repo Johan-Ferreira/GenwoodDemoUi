@@ -10,7 +10,7 @@ const SUBTITLE = 'The file log entry, workflow instance and published data';
 
 /** The Import trace subtitle: names the file once known, else ends at "data." */
 export function importTraceSubtitle(fileName: string | null): string {
-  return fileName ? `${SUBTITLE} for WOID ${fileName}.` : `${SUBTITLE}.`;
+  return fileName ? `${SUBTITLE} for ${fileName}.` : `${SUBTITLE}.`;
 }
 
 /** The Import trace page body: heading, subtitle naming the file, and the trace. */

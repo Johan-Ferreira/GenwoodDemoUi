@@ -400,7 +400,7 @@ test.describe('Epic quality-check-and-clean-up, Story 1: Plain-language identifi
     // The subtitle names the file rather than its WOID.
     await expect(
       main.getByText(
-        `The file log entry, workflow instance and published data for WOID ${fileName}.`,
+        `The file log entry, workflow instance and published data for ${fileName}.`,
         { exact: true },
       ),
     ).toBeVisible();

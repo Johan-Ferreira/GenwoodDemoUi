@@ -31,7 +31,7 @@ The Overview "Recent loads" and the File log both use the same table component (
 - Click a file in the File log → the detail panel shows "Staging instance ID" and "Rate load instance ID" instead of "WOID" and "Workflow instance"
 - In that detail panel, click Trace import → the File log entry panel has no WOID row, and the staging and rate load panels still show their Instance IDs
 - Back on the file detail, click Open staging run → the Workflow monitor opens on that file's run as before
-- Open any import trace → the line under the heading reads "...published data for WOID <file name>" with the file name, not the long ID
+- Open any import trace → the line under the heading reads "...published data for <file name>" with the file name, not the long ID
 
 ## Additional technical checks
 

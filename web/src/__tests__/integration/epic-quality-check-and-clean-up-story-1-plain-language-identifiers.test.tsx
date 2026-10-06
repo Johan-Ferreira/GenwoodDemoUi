@@ -22,7 +22,7 @@
  *   has no "WOID" row; the "Staging run" and "Rate load run" sections keep their
  *   "Instance ID" rows (R10).
  * - The Import trace page subtitle reads "The file log entry, workflow instance
- *   and published data for WOID {file name}." once the trace loads, and ends at
+ *   and published data for {file name}." once the trace loads, and ends at
  *   "...published data." when no file name is known (manual-test fix).
  *
  * AC-4 (links keep their targets) is covered by this story's Playwright spec;
@@ -253,7 +253,7 @@ describe('Epic quality-check-and-clean-up, Story 1: plain-language identifiers',
     render(await ImportTracePage({ params: Promise.resolve({ woid }) }));
 
     const subtitle = await screen.findByText(
-      'The file log entry, workflow instance and published data for WOID GLC Nominal daily data current month.xlsx.',
+      'The file log entry, workflow instance and published data for GLC Nominal daily data current month.xlsx.',
     );
     expect(subtitle).not.toHaveTextContent(woid);
   });
@@ -280,6 +280,6 @@ describe('Epic quality-check-and-clean-up, Story 1: plain-language identifiers',
         'The file log entry, workflow instance and published data.',
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/for WOID/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ for /)).not.toBeInTheDocument();
   });
 });
