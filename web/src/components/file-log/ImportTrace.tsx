@@ -251,12 +251,24 @@ function TraceDetails({ trace }: { trace: ImportRead }) {
   );
 }
 
-/** Loads `GET /v1/imports/{woid}` through DataState; a 404 shows "Import not found" (BR6). */
-export function ImportTrace({ woid }: { woid: string }) {
+/**
+ * Loads `GET /v1/imports/{woid}` through DataState; a 404 shows "Import not
+ * found" (BR6). `onTrace` hears each loaded trace (e.g. for the page subtitle).
+ */
+export function ImportTrace({
+  woid,
+  onTrace,
+}: {
+  woid: string;
+  onTrace?: (trace: ImportRead) => void;
+}) {
   return (
     <DataState
       load={() => lookUp(() => getImport(encodeURIComponent(woid)))}
       skeleton={<TraceSkeleton />}
+      onData={(lookup) => {
+        if (lookup.found) onTrace?.(lookup.value);
+      }}
     >
       {(lookup) =>
         lookup.found ? (

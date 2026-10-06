@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { TENOR_LIST_MESSAGE } from '@/lib/curves/rate-matrix';
-import { OBSERVATION_DATE_MESSAGE } from '@/lib/validation/iso-date';
+import type { AvailabilityRead } from '@/types/api-generated';
 
 import type { CommittedField, RatesByDateInputs } from './useRatesByDateInputs';
+import { ValuationDateField } from './ValuationDateField';
 
 interface CommittedTextFieldProps<T> {
   label: string;
@@ -70,32 +71,56 @@ function CommittedTextField<T>({
   );
 }
 
+/** Accessible name of the "From" field's calendar button. */
+export const OPEN_FROM_CALENDAR = 'Choose from date';
+/** Accessible name of the "To" field's calendar button. */
+export const OPEN_TO_CALENDAR = 'Choose to date';
+
 interface RatesByDateFieldsProps {
   inputs: RatesByDateInputs;
+  /** The curve's dates with data: bounds and marks the From / To calendars. */
+  availability: AvailabilityRead;
   /** The key tenors used while Tenors is empty. */
   keyTenors: readonly string[];
 }
 
-/** The By date view's "From", "To" and "Tenors" fields. */
+/**
+ * The By date view's "From", "To" and "Tenors" fields. From and To are typed
+ * YYYY-MM-DD dates with a calendar each (as the Valuation date: bounded by and
+ * marking the curve's dates with data); a picked date applies like a typed one.
+ */
 export function RatesByDateFields({
   inputs,
+  availability,
   keyTenors,
 }: RatesByDateFieldsProps) {
   return (
     <>
-      <CommittedTextField
+      <ValuationDateField
+        availability={availability}
         label="From"
-        field={inputs.from}
-        placeholder="YYYY-MM-DD"
-        message={OBSERVATION_DATE_MESSAGE}
-        className="w-36"
+        calendarButtonLabel={OPEN_FROM_CALENDAR}
+        calendarLabel="From date calendar"
+        showRange={false}
+        draft={inputs.from.draft}
+        applied={inputs.from.applied}
+        invalid={inputs.from.invalid}
+        onType={inputs.from.type}
+        onCommit={inputs.from.commit}
+        onPick={inputs.from.pick}
       />
-      <CommittedTextField
+      <ValuationDateField
+        availability={availability}
         label="To"
-        field={inputs.to}
-        placeholder="YYYY-MM-DD"
-        message={OBSERVATION_DATE_MESSAGE}
-        className="w-36"
+        calendarButtonLabel={OPEN_TO_CALENDAR}
+        calendarLabel="To date calendar"
+        showRange={false}
+        draft={inputs.to.draft}
+        applied={inputs.to.applied}
+        invalid={inputs.to.invalid}
+        onType={inputs.to.type}
+        onCommit={inputs.to.commit}
+        onPick={inputs.to.pick}
       />
       <CommittedTextField
         label="Tenors"

@@ -397,6 +397,13 @@ test.describe('Epic quality-check-and-clean-up, Story 1: Plain-language identifi
     );
 
     const main = page.getByRole('main');
+    // The subtitle names the file rather than its WOID.
+    await expect(
+      main.getByText(
+        `The file log entry, workflow instance and published data for WOID ${fileName}.`,
+        { exact: true },
+      ),
+    ).toBeVisible();
     const entry = main.getByRole('region', { name: 'File log entry' });
     await expect(entry).toContainText(fileName);
     await expect(term(entry, 'WOID')).toHaveCount(0);

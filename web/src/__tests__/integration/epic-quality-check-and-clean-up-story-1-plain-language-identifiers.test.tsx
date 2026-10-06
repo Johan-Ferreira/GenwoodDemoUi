@@ -21,6 +21,9 @@
  * - The Import trace (ImportTrace.tsx `fileFields()`) "File log entry" section
  *   has no "WOID" row; the "Staging run" and "Rate load run" sections keep their
  *   "Instance ID" rows (R10).
+ * - The Import trace page subtitle reads "The file log entry, workflow instance
+ *   and published data for WOID {file name}." once the trace loads, and ends at
+ *   "...published data." when no file name is known (manual-test fix).
  *
  * AC-4 (links keep their targets) is covered by this story's Playwright spec;
  * AC-5 (column spacing, no sideways scroll) is a manual visual check.
@@ -33,6 +36,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import ImportTracePage from '@/app/(app)/file-log/imports/[woid]/page';
 import FileLogPage from '@/app/(app)/file-log/page';
 import OverviewPage from '@/app/(app)/overview/page';
 import { ImportTrace } from '@/components/file-log/ImportTrace';
@@ -233,5 +237,49 @@ describe('Epic quality-check-and-clean-up, Story 1: plain-language identifiers',
     expect(fieldValue(rateLoad, 'Instance ID')).toHaveTextContent(
       RATE_LOAD_INSTANCE_ID,
     );
+  });
+
+  // Manual-test fix: the Import trace subtitle names the file, not the WOID.
+  it('names the file in the Import trace subtitle instead of the WOID', async () => {
+    const trace = createImport();
+    const woid = trace.File?.Woid ?? '';
+    mockGet.mockImplementation((endpoint: string) =>
+      endpoint === `/v1/imports/${woid}`
+        ? Promise.resolve(trace)
+        : unexpected(endpoint),
+    );
+    navigation.path = `/file-log/imports/${woid}`;
+
+    render(await ImportTracePage({ params: Promise.resolve({ woid }) }));
+
+    const subtitle = await screen.findByText(
+      'The file log entry, workflow instance and published data for WOID GLC Nominal daily data current month.xlsx.',
+    );
+    expect(subtitle).not.toHaveTextContent(woid);
+  });
+
+  it('ends the Import trace subtitle without a file name when the import is not found', async () => {
+    const woid = 'no-such-import';
+    mockGet.mockImplementation(() =>
+      Promise.reject(
+        new ServiceError({
+          status: 404,
+          description: 'Not found.',
+          retryable: false,
+          kind: 'service-error',
+        }),
+      ),
+    );
+    navigation.path = `/file-log/imports/${woid}`;
+
+    render(await ImportTracePage({ params: Promise.resolve({ woid }) }));
+
+    expect(await screen.findByText('Import not found')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The file log entry, workflow instance and published data.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/for WOID/)).not.toBeInTheDocument();
   });
 });

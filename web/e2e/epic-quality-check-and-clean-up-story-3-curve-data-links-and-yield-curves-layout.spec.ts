@@ -52,6 +52,7 @@ import {
   createShortEndRates,
 } from '../src/mocks/data/rate';
 import { createImport } from '../src/mocks/data/import';
+import { createRateMatrix } from '../src/mocks/data/rate-matrix';
 
 import type { Page, Route } from '@playwright/test';
 
@@ -141,6 +142,25 @@ async function mockDataService(page: Page): Promise<void> {
     (url) => url.pathname === `/curve-data/v1/imports/${CANONICAL_RATE_WOID}`,
     (route) => json(route, 200, traced),
   );
+  await page.route(
+    (url) =>
+      url.pathname.startsWith(CURVES_PREFIX) &&
+      url.pathname.endsWith('/rate-matrix'),
+    (route) => {
+      const url = new URL(route.request().url());
+      const from = url.searchParams.get('ObservationDateFrom') ?? '';
+      const to = url.searchParams.get('ObservationDateTo') ?? '';
+      const matrix = createRateMatrix();
+      return json(route, 200, {
+        ...matrix,
+        Rows: (matrix.Rows ?? []).filter(
+          (row) =>
+            (!from || (row.ObservationDate ?? '') >= from) &&
+            (!to || (row.ObservationDate ?? '') <= to),
+        ),
+      });
+    },
+  );
 }
 
 /** Sign in through the demo session and wait for Overview inside the frame. */
@@ -206,5 +226,35 @@ test.describe('Epic quality-check-and-clean-up, Story 3: Curve data import-trace
     await expect(
       page.getByRole('main').getByText(PROCESS_NAME, { exact: true }),
     ).toBeVisible();
+  });
+
+  // Manual-test fix: By date From / To have calendars; a picked day applies like a typed one.
+  test('picking a By date "From" day from its calendar narrows the rows like typing it', async ({
+    page,
+  }) => {
+    await signIn(page);
+    await page
+      .getByRole('navigation')
+      .getByRole('link', { name: 'Curve data', exact: true })
+      .click();
+    const main = page.getByRole('main');
+    await main.getByRole('tab', { name: 'By date', exact: true }).click();
+
+    const from = main.getByRole('textbox', { name: 'From', exact: true });
+    await from.fill('2026-09-29');
+    await from.press('Enter');
+    await expect(main.getByRole('row', { name: /2026-09-28/ })).toHaveCount(0);
+    await expect(main.getByRole('row', { name: /2026-09-29/ })).toBeVisible();
+
+    await main.getByRole('button', { name: 'Choose from date' }).click();
+    const calendar = page.getByRole('dialog', { name: 'From date calendar' });
+    await expect(calendar).toBeVisible();
+    await calendar
+      .getByRole('button', { name: /^\w+, 30 September 2026/ })
+      .click();
+
+    await expect(from).toHaveValue('2026-09-30');
+    await expect(main.getByRole('row', { name: /2026-09-29/ })).toHaveCount(0);
+    await expect(main.getByRole('row', { name: /2026-09-30/ })).toBeVisible();
   });
 });

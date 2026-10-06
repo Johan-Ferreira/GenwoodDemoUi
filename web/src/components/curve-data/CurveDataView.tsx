@@ -138,7 +138,11 @@ function CurvePanel({ curve, context, view, onViewChange }: CurvePanelProps) {
   return (
     <>
       {view === 'date' ? (
-        <RatesByDateFields inputs={byDate} keyTenors={keyTenors} />
+        <RatesByDateFields
+          inputs={byDate}
+          availability={context.availability}
+          keyTenors={keyTenors}
+        />
       ) : (
         <ValuationDateField
           availability={context.availability}

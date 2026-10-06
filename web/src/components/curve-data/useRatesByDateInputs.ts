@@ -16,6 +16,8 @@ export interface CommittedField<T> {
   invalid: boolean;
   type: (value: string) => void;
   commit: () => void;
+  /** Set the text and apply it at once, exactly as typing it and committing. */
+  pick: (text: string) => void;
 }
 
 function useCommittedField<T>(
@@ -27,17 +29,30 @@ function useCommittedField<T>(
   const [applied, setApplied] = useState<T>(initialValue);
   const [invalid, setInvalid] = useState(false);
 
-  const commit = useCallback(() => {
-    const value = parse(draft);
-    if (value === null) {
-      setInvalid(true);
-      return;
-    }
-    setInvalid(false);
-    setApplied(value);
-  }, [draft, parse]);
+  const apply = useCallback(
+    (text: string) => {
+      const value = parse(text);
+      if (value === null) {
+        setInvalid(true);
+        return;
+      }
+      setInvalid(false);
+      setApplied(value);
+    },
+    [parse],
+  );
 
-  return { draft, applied, invalid, type: setDraft, commit };
+  const commit = useCallback(() => apply(draft), [apply, draft]);
+
+  const pick = useCallback(
+    (text: string) => {
+      setDraft(text);
+      apply(text);
+    },
+    [apply],
+  );
+
+  return { draft, applied, invalid, type: setDraft, commit, pick };
 }
 
 function parseDate(text: string): string | null {

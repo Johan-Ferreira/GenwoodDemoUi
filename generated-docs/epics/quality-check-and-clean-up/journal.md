@@ -18,3 +18,11 @@ Clicking a run in the Workflow monitor now narrows the list to that run, the sam
 
 Audit history now shows an "Exception note" row for a staging (ImportFile) run that didn't finish successfully and whose file has a note. That covers a run that isn't Finished, a run with a fault time, or a run whose file failed at the ImportPro stage. Rate load runs, successful runs and files with no note look the same as before.
 
+## Manual-test fix cycle 1
+
+The By date From and To fields now each have a calendar button next to the typed entry, the same kind as the Valuation date field. The calendar opens on the date already in the field. It only offers the curve's own date range and marks the days that have imported data. Picking a day fills the field and updates the table exactly as typing it would.
+
+The Yield curves "Dates with data" note now runs over three tidy lines: "Dates with data:", then the earliest date, then the latest date. A date is never cut in half across lines.
+
+The Import trace subtitle now names the file instead of its long WOID code. Until the file is known it just ends at "...published data."
+
