@@ -29,6 +29,8 @@ In `RatesByMaturity.tsx`, the last column's visible header text is removed, but 
 - Click "View Import Trace" on any row → the import trace for that file opens
 - Open Yield curves (Across dates) → "Compare with" sits right beside "Valuation date" on the same line, not underneath
 - Change both dates on Yield curves → the chart updates exactly as before
+- On Yield curves (Across dates), the note under Valuation date runs over three lines ("Dates with data:", earliest date, latest date) and no date is cut in half
+- On Curve data, By date, click the calendar button next to From and To → a calendar opens; picking a day fills the box and updates the table, and typing a date still works
 
 ## Additional technical checks
 
