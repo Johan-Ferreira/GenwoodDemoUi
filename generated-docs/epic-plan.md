@@ -14,6 +14,7 @@ Every epic in this project, what it delivers, and what it builds on. Live status
 | 3 | Curve data (`curve-data`) | Pick a curve and date to see rates by maturity or across dates, export CSV, follow any rate back to its import. | App frame and sign-in (`app-shell-and-sign-in`), File log (`file-log`) |
 | 4 | Overview and yield curve charts (`overview-and-yield-curves`) | At-a-glance overview (latest date, headline rates and change, file counts, spot curves, recent loads) and curve comparison charts. | App frame and sign-in (`app-shell-and-sign-in`), File log (`file-log`) |
 | 5 | Workflow monitor and API reference (`workflow-monitor-and-api`) | Trace an import's workflow run step by step with its execution log, move between a file and its run, and the API screen. | App frame and sign-in (`app-shell-and-sign-in`), File log (`file-log`), Curve data (`curve-data`) |
+| 6 | Quality check and clean-up (`quality-check-and-clean-up`) | Readability and usability clean-up for non-technical users across Overview, File log, Curve data, Yield curves, Workflow monitor and Import trace: hide technical IDs, friendlier labels, date pickers, tighter filters, row-click focus in the monitor, exception note in audit history. | App frame and sign-in (`app-shell-and-sign-in`), File log (`file-log`), Curve data (`curve-data`), Overview and yield curve charts (`overview-and-yield-curves`), Workflow monitor and API reference (`workflow-monitor-and-api`) |
 
 ## Coverage
 
