@@ -10,19 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  fileStatusTone,
-  formatCount,
-  shortWoid,
-} from '@/lib/files/file-format';
+import { fileStatusTone, formatCount } from '@/lib/files/file-format';
 import type { FileSort, FileSortKey } from '@/lib/files/file-sort';
 import type { FileRow } from '@/types/files';
 
 const HEAD_CLASS =
   'h-9 px-2 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
 const CELL_CLASS = 'px-2 py-2.5';
-/** Monospace values (12px) keep the seven columns within a desktop-width table. */
+/** Monospace values (12px) keep the columns within a desktop-width table. */
 const MONO_CELL_CLASS = `${CELL_CLASS} font-mono text-xs`;
+/**
+ * The columns after File get wider horizontal padding so they spread across
+ * the table instead of bunching against the right edge (spacing tokens only).
+ */
+const SPREAD_CLASS = 'px-4';
 
 const COLUMNS: ReadonlyArray<{
   key: FileSortKey;
@@ -32,15 +33,14 @@ const COLUMNS: ReadonlyArray<{
   { key: 'id', label: '#', className: 'w-14' },
   // File takes whatever width the other columns leave (see its cell).
   { key: 'fileName', label: 'File', className: 'w-full' },
-  { key: 'curveFamily', label: 'Curve family' },
-  { key: 'receivedAt', label: 'Received' },
+  { key: 'curveFamily', label: 'Curve family', className: SPREAD_CLASS },
+  { key: 'receivedAt', label: 'Received', className: SPREAD_CLASS },
   {
     key: 'recordsInserted',
     label: 'Records inserted',
-    className: 'text-right',
+    className: `${SPREAD_CLASS} text-right`,
   },
-  { key: 'woid', label: 'WOID' },
-  { key: 'status', label: 'Status' },
+  { key: 'status', label: 'Status', className: SPREAD_CLASS },
 ];
 
 export interface FileTableProps {
@@ -60,7 +60,7 @@ const SELECTABLE_ROW_CLASS =
 
 /**
  * The file-log columns (#, File, Curve family, Received, Records inserted,
- * WOID, Status) for the given rows, in the order supplied.
+ * Status) for the given rows, in the order supplied.
  */
 export function FileTable({
   rows,
@@ -123,18 +123,18 @@ export function FileTable({
             >
               {row.fileName}
             </TableCell>
-            <TableCell className={CELL_CLASS}>{row.curveFamily}</TableCell>
-            <TableCell className={MONO_CELL_CLASS}>{row.receivedAt}</TableCell>
-            <TableCell className={`${MONO_CELL_CLASS} text-right`}>
-              {formatCount(row.recordsInserted)}
+            <TableCell className={`${CELL_CLASS} ${SPREAD_CLASS}`}>
+              {row.curveFamily}
+            </TableCell>
+            <TableCell className={`${MONO_CELL_CLASS} ${SPREAD_CLASS}`}>
+              {row.receivedAt}
             </TableCell>
             <TableCell
-              className={`${MONO_CELL_CLASS} text-muted-foreground`}
-              title={row.woid}
+              className={`${MONO_CELL_CLASS} ${SPREAD_CLASS} text-right tabular-nums`}
             >
-              {shortWoid(row.woid)}
+              {formatCount(row.recordsInserted)}
             </TableCell>
-            <TableCell className={CELL_CLASS}>
+            <TableCell className={`${CELL_CLASS} ${SPREAD_CLASS}`}>
               <StatusChip
                 tone={fileStatusTone(row.status)}
                 label={row.status}

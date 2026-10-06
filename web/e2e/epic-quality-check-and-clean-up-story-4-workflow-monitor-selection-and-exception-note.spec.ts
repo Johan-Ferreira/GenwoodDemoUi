@@ -1,7 +1,7 @@
 /**
  * Story Metadata:
  * - Route: /workflow-monitor
- * - Target File: web/src/components/workflow-monitor/WorkflowMonitorView.tsx
+ * - Target File: web/src/app/(app)/workflow-monitor/page.tsx
  * - Page Action: modify_existing
  *
  * Mocking strategy:
@@ -11,9 +11,6 @@
  *   - Every data-service request (any path containing `/v1/`, i.e. anything sent
  *     through the same-origin `/curve-data` proxy) is dispatched by path, with every
  *     body taken from the project-wide factories in web/src/mocks/data/:
- *       GET /v1/files                                 → createFileList()
- *       GET /v1/files/{Id}                            → the named file-detail factories
- *                                                       (404 "File not found" otherwise)
  *       GET /v1/process-instances?Status&ProcessName&Page&Size
  *                                                     → queryProcessInstances(...)
  *       GET /v1/process-instances/{Id}                → process-instance-detail factories
@@ -21,7 +18,7 @@
  *       GET /v1/process-instances/{Id}/execution-logs → execution-log factories
  *       GET /v1/imports/{Woid}                        → the import factories, keyed by their
  *                                                       STAGING (ImportFile) run id only;
- *                                                       every LoadYieldCurves run id → 404
+ *                                                       every other id → 404
  *                                                       createImportNotFound() (as live)
  *       anything else                                 → aborted
  *   - Auth is the client-only demo session (project.md: custom); sign in through the
@@ -29,23 +26,22 @@
  * - Implementation pattern this assumes:
  *   - All of the above are fetched from the BROWSER via the API client (client
  *     components), so page.route() can intercept them.
- *   - The file details card (region named by the file name) offers an "Open import
- *     run" LINK (story 6) to
- *     /workflow-monitor?instance=<WorkflowInstanceId>&view=single&file=<File.Id>.
- *   - The selected run's steps card is a region named by the process name
- *     (LoadYieldCurves); each step tile is a listitem showing its state label and
- *     its raw name. The execution log is a region named "Execution log" containing a
- *     table whose rows show time, activity, event and message.
- *   - "Open file log entry" (a BUTTON) uses the carried `file` search param when
- *     present and navigates to /file-log?file=<File.Id> WITHOUT calling
- *     /v1/imports; without it, it looks the run id up via /v1/imports/{id}, which
- *     404s for RateLoad runs, and shows "Import not found" with a "Back to the
- *     process instance list" link.
- *   - The demo session lives in browser storage and survives page.goto in the tab.
+ *   - Clicking a row in the "Process instances" region sets BOTH `instance=<Id>` and
+ *     `view=single` in the URL (the same deep-linkable view "Open staging run" from
+ *     the File log produces): the list narrows to that one run (row
+ *     aria-selected="true") and a "Show all process instances" BUTTON appears.
+ *   - "Show all process instances" drops `view` but keeps `instance`, so the full
+ *     list returns with the run still selected; clicking that same (already
+ *     selected) row narrows the list again — `select` must not early-return.
+ *   - The selected run's steps card is a region named by the process name; the
+ *     execution log is a region named "Execution log"; the audit history is a region
+ *     named "Audit history".
+ *   - The demo session lives in browser storage and survives page.reload in the tab.
  * - If the implementation diverges from these assumptions, this spec will not pass.
  *
- * E2E spec for Epic workflow-monitor-and-api, Story 7: Workflow monitor understands
- * the two processes. playwright.config.ts's webServer block boots the FRONTEND dev
+ * E2E spec for Epic quality-check-and-clean-up, Story 4: Workflow monitor run
+ * selection and exception note in Audit history. (The exception-note ACs are
+ * Vitest-covered.) playwright.config.ts's webServer block boots the FRONTEND dev
  * server only; every backend response is mocked below.
  * These tests WILL FAIL until implemented (TDD red).
  */
@@ -53,16 +49,6 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 // Project-wide factories shared with the Vitest layer — relative imports so the
 // Playwright runtime resolves them without alias plumbing.
-import { createFileList } from '../src/mocks/data/file-list';
-import {
-  createFailedFileDetail,
-  createFileDetail,
-  createImportingFileDetail,
-  createRateLoadFailedFileDetail,
-  createStagedFileDetail,
-  createStagingFileDetail,
-  createSupersededFileDetail,
-} from '../src/mocks/data/file-detail';
 import {
   createImport,
   createImportingImport,
@@ -91,6 +77,7 @@ import {
 } from '../src/mocks/data/process-instance';
 import {
   createEmptyExecutionLogList,
+  createExecutionLog,
   createExecutionLogList,
   createExecutionLogs,
   createFaultedExecutionLogs,
@@ -100,7 +87,6 @@ import {
 } from '../src/mocks/data/execution-log';
 import {
   createImportNotFound,
-  createMessage,
   createProcessInstanceNotFound,
 } from '../src/mocks/data/message';
 
@@ -108,35 +94,19 @@ import type { Locator, Page } from '@playwright/test';
 import type {
   ExecutionLogRead,
   ExecutionLogReadList,
-  FileDetailRead,
   ImportRead,
   ProcessInstanceDetailRead,
   ProcessInstanceRead,
 } from '../src/types/api-generated';
 
 const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
+const SHOW_ALL = 'Show all process instances';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const IMPORT_NOT_FOUND = 'Import not found';
 
 /** Factory fields are optional in the generated types; fail loudly if one is missing. */
 function required<T>(value: T | undefined, field: string): T {
   if (value === undefined) throw new Error(`Mock factory is missing ${field}`);
   return value;
-}
-
-/** Every file detail the mocked service knows, by file Id. */
-function knownFileDetails(): Map<number, FileDetailRead> {
-  return new Map(
-    [
-      createFileDetail(),
-      createSupersededFileDetail(),
-      createStagingFileDetail(),
-      createStagedFileDetail(),
-      createImportingFileDetail(),
-      createFailedFileDetail(),
-      createRateLoadFailedFileDetail(),
-    ].map((detail) => [required(detail.Id, 'File.Id'), detail]),
-  );
 }
 
 /** The detail (with steps) the service returns for a process-instance row. */
@@ -186,10 +156,7 @@ function knownLogs(): Map<string, ExecutionLogReadList> {
   );
 }
 
-/**
- * Import traces by WOID — keyed ONLY by each trace's staging (ImportFile) run id,
- * so every LoadYieldCurves run id 404s, exactly like the live service.
- */
+/** Import traces by WOID — keyed ONLY by each trace's staging (ImportFile) run id. */
 function knownImports(): Map<string, ImportRead> {
   return new Map(
     [
@@ -211,8 +178,6 @@ function knownImports(): Map<string, ImportRead> {
 
 /** Intercept every data-service call and answer from the shared factories. */
 async function mockDataService(page: Page): Promise<void> {
-  const fileList = createFileList();
-  const filesById = knownFileDetails();
   const instances = createProcessInstances();
   const runs = new Map(
     instances.map((row) => [
@@ -227,21 +192,6 @@ async function mockDataService(page: Page): Promise<void> {
     (url) => url.pathname.includes('/v1/'),
     (route) => {
       const { pathname, searchParams } = new URL(route.request().url());
-
-      if (/\/v1\/files$/.test(pathname)) {
-        return route.fulfill({ status: 200, json: fileList });
-      }
-
-      const file = /\/v1\/files\/(\d+)$/.exec(pathname);
-      if (file) {
-        const detail = filesById.get(Number(file[1]));
-        return detail
-          ? route.fulfill({ status: 200, json: detail })
-          : route.fulfill({
-              status: 404,
-              json: createMessage('File not found'),
-            });
-      }
 
       if (/\/v1\/process-instances$/.test(pathname)) {
         const pageParam = searchParams.get('Page');
@@ -306,21 +256,13 @@ async function signIn(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
-/** The File log table row for a file, found by its "#" (Id) cell (no WOID column). */
-function fileRow(page: Page, detail: FileDetailRead): Locator {
-  return page.getByRole('row').filter({
-    has: page.getByRole('cell', {
-      name: String(required(detail.Id, 'Id')),
-      exact: true,
-    }),
-  });
-}
-
-/** The File log details card, named by the file's title. */
-function fileDetails(page: Page, detail: FileDetailRead): Locator {
-  return page.getByRole('region', {
-    name: required(detail.FileName, 'FileName'),
-  });
+/** True when the URL is the Workflow monitor showing only this run. */
+function isSingleRunView(url: URL, instanceId: string): boolean {
+  return (
+    url.pathname === '/workflow-monitor' &&
+    url.searchParams.get('instance') === instanceId &&
+    url.searchParams.get('view') === 'single'
+  );
 }
 
 /** The data rows of the Process instances table. */
@@ -344,26 +286,44 @@ function stepsCard(page: Page, run: ProcessInstanceDetailRead): Locator {
   });
 }
 
-/** A step tile in a steps card, matched by its exact step name ("Complete" ≠ "Completed"). */
-function stepTile(page: Page, card: Locator, name: string): Locator {
-  return card
-    .getByRole('listitem')
-    .filter({ has: page.getByText(name, { exact: true }) });
+/** Open the Workflow monitor and wait for the full, unnarrowed list. */
+async function openFullList(page: Page): Promise<void> {
+  await page.goto('/workflow-monitor');
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Workflow monitor' }),
+  ).toBeVisible();
+  await expect(processInstanceRows(page)).toHaveCount(
+    createProcessInstances().length,
+  );
 }
 
-/** Open the RateLoad run of a file from that file's details ("Open import run"). */
-async function openImportRunFromFile(
+/** The run is the only row, selected, with its steps, log and audit history below. */
+async function expectSingleRunShown(
   page: Page,
-  file: FileDetailRead,
+  run: ProcessInstanceDetailRead,
 ): Promise<void> {
-  await page.goto(`/file-log?file=${required(file.Id, 'File.Id')}`);
-  const details = fileDetails(page, file);
+  const runId = required(run.ProcessInstanceId, 'ProcessInstanceId');
+  await expect(processInstanceRows(page)).toHaveCount(1);
+  await expect(runRow(page, runId)).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('button', { name: SHOW_ALL })).toBeVisible();
+
+  const card = stepsCard(page, run);
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(runId);
+
+  const logMessage = required(createExecutionLog().Message, 'Message');
   await expect(
-    details.getByRole('heading', {
-      name: required(file.FileName, 'FileName'),
-    }),
+    page
+      .getByRole('region', { name: 'Execution log' })
+      .getByRole('row')
+      .filter({ hasText: logMessage }),
   ).toBeVisible();
-  await details.getByRole('link', { name: 'Open import run' }).click();
+
+  await expect(
+    page.getByRole('region', { name: 'Audit history' }),
+  ).toContainText(
+    required(run.LastExecutedActivityName, 'LastExecutedActivityName'),
+  );
 }
 
 /** Accessibility scan scoped to WCAG 2.1 AA; the Next.js dev overlay is excluded. */
@@ -375,121 +335,64 @@ async function expectNoA11yViolations(page: Page): Promise<void> {
   expect(violations).toEqual([]);
 }
 
-test.describe('Epic workflow-monitor-and-api, Story 7: Workflow monitor understands the two processes', () => {
+test.describe('Epic quality-check-and-clean-up, Story 4: Workflow monitor run selection', () => {
   test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
     await mockDataService(page);
     await signIn(page);
   });
 
-  // AC-3
-  test('"Open import run" on a RateLoad-failed file shows its RateLoad run ending on the failed step, without the Pending steps after it, and the Error step in the log', async ({
+  // AC-1
+  test('clicking a run narrows the list to it, shows its details and "Show all process instances", and survives a reload', async ({
     page,
   }) => {
-    const file = createRateLoadFailedFileDetail();
-    const run = createRateLoadErrorProcessInstanceDetail();
-    const runId = required(file.WorkflowInstanceId, 'WorkflowInstanceId');
-    const pendingSteps = required(run.Steps, 'Steps').filter(
-      (step) => step.State === 'Pending',
-    );
-    if (pendingSteps.length === 0) {
-      throw new Error('RateLoad error run fixture has no Pending steps');
-    }
-    const errorEntries = createRateLoadErrorExecutionLogs().filter(
-      (entry) => entry.ActivityName === 'Error',
-    );
-    if (errorEntries.length === 0) {
-      throw new Error('RateLoad error log fixture has no Error entries');
-    }
-
-    await openImportRunFromFile(page, file);
-
-    // The RateLoad run (the file's WorkflowInstanceId) opens on its own, selected.
-    await expect(page).toHaveURL(
-      (url) =>
-        url.pathname === '/workflow-monitor' &&
-        url.searchParams.get('instance') === runId &&
-        url.searchParams.get('view') === 'single',
-    );
-    await expect(processInstanceRows(page)).toHaveCount(1);
-    await expect(runRow(page, runId)).toHaveAttribute('aria-selected', 'true');
-
-    // Its steps card is the LoadYieldCurves run. Story 8: it ends on a red
-    // "Error" tile for the failed step (Validate); the Pending steps after it are hidden.
-    const card = stepsCard(page, run);
-    await expect(card).toContainText(runId);
-    await expect(stepTile(page, card, 'Validate')).toContainText(/error/i);
-    for (const step of pendingSteps) {
-      await expect(
-        stepTile(page, card, required(step.Name, 'Step.Name')),
-      ).toHaveCount(0);
-    }
-
-    // The Error step's entries are in the execution log.
-    const log = page.getByRole('region', { name: 'Execution log' });
-    const errorRows = log.getByRole('row').filter({
-      has: page.getByRole('cell', { name: 'Error', exact: true }),
-    });
-    await expect(errorRows).toHaveCount(errorEntries.length);
-    for (const entry of errorEntries) {
-      await expect(
-        errorRows.filter({
-          hasText: required(entry.EventName, 'EventName'),
-        }),
-      ).toBeVisible();
-    }
-
-    // The RateLoad-failed run state passes the real-browser accessibility scan.
-    await expectNoA11yViolations(page);
-  });
-
-  // AC-4
-  test('"Open file log entry" on a RateLoad run returns to the carried file, and shows "Import not found" when the run was picked from the list', async ({
-    page,
-  }) => {
-    const file = createRateLoadFailedFileDetail();
-    const fileId = required(file.Id, 'File.Id');
-    const run = createRateLoadErrorProcessInstanceDetail();
+    const run = createProcessInstanceDetail();
     const runId = required(run.ProcessInstanceId, 'ProcessInstanceId');
 
-    // Reached from the file: the link carries the file Id ...
-    await openImportRunFromFile(page, file);
-    await expect(page).toHaveURL(
-      (url) =>
-        url.searchParams.get('instance') === runId &&
-        url.searchParams.get('file') === String(fileId),
-    );
-    await expect(stepsCard(page, run)).toBeVisible();
-
-    // ... so "Open file log entry" goes back to that file, even though
-    // /v1/imports/{runId} 404s for this RateLoad run.
-    await page.getByRole('button', { name: 'Open file log entry' }).click();
-    await expect(page).toHaveURL(
-      (url) =>
-        url.pathname === '/file-log' &&
-        url.searchParams.get('file') === String(fileId),
-    );
-    await expect(fileRow(page, file)).toHaveAttribute('aria-selected', 'true');
-    await expect(
-      fileDetails(page, file).getByRole('heading', {
-        name: required(file.FileName, 'FileName'),
-      }),
-    ).toBeVisible();
-
-    // Picked straight from the list: no file is carried, so the lookup 404s.
-    await page.goto('/workflow-monitor');
+    await openFullList(page);
     await runRow(page, runId).click();
-    await expect(runRow(page, runId)).toHaveAttribute('aria-selected', 'true');
-    await expect(stepsCard(page, run)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Open file log entry' }).click();
-    await expect(page.getByText(IMPORT_NOT_FOUND)).toBeVisible();
-    await expect(
-      page.getByRole('link', { name: 'Back to the process instance list' }),
-    ).toBeVisible();
-    await expect(page).toHaveURL((url) => url.pathname === '/workflow-monitor');
+    // Same deep-linkable single-run view as "Open staging run" from the File log.
+    await expect(page).toHaveURL((url) => isSingleRunView(url, runId));
+    await expectSingleRunShown(page, run);
 
-    // The "Import not found" state passes the real-browser accessibility scan.
+    // The narrowed, selected state passes the real-browser accessibility scan.
     await expectNoA11yViolations(page);
+
+    // Reloading keeps the same single-run view.
+    await page.reload();
+    await expect(page).toHaveURL((url) => isSingleRunView(url, runId));
+    await expectSingleRunShown(page, run);
+  });
+
+  // AC-2
+  test('"Show all process instances" restores the full list with the run selected, and clicking it again narrows once more', async ({
+    page,
+  }) => {
+    const run = createProcessInstanceDetail();
+    const runId = required(run.ProcessInstanceId, 'ProcessInstanceId');
+
+    await openFullList(page);
+    await runRow(page, runId).click();
+    await expect(processInstanceRows(page)).toHaveCount(1);
+
+    await page.getByRole('button', { name: SHOW_ALL }).click();
+
+    // Full list back, `view` dropped, the run still selected.
+    await expect(processInstanceRows(page)).toHaveCount(
+      createProcessInstances().length,
+    );
+    await expect(page).toHaveURL(
+      (url) =>
+        url.searchParams.get('view') === null &&
+        url.searchParams.get('instance') === runId,
+    );
+    await expect(runRow(page, runId)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('button', { name: SHOW_ALL })).toHaveCount(0);
+
+    // Clicking the already-selected run narrows the list again.
+    await runRow(page, runId).click();
+    await expect(page).toHaveURL((url) => isSingleRunView(url, runId));
+    await expectSingleRunShown(page, run);
   });
 });

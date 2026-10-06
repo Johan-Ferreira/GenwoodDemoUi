@@ -23,8 +23,9 @@
  * - The by-maturity table has one body row per service tenor (never a hard-coded
  *   grid), joined to GET .../rates?ObservationDate= by tenor LABEL (not
  *   position). Columns: Tenor, Years, Months, Source column, Rate (%),
- *   Source row, Source import (WOID). Years and Rate (%) show 4 decimals; the
- *   WOID cell is a link to /file-log/imports/{Woid} showing its first 8 chars.
+ *   Source row, and a last column with no visible heading announced as
+ *   "Source import". Years and Rate (%) show 4 decimals; that last cell is a
+ *   "View Import Trace" link to /file-log/imports/{Woid}.
  * - An empty Rates array shows "No data imported" plus the hint "Choose another
  *   valuation date or import a file." with no rate rows and no error alert.
  * - A failed load shows DataState's persistent role="alert" message with Retry,
@@ -186,7 +187,7 @@ describe('Epic curve-data, Story 1: Rates by maturity', () => {
   });
 
   // AC-1
-  it('lists one row per service tenor with years, months, source column, rate (%) to 4 dp, source row and a WOID link', async () => {
+  it('lists one row per service tenor with years, months, source column, rate (%) to 4 dp, source row and an import trace link', async () => {
     // Rates deliberately in reverse order: the join must be by tenor label.
     mockService(() => createRateList([...createRates()].reverse()));
 
@@ -200,7 +201,9 @@ describe('Epic curve-data, Story 1: Rates by maturity', () => {
       /^Source column/,
       /^Rate \(%\)/,
       /^Source row/,
-      /^Source import \(WOID\)/,
+      // Headerless link column: still announced as "Source import"
+      // (epic quality-check-and-clean-up, story 3).
+      /^Source import$/,
     ]) {
       expect(
         within(table).getByRole('columnheader', { name: header }),
@@ -220,7 +223,9 @@ describe('Epic curve-data, Story 1: Rates by maturity', () => {
       within(tenYear).queryByText('3.55752926323083'),
     ).not.toBeInTheDocument();
     expect(within(tenYear).getByText('26')).toBeInTheDocument();
-    const woidLink = within(tenYear).getByRole('link', { name: /0d41a444/ });
+    const woidLink = within(tenYear).getByRole('link', {
+      name: 'View Import Trace',
+    });
     expect(woidLink).toHaveAttribute(
       'href',
       `/file-log/imports/${CANONICAL_RATE_WOID}`,

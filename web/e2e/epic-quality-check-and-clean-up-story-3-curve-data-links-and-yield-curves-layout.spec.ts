@@ -20,20 +20,19 @@
  *              canonical date, createEmptyRates() on any other date
  *       GET /curve-data/v1/imports/{Woid}              → createImport() for the canonical WOID
  *   - Auth is the client-only demo session (project.md: custom) — sign in through
- *     the sign-in screen as in epic-app-shell-and-sign-in story 1; no credentials.
+ *     the sign-in screen; no credentials.
  * - Implementation pattern this assumes:
  *   - Curves, availability, tenors and rates are fetched from the BROWSER via the
  *     API client (client components), so page.route() can intercept them.
  *   - The page selects a curve on load and defaults the valuation date to the
  *     latest available date (CANONICAL_OBSERVATION_DATE), so rates load without input.
- *   - Each rate row's source-import cell is the row's only LINK ("View Import
- *     Trace" — epic quality-check-and-clean-up story 3), and it navigates to the
- *     import trace page /file-log/imports/{Woid} (importTracePath).
- *   - The demo session lives in browser storage and survives in-app navigation.
+ *   - Each By maturity row's source cell is a link whose accessible name is exactly
+ *     "View Import Trace" (BR6), navigating to /file-log/imports/{Woid}
+ *     (importTracePath) — the same destination as before.
  * - If the implementation diverges from these assumptions, this spec will not pass.
  *
- * E2E spec for Epic curve-data, Story 1: Rates by maturity for a curve and
- * valuation date.
+ * E2E spec for Epic quality-check-and-clean-up, Story 3: Curve data import-trace
+ * links and Yield curves date filter spacing.
  * playwright.config.ts's webServer block boots the FRONTEND dev server only; every
  * backend response is mocked below.
  * These tests WILL FAIL until implemented (TDD red).
@@ -59,6 +58,7 @@ import type { Page, Route } from '@playwright/test';
 const SIGN_IN_BUTTON = 'Sign in with Genwood SSO';
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 const CURVES_PREFIX = '/curve-data/v1/curves/';
+const LINK_TEXT = 'View Import Trace';
 
 /** Factory fields are optional in the generated types; fail loudly if one is missing. */
 function required<T>(value: T | undefined, field: string): T {
@@ -160,14 +160,14 @@ async function scan(page: Page) {
     .analyze();
 }
 
-test.describe('Epic curve-data, Story 1: Rates by maturity', () => {
+test.describe('Epic quality-check-and-clean-up, Story 3: Curve data import-trace links', () => {
   test.beforeEach(async ({ context, page }) => {
     await context.clearCookies();
     await mockDataService(page);
   });
 
-  // AC-5
-  test("choosing a rate's source import opens the trace of the import that produced it", async ({
+  // AC-3
+  test('clicking "View Import Trace" on a row opens the import trace for that row\'s file', async ({
     page,
   }) => {
     await signIn(page);
@@ -185,13 +185,14 @@ test.describe('Epic curve-data, Story 1: Rates by maturity', () => {
     // The 10Y rate row (canonical rate) has loaded for the latest valuation date.
     const row = main.getByRole('row', { name: /\b10Y\b/ });
     await expect(row).toBeVisible();
-    await expect(row.getByText('3.5575', { exact: true })).toBeVisible();
+    const traceLink = row.getByRole('link', { name: LINK_TEXT, exact: true });
+    await expect(traceLink).toBeVisible();
 
-    // Accessibility of the loaded by-maturity table state.
+    // Accessibility of the loaded table with the header-less source column.
     const { violations } = await scan(page);
     expect(violations).toEqual([]);
 
-    await row.getByRole('link').click();
+    await traceLink.click();
 
     await expect(page).toHaveURL(
       new RegExp(`/file-log/imports/${CANONICAL_RATE_WOID}$`),

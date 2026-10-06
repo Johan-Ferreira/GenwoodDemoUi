@@ -329,11 +329,14 @@ function isSingleRunView(url: URL, instanceId: string): boolean {
   );
 }
 
-/** The File log table row for a file, found by its unique shortened WOID. */
+/** The File log table row for a file, found by its "#" (Id) cell (no WOID column). */
 function fileRow(page: Page, detail: FileDetailRead): Locator {
-  return page
-    .getByRole('row')
-    .filter({ hasText: required(detail.Woid, 'Woid').slice(0, 8) });
+  return page.getByRole('row').filter({
+    has: page.getByRole('cell', {
+      name: String(required(detail.Id, 'Id')),
+      exact: true,
+    }),
+  });
 }
 
 /** The File log details card, named by the file's title. */

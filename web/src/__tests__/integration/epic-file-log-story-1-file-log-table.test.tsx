@@ -10,10 +10,10 @@
  * - The File log page loads every file through `get` (GET /v1/files, typed
  *   endpoint in web/src/lib/api/files.ts) inside DataState, then renders a
  *   `<table>` with column headers #, File, Curve family, Received,
- *   Records inserted, WOID, Status — rows newest first by ReceivedAt (the
+ *   Records inserted, Status — rows newest first by ReceivedAt (the
  *   service's order is not trusted; the app sorts in the browser). Size is not
- *   shown (epic workflow-monitor-and-api story 9).
- * - WOID shows only its first 8 characters.
+ *   shown (epic workflow-monitor-and-api story 9) and WOID is not shown (epic
+ *   quality-check-and-clean-up story 1).
  * - Missing/null RecordsInserted render the neutral placeholder
  *   "—" (em dash) and never break the row.
  * - Status is a StatusChip (text label + `data-tone`): Imported=success,
@@ -92,7 +92,7 @@ describe('Epic file-log, Story 1: File log table', () => {
   });
 
   // AC-1
-  it('lists files newest first with the brief columns, short WOID and placeholders for missing values', async () => {
+  it('lists files newest first with the brief columns and placeholders for missing values', async () => {
     // Service order deliberately oldest-first: the page must show newest first.
     mockGet.mockResolvedValue(
       createFileList({ Files: [...createFiles()].reverse() }),
@@ -107,7 +107,6 @@ describe('Epic file-log, Story 1: File log table', () => {
       /^Curve family/,
       /^Received/,
       /^Records inserted/,
-      /^WOID/,
       /^Status/,
     ]) {
       expect(
@@ -131,7 +130,7 @@ describe('Epic file-log, Story 1: File log table', () => {
       '95',
     ]);
 
-    // Canonical Imported file 101: 26 inserted, WOID cut to 8.
+    // Canonical Imported file 101: 26 inserted.
     const imported = rowForFile(101);
     expect(
       within(imported).getByText('GLC Nominal daily data current month.xlsx'),
@@ -141,10 +140,6 @@ describe('Epic file-log, Story 1: File log table', () => {
       within(imported).getByText('2026-09-30 18:02:11'),
     ).toBeInTheDocument();
     expect(within(imported).getByText('26')).toBeInTheDocument();
-    expect(within(imported).getByText('0d41a444')).toBeInTheDocument();
-    expect(
-      within(imported).queryByText('0d41a44498814111bcce69d60f7a823a'),
-    ).not.toBeInTheDocument();
 
     // Staging file 104: records inserted absent -> a placeholder.
     expect(within(rowForFile(104)).getAllByText('—')).toHaveLength(1);

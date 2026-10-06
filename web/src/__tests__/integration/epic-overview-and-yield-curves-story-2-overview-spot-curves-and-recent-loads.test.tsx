@@ -281,7 +281,6 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
       /^Curve family/,
       /^Received/,
       /^Records inserted/,
-      /^WOID/,
       /^Status/,
     ]) {
       expect(

@@ -10,11 +10,13 @@
  * Production contracts these tests define (implement to them):
  * - The shared FileTable (used by the File log and Overview "Recent loads") has
  *   exactly these column headers, in order: "#", "File", "Curve family",
- *   "Received", "Records inserted", "WOID", "Status". There is no "Size" column
+ *   "Received", "Records inserted", "Status" (WOID removed by epic
+ *   quality-check-and-clean-up story 1). There is no "Size" column
  *   (no size value such as "342.7 KB" in any row) and the first column is
  *   headed "#" — not "ID". It still holds the file's Id and still sorts.
  * - The file details card (FileDetailCard.tsx `detailFields()`) shows these
- *   rows, in order, for an Imported file: WOID, Workflow instance, Stage,
+ *   rows, in order, for an Imported file: Staging instance ID, Rate load
+ *   instance ID (renamed by epic quality-check-and-clean-up story 1), Stage,
  *   Received, Inbox location, Record count, Records inserted, Created by.
  *   There are no "Size", "Backup file" or "SHA-256" rows (their values are
  *   not shown either). "Download original" stays — it still uses the backup
@@ -67,7 +69,6 @@ const TABLE_COLUMNS = [
   'Curve family',
   'Received',
   'Records inserted',
-  'WOID',
   'Status',
 ];
 
@@ -186,8 +187,8 @@ describe('Epic workflow-monitor-and-api, Story 9: File log hides technical field
       .getAllByRole('term')
       .map((term) => (term.textContent ?? '').trim());
     expect(labels).toEqual([
-      'WOID',
-      'Workflow instance',
+      'Staging instance ID',
+      'Rate load instance ID',
       'Stage',
       'Received',
       'Inbox location',

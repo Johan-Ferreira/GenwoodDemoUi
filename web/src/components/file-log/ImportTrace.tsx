@@ -116,7 +116,6 @@ function fileFields(file: FileDetailRead | undefined): Field[] {
     { label: 'Status', value: statusChip(file?.Status, fileStatusTone) },
     { label: 'Stage', value: text(file?.Stage) },
     ...failedStep,
-    { label: 'WOID', value: text(file?.Woid), mono: true },
   ];
 }
 

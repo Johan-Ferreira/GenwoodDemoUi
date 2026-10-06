@@ -121,11 +121,14 @@ function recentLoads(page: Page): Locator {
   return page.getByRole('region', { name: RECENT_LOADS });
 }
 
-/** A file-table row, found by its unique shortened WOID. */
+/** A file-table row, found by its "#" (Id) cell (the WOID column is gone). */
 function rowFor(scope: Locator, file: FileRead): Locator {
-  return scope
-    .getByRole('row')
-    .filter({ hasText: present(file.Woid, 'Woid').slice(0, 8) });
+  return scope.getByRole('row').filter({
+    has: scope.page().getByRole('cell', {
+      name: String(present(file.Id, 'Id')),
+      exact: true,
+    }),
+  });
 }
 
 /** Accessibility scan scoped to WCAG 2.1 AA; the Next.js dev overlay is excluded. */
