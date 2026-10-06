@@ -37,3 +37,21 @@ export function isoDateToUtc(value: string): Date | null {
 export function utcToIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
+
+/**
+ * The local-midnight `Date` of a YYYY-MM-DD date, or `null` when `value` is
+ * not a real YYYY-MM-DD date. For calendars that work in the user's own days.
+ */
+export function isoDateToLocal(value: string): Date | null {
+  if (!isIsoDate(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** The YYYY-MM-DD calendar day of `date` in the local time zone. */
+export function localToIsoDate(date: Date): string {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
