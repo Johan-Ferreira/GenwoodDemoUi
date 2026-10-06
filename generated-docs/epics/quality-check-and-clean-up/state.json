@@ -12,11 +12,43 @@
       "workflow-monitor-and-api"
     ],
     "introducesSharedSurface": false,
-    "unverifiedAssumptions": [],
+    "unverifiedAssumptions": [
+      "Verify the exception note appears on a stalled staging run: the app assumes a failed staging (ImportFile) run is left Running, Suspended or similar, or its file is marked Failed at the staging stage. If the service marks such runs plain Finished and the file is not flagged Failed, the note will not show.",
+      "Verify the note text matches the File log: the app looks up the run file through the import trace and assumes it carries the same exception note as the file detail panel. If the import trace leaves the note out, Audit history will never show it."
+    ],
     "manualTestResults": []
   },
-  "phase": "PLAN",
-  "stories": {},
+  "phase": "BUILD",
+  "stories": {
+    "1": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "2": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "3": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "4": {
+      "status": "pending",
+      "commit": null,
+      "e2eStatus": "deferred",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
   "halt": null,
-  "lastUpdated": "2026-10-06T06:35:31.914Z"
+  "lastUpdated": "2026-10-06T06:49:38.713Z"
 }
