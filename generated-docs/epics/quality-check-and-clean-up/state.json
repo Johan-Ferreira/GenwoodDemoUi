@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "quality-check-and-clean-up",
+    "name": "Quality check and clean-up",
+    "createdAt": "2026-10-06T06:35:31.914Z",
+    "dependsOn": [
+      "app-shell-and-sign-in",
+      "file-log",
+      "curve-data",
+      "overview-and-yield-curves",
+      "workflow-monitor-and-api"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [
+      "Verify the exception note appears on a stalled staging run: the app assumes a failed staging (ImportFile) run is left Running, Suspended or similar, or its file is marked Failed at the staging stage. If the service marks such runs plain Finished and the file is not flagged Failed, the note will not show.",
+      "Verify the note text matches the File log: the app looks up the run file through the import trace and assumes it carries the same exception note as the file detail panel. If the import trace leaves the note out, Audit history will never show it.",
+      "On the Curve data By date view, the From and To calendars only allow dates inside the curve's range of dates with data (you can still type any date). When a field is empty its calendar opens on the curve's latest date with data, not today's month. Confirm that is what you want.",
+      "While the Import trace is loading, or when the import can't be found, the subtitle reads 'The file log entry, workflow instance and published data.' with no file name. Confirm that is acceptable."
+    ],
+    "manualTestResults": []
+  },
+  "phase": "COMPLETE-ON-BRANCH",
+  "stories": {
+    "1": {
+      "status": "complete",
+      "commit": null,
+      "e2eStatus": "passed",
+      "startedAt": "2026-10-06T06:52:57.248Z",
+      "completedAt": "2026-10-06T06:55:21.222Z"
+    },
+    "2": {
+      "status": "complete",
+      "commit": null,
+      "e2eStatus": "passed",
+      "startedAt": "2026-10-06T06:55:44.460Z",
+      "completedAt": "2026-10-06T06:58:19.337Z"
+    },
+    "3": {
+      "status": "complete",
+      "commit": null,
+      "e2eStatus": "passed",
+      "startedAt": "2026-10-06T06:58:41.806Z",
+      "completedAt": "2026-10-06T07:01:12.309Z"
+    },
+    "4": {
+      "status": "complete",
+      "commit": null,
+      "e2eStatus": "passed",
+      "startedAt": "2026-10-06T07:01:32.331Z",
+      "completedAt": "2026-10-06T07:04:02.069Z"
+    }
+  },
+  "halt": null,
+  "lastUpdated": "2026-10-06T07:48:48.327Z"
+}

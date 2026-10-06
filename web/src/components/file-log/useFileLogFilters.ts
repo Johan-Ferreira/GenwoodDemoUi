@@ -79,6 +79,11 @@ export function useFileLogFilters() {
       setReceivedTo((field) => ({ ...field, draft })),
     commitReceivedFrom: () => setReceivedFrom(commitDate),
     commitReceivedTo: () => setReceivedTo(commitDate),
+    /** Set and apply a date picked from the calendar (same as a typed date). */
+    pickReceivedFrom: (date: string) =>
+      setReceivedFrom(commitDate({ draft: date, applied: '', invalid: false })),
+    pickReceivedTo: (date: string) =>
+      setReceivedTo(commitDate({ draft: date, applied: '', invalid: false })),
     clearAll: () => {
       setStatus(ALL_OPTION);
       setCurveFamily(ALL_OPTION);

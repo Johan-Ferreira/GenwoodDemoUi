@@ -30,7 +30,8 @@
  *   - The details card is a landmark region named by its title (e.g. a `<section>`
  *     with `aria-labelledby` pointing at the file-name heading).
  *   - The key/value grid is a description list (`<dl>` with `<dt>`/`<dd>`) in the
- *     story's order: WOID, Workflow instance, Stage (then Failed step for Failed
+ *     story's order: Staging instance ID, Rate load instance ID (renamed from
+ *     WOID / Workflow instance), Stage (then Failed step for Failed
  *     files), Received, Inbox location, Record count, Records inserted,
  *     Created by. (Size, Backup file and SHA-256 are not shown — epic
  *     workflow-monitor-and-api story 9.)
@@ -67,9 +68,10 @@ const NOT_FOUND = 'File not found';
 const MISSING_ID = 999999;
 
 // Imported files: no "Failed step" row (it follows "Stage" only for Failed files).
+// "WOID" / "Workflow instance" were renamed by epic quality-check-and-clean-up story 1.
 const GRID_LABELS = [
-  'WOID',
-  'Workflow instance',
+  'Staging instance ID',
+  'Rate load instance ID',
   'Stage',
   'Received',
   'Inbox location',
@@ -158,11 +160,14 @@ async function signIn(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
-/** The table row for a file, found by its unique shortened WOID. */
+/** The table row for a file, found by its "#" (Id) cell (the WOID column is gone). */
 function rowFor(page: Page, detail: FileDetailRead): Locator {
-  return page
-    .getByRole('row')
-    .filter({ hasText: present(detail.Woid, 'Woid').slice(0, 8) });
+  return page.getByRole('row').filter({
+    has: page.getByRole('cell', {
+      name: String(present(detail.Id, 'Id')),
+      exact: true,
+    }),
+  });
 }
 
 /** The details card, named by the file's title. */

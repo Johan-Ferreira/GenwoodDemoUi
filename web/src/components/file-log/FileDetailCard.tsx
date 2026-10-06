@@ -67,8 +67,8 @@ function detailFields(detail: FileDetailRead): Array<[string, string]> {
       ? [['Failed step', text(detail.FailedStep)]]
       : [];
   return [
-    ['WOID', text(detail.Woid)],
-    ['Workflow instance', text(detail.WorkflowInstanceId)],
+    ['Staging instance ID', text(detail.Woid)],
+    ['Rate load instance ID', text(detail.WorkflowInstanceId)],
     ['Stage', text(detail.Stage)],
     ...failedStep,
     ['Received', text(detail.ReceivedAt)],

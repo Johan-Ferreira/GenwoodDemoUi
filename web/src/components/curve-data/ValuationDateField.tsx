@@ -36,6 +36,13 @@ interface ValuationDateFieldProps {
   calendarLabel?: string;
   /** Show the "Dates with data: earliest …, latest …" line (default true). */
   showRange?: boolean;
+  /**
+   * Keep the range note to the input's width instead of letting it widen the
+   * field, so a field placed beside this one sits close to it: the note runs
+   * over three lines ("Dates with data:" / "earliest …," / "latest ….") with
+   * no date split across lines (default false).
+   */
+  compactRange?: boolean;
   /** The text as typed. */
   draft: string;
   /** The last valid date applied; the calendar falls back to it. */
@@ -49,12 +56,32 @@ interface ValuationDateFieldProps {
   onPick: (date: string) => void;
 }
 
-function rangeText(availability: AvailabilityRead): string {
+/**
+ * "Dates with data: earliest …, latest …." Each date never splits across
+ * lines; `stacked` puts "Dates with data:", "earliest …," and "latest …." on
+ * their own lines.
+ */
+function RangeText({
+  availability,
+  stacked,
+}: {
+  availability: AvailabilityRead;
+  stacked: boolean;
+}) {
   const { MinDate, MaxDate } = availability;
-  if (MinDate && MaxDate) {
-    return `Dates with data: earliest ${MinDate}, latest ${MaxDate}.`;
-  }
-  return 'No dates with data yet.';
+  if (!MinDate || !MaxDate) return <>No dates with data yet.</>;
+  const line = stacked ? 'block' : undefined;
+  return (
+    <>
+      <span className={line}>Dates with data:</span>{' '}
+      <span className={line}>
+        earliest <span className="whitespace-nowrap">{MinDate}</span>,
+      </span>{' '}
+      <span className={line}>
+        latest <span className="whitespace-nowrap">{MaxDate}</span>.
+      </span>
+    </>
+  );
 }
 
 const DAY_LABEL = new Intl.DateTimeFormat('en-GB', {
@@ -81,6 +108,7 @@ export function ValuationDateField({
   calendarButtonLabel = OPEN_VALUATION_CALENDAR,
   calendarLabel = VALUATION_CALENDAR,
   showRange = true,
+  compactRange = false,
   draft,
   applied,
   invalid,
@@ -181,8 +209,15 @@ export function ValuationDateField({
         </Popover>
       </div>
       {showRange && (
-        <p id={rangeId} className="text-xs text-muted-foreground">
-          {rangeText(availability)}
+        <p
+          id={rangeId}
+          className={
+            compactRange
+              ? 'w-0 min-w-full text-xs text-muted-foreground'
+              : 'text-xs text-muted-foreground'
+          }
+        >
+          <RangeText availability={availability} stacked={compactRange} />
         </p>
       )}
       {invalid && (

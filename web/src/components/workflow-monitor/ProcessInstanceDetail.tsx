@@ -105,7 +105,7 @@ function RunDetailView({
   return (
     <div className="flex flex-col gap-4">
       <RunSteps instance={run.instance} fileName={run.trace?.File?.FileName} />
-      <AuditHistory instance={run.instance} />
+      <AuditHistory instance={run.instance} file={run.trace?.File} />
       <ExecutionLogCard logs={run.logs} fileId={fileId} />
       <OpenFileLogEntry
         instanceId={run.instance.ProcessInstanceId}

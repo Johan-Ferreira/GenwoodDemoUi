@@ -46,30 +46,34 @@ function YieldCurvesPanel({
 
   return (
     <>
-      <ValuationDateField
-        availability={availability}
-        draft={valuation.draft}
-        applied={valuation.applied}
-        invalid={valuation.invalid}
-        onType={valuation.type}
-        onCommit={valuation.commit}
-        onPick={valuation.pick}
-      />
-      {mode === 'dates' && (
+      {/* The date fields stay together on one row, close beside each other. */}
+      <div className="flex items-start gap-3">
         <ValuationDateField
           availability={availability}
-          label="Compare with"
-          calendarButtonLabel="Choose comparison date"
-          calendarLabel="Comparison date calendar"
-          showRange={false}
-          draft={compare.draft}
-          applied={compare.applied}
-          invalid={compare.invalid}
-          onType={compare.type}
-          onCommit={compare.commit}
-          onPick={compare.pick}
+          compactRange={mode === 'dates'}
+          draft={valuation.draft}
+          applied={valuation.applied}
+          invalid={valuation.invalid}
+          onType={valuation.type}
+          onCommit={valuation.commit}
+          onPick={valuation.pick}
         />
-      )}
+        {mode === 'dates' && (
+          <ValuationDateField
+            availability={availability}
+            label="Compare with"
+            calendarButtonLabel="Choose comparison date"
+            calendarLabel="Comparison date calendar"
+            showRange={false}
+            draft={compare.draft}
+            applied={compare.applied}
+            invalid={compare.invalid}
+            onType={compare.type}
+            onCommit={compare.commit}
+            onPick={compare.pick}
+          />
+        )}
+      </div>
       <div className="ml-auto self-start sm:mt-6">
         <ChartModeToggle value={mode} onChange={onModeChange} />
       </div>

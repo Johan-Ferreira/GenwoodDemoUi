@@ -43,8 +43,10 @@ function parseFileId(raw: string | null): number | null {
 
 /**
  * The run selected in the Workflow monitor, kept in the URL (`?instance=<Id>`)
- * so the selection is linkable. `select` updates the URL without scrolling,
- * and does nothing when the run is already selected. `singleView` is true when
+ * so the selection is linkable. `select` selects the run and narrows the list
+ * to it (`view=single`, same URL as "Open workflow" from the File log) without
+ * scrolling — also when the run is already selected but the list shows all
+ * runs; it does nothing only when that run is already narrowed. `singleView` is true when
  * the URL asks for only the selected run (`view=single`); `showAll` drops that
  * and keeps the selection (and any carried file). `fromFileId` is the file the
  * run was opened from (`file=<Id>`), or null.
@@ -61,15 +63,17 @@ export function useSelectedInstance() {
 
   const select = useCallback(
     (id: string) => {
-      // Re-selecting the open run would only add a duplicate history entry.
-      if (id.trim() === selectedId) return;
+      const trimmed = id.trim();
+      // The open run, already narrowed: re-pushing would only duplicate history.
+      if (trimmed === selectedId && singleView) return;
       const params = new URLSearchParams(searchParams.toString());
-      params.set(INSTANCE_QUERY_PARAM, id);
-      // The carried file belongs to the run it was opened with, not this one.
-      params.delete(FROM_FILE_QUERY_PARAM);
+      params.set(INSTANCE_QUERY_PARAM, trimmed);
+      params.set(VIEW_QUERY_PARAM, SINGLE_VIEW);
+      // The carried file belongs to the run it was opened with, not another one.
+      if (trimmed !== selectedId) params.delete(FROM_FILE_QUERY_PARAM);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [pathname, router, searchParams, selectedId],
+    [pathname, router, searchParams, selectedId, singleView],
   );
 
   const showAll = useCallback(() => {

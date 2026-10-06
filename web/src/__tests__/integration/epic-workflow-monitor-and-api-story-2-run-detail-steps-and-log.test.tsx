@@ -401,7 +401,10 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('does not navigate again when the already-selected run is chosen, but does for another run', async () => {
+  // Updated by epic quality-check-and-clean-up, Story 4 (R8, BR5): choosing a run
+  // narrows the list to it (`view=single`), and choosing the already-selected run
+  // from the full list (after "Show all process instances") narrows it again.
+  it('narrows the list to the chosen run, including the already-selected run when the full list is shown', async () => {
     const user = userEvent.setup();
     renderSelectedRun({
       detail: createProcessInstanceDetail(),
@@ -414,11 +417,14 @@ describe('Epic workflow-monitor-and-api, Story 2: run detail', () => {
     expect(selectedRow).toHaveAttribute('aria-selected', 'true');
 
     await user.click(selectedRow);
-    expect(mockPush).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith(
+      '/workflow-monitor?instance=0d41a44498814111bcce69d60f7a823a&view=single',
+      { scroll: false },
+    );
 
     await user.click(screen.getByRole('row', { name: /^3c9d5e7f1a2b…/ }));
     expect(mockPush).toHaveBeenCalledWith(
-      '/workflow-monitor?instance=3c9d5e7f1a2b4c6d8e0f1a2b3c4d5e6f',
+      '/workflow-monitor?instance=3c9d5e7f1a2b4c6d8e0f1a2b3c4d5e6f&view=single',
       { scroll: false },
     );
   });
