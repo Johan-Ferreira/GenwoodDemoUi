@@ -36,6 +36,11 @@ interface ValuationDateFieldProps {
   calendarLabel?: string;
   /** Show the "Dates with data: earliest …, latest …" line (default true). */
   showRange?: boolean;
+  /**
+   * Wrap the range line to the input's width instead of letting it widen the
+   * field, so a field placed beside this one sits close to it (default false).
+   */
+  compactRange?: boolean;
   /** The text as typed. */
   draft: string;
   /** The last valid date applied; the calendar falls back to it. */
@@ -81,6 +86,7 @@ export function ValuationDateField({
   calendarButtonLabel = OPEN_VALUATION_CALENDAR,
   calendarLabel = VALUATION_CALENDAR,
   showRange = true,
+  compactRange = false,
   draft,
   applied,
   invalid,
@@ -181,7 +187,14 @@ export function ValuationDateField({
         </Popover>
       </div>
       {showRange && (
-        <p id={rangeId} className="text-xs text-muted-foreground">
+        <p
+          id={rangeId}
+          className={
+            compactRange
+              ? 'w-0 min-w-full text-xs text-muted-foreground'
+              : 'text-xs text-muted-foreground'
+          }
+        >
           {rangeText(availability)}
         </p>
       )}

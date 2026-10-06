@@ -20,7 +20,7 @@ import {
   joinRatesToTenors,
   type MaturityRow,
 } from '@/lib/curves/curve-format';
-import { importTracePath, NO_VALUE, shortWoid } from '@/lib/files/file-format';
+import { importTracePath, NO_VALUE } from '@/lib/files/file-format';
 import type { TenorRead } from '@/types/api-generated';
 
 export const NO_DATA_IMPORTED = 'No data imported';
@@ -31,14 +31,22 @@ export const HEAD_CLASS =
 export const CELL_CLASS = 'px-3 py-2 font-mono text-xs';
 const MUTED_CELL_CLASS = `${CELL_CLASS} text-muted-foreground`;
 
-const COLUMNS: ReadonlyArray<{ label: string; numeric?: boolean }> = [
+/** Fixed text of each row's link to its source import (BR6). */
+export const VIEW_IMPORT_TRACE = 'View Import Trace';
+
+const COLUMNS: ReadonlyArray<{
+  label: string;
+  numeric?: boolean;
+  /** Announced to screen readers only; no visible heading text. */
+  hidden?: boolean;
+}> = [
   { label: 'Tenor' },
   { label: 'Years', numeric: true },
   { label: 'Months', numeric: true },
   { label: 'Source column' },
   { label: 'Rate (%)', numeric: true },
   { label: 'Source row', numeric: true },
-  { label: 'Source import (WOID)' },
+  { label: 'Source import', hidden: true },
 ];
 
 function MaturityTableRow({ tenor, rate }: MaturityRow) {
@@ -64,10 +72,9 @@ function MaturityTableRow({ tenor, rate }: MaturityRow) {
         {rate?.Woid ? (
           <Link
             href={importTracePath(rate.Woid)}
-            title={rate.Woid}
-            className="focus-ring rounded-sm text-primary underline underline-offset-2"
+            className="focus-ring rounded-sm font-sans text-primary underline underline-offset-2"
           >
-            {shortWoid(rate.Woid)}
+            {VIEW_IMPORT_TRACE}
           </Link>
         ) : (
           NO_VALUE
@@ -91,7 +98,11 @@ function MaturityTable({ rows }: { rows: readonly MaturityRow[] }) {
                   column.numeric ? `${HEAD_CLASS} text-right` : HEAD_CLASS
                 }
               >
-                {column.label}
+                {column.hidden ? (
+                  <span className="sr-only">{column.label}</span>
+                ) : (
+                  column.label
+                )}
               </TableHead>
             ))}
           </TableRow>
