@@ -2,8 +2,9 @@
  * Project-wide mock factory for the paginated FileList (`FileReadList`) returned
  * by `GET /v1/files`.
  *
- * Defaults to the mixed collection from `./file` (every status, every curve
- * family, IsCurrent true/false) on page 1. `TotalItems` defaults to the number of
+ * Defaults to the mixed collection from `./file` (every status Staging / Staged /
+ * Importing / Imported / Failed, both stages, every curve family, all current)
+ * on page 1. `TotalItems` defaults to the number of
  * files supplied, so override it explicitly when testing multi-page results.
  *
  * Import discipline: `import type` only, sibling factories by relative path.

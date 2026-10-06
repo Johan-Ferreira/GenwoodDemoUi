@@ -13,7 +13,6 @@ import {
 import {
   fileStatusTone,
   formatCount,
-  formatFileSize,
   shortWoid,
 } from '@/lib/files/file-format';
 import type { FileSort, FileSortKey } from '@/lib/files/file-sort';
@@ -22,7 +21,7 @@ import type { FileRow } from '@/types/files';
 const HEAD_CLASS =
   'h-9 px-2 text-overline font-semibold uppercase tracking-wide text-muted-foreground';
 const CELL_CLASS = 'px-2 py-2.5';
-/** Monospace values (12px) keep the eight columns within a desktop-width table. */
+/** Monospace values (12px) keep the seven columns within a desktop-width table. */
 const MONO_CELL_CLASS = `${CELL_CLASS} font-mono text-xs`;
 
 const COLUMNS: ReadonlyArray<{
@@ -30,12 +29,11 @@ const COLUMNS: ReadonlyArray<{
   label: string;
   className?: string;
 }> = [
-  { key: 'id', label: 'ID', className: 'w-14' },
+  { key: 'id', label: '#', className: 'w-14' },
   // File takes whatever width the other columns leave (see its cell).
   { key: 'fileName', label: 'File', className: 'w-full' },
   { key: 'curveFamily', label: 'Curve family' },
   { key: 'receivedAt', label: 'Received' },
-  { key: 'sizeBytes', label: 'Size', className: 'text-right' },
   {
     key: 'recordsInserted',
     label: 'Records inserted',
@@ -61,8 +59,8 @@ const SELECTABLE_ROW_CLASS =
   'cursor-pointer focus-ring aria-selected:bg-selected aria-selected:shadow-[inset_2px_0_0_var(--selected-foreground)] aria-selected:hover:bg-selected';
 
 /**
- * The file-log columns (ID, File, Curve family, Received, Size, Records
- * inserted, WOID, Status) for the given rows, in the order supplied.
+ * The file-log columns (#, File, Curve family, Received, Records inserted,
+ * WOID, Status) for the given rows, in the order supplied.
  */
 export function FileTable({
   rows,
@@ -127,9 +125,6 @@ export function FileTable({
             </TableCell>
             <TableCell className={CELL_CLASS}>{row.curveFamily}</TableCell>
             <TableCell className={MONO_CELL_CLASS}>{row.receivedAt}</TableCell>
-            <TableCell className={`${MONO_CELL_CLASS} text-right`}>
-              {formatFileSize(row.sizeBytes)}
-            </TableCell>
             <TableCell className={`${MONO_CELL_CLASS} text-right`}>
               {formatCount(row.recordsInserted)}
             </TableCell>

@@ -266,7 +266,7 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
 
   // AC-4
   it('lists the five newest files newest first with the File log columns and labelled status badges, or says none have been received', async () => {
-    // Six files, oldest first: the card must keep only the five newest, newest first.
+    // Nine files, oldest first: the card must keep only the five newest, newest first.
     mockGet.mockResolvedValue(
       createOverview({ RecentFiles: [...createFiles()].reverse() }),
     );
@@ -276,11 +276,10 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
     const recent = await findRecentLoadsCard();
     const table = within(recent).getByRole('table');
     for (const header of [
-      /^ID/,
+      /^#/,
       /^File/,
       /^Curve family/,
       /^Received/,
-      /^Size/,
       /^Records inserted/,
       /^WOID/,
       /^Status/,
@@ -290,16 +289,16 @@ describe('Epic overview-and-yield-curves, Story 2: spot curves chart and recent 
       ).toBeInTheDocument();
     }
 
-    // Newest first by ReceivedAt; file 95 (2026-09-28) is the sixth and dropped.
+    // Newest first by ReceivedAt; files 101 and older are dropped.
     const leadingIds = bodyRows(table).map((row) =>
       within(row).getAllByRole('cell')[0].textContent?.trim(),
     );
-    expect(leadingIds).toEqual(['103', '102', '101', '98', '97']);
+    expect(leadingIds).toEqual(['104', '105', '103', '106', '102']);
 
     const statusByFile: Array<[number, string, string]> = [
-      [103, 'Processing', 'info'],
+      [103, 'Importing', 'info'],
       [102, 'Failed', 'danger'],
-      [101, 'Imported', 'success'],
+      [105, 'Staged', 'neutral'],
     ];
     for (const [id, label, tone] of statusByFile) {
       const row = within(table).getByRole('row', {

@@ -27,6 +27,10 @@ and never re-raises a question answered here.
   The list of available dates grows with every import, so it must not be a dropdown. The field stays typeable (YYYY-MM-DD) and opens a calendar; dates with data are marked, and the earliest and latest dates still bound the picker.
 - **Overview spot curves chart — includes an OIS spot curve as a fourth series** *(overview-and-yield-curves, 2026-10-05)*
   The "Spot curves on latest valuation date" chart draws Nominal, Real, Inflation and OIS spot (series "OIS spot", fourth chart colour), instead of only the three the design shows. The subtitle reads "Nominal, real, implied inflation and OIS, long end", and a missing OIS curve is reported as "No data for OIS." like the other families.
+- **API screen — lists only the four endpoints the design shows, with a live example response** *(workflow-monitor-and-api, 2026-10-05)*
+  The Endpoints table lists only curves, tenors, rates and import trace, using the live /v1 paths (not every read-only operation). The example response comes from a live call for the chosen curve and valuation date.
+- **Workflow monitor — Execution log subtitle is plain wording** *(workflow-monitor-and-api, 2026-10-05)*
+  The subtitle reads e.g. "Each step's events, oldest first" instead of the design's internal name "From ProcessExecutionLogsView".
 
 ---
 

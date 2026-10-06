@@ -32,6 +32,18 @@ const collator = new Intl.Collator('en', {
   sensitivity: 'base',
 });
 
+/** Character-by-character text order, for identifiers such as hex IDs. */
+const plainCollator = new Intl.Collator('en', { sensitivity: 'base' });
+
+export interface SortOptions {
+  /**
+   * Compare digit runs inside text as numbers ("file2" before "file10").
+   * Default true; pass false for identifiers (hex IDs) that must sort
+   * character by character.
+   */
+  numericText?: boolean;
+}
+
 /**
  * Compares two sort values in `direction`. Missing values (`null` /
  * `undefined` / NaN) always sort after present ones, in both directions.
@@ -40,6 +52,7 @@ export function compareSortValues(
   a: SortValue,
   b: SortValue,
   direction: SortDirection,
+  { numericText = true }: SortOptions = {},
 ): number {
   const aMissing = a === null || a === undefined || Number.isNaN(a);
   const bMissing = b === null || b === undefined || Number.isNaN(b);
@@ -51,7 +64,7 @@ export function compareSortValues(
   const order =
     typeof a === 'number' && typeof b === 'number'
       ? a - b
-      : collator.compare(String(a), String(b));
+      : (numericText ? collator : plainCollator).compare(String(a), String(b));
   return direction === 'ascending' ? order : -order;
 }
 
@@ -64,6 +77,7 @@ export function sortBy<T, K extends string>(
   items: readonly T[],
   sort: SortState<K> | null,
   valueOf: (item: T, key: K) => SortValue,
+  options?: SortOptions,
 ): T[] {
   if (!sort) return [...items];
   return [...items].sort((a, b) =>
@@ -71,6 +85,7 @@ export function sortBy<T, K extends string>(
       valueOf(a, sort.key),
       valueOf(b, sort.key),
       sort.direction,
+      options,
     ),
   );
 }

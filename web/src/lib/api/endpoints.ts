@@ -179,7 +179,7 @@ export function getProcessInstanceExecutionLogs(
 
 /**
  * Trace published data back to its source import.
- * Returns the file log entry, the workflow instance and the counts of rates and curves produced.
+ * Returns the file log entry, the ImportPro (staging) and RateLoad process instances, and the counts of rates and curves produced.
  * Returns 404 with a Message body ("Import not found") when the record does not exist.
  */
 export function getImport(woid: string): Promise<ImportRead> {

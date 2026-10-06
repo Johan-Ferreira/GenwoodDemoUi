@@ -44,7 +44,7 @@ paths:
       parameters:
       - name: Status
         in: query
-        description: 'Filter by status: Imported, Failed or Processing'
+        description: 'Filter by status: Staging, Staged, Importing, Imported or Failed'
         required: false
         schema:
           type: string
@@ -490,7 +490,7 @@ paths:
       - Import
       operationId: ImportGetByWoid
       summary: Trace published data back to its source import
-      description: Returns the file log entry, the workflow instance and the counts of rates and curves produced. Returns 404 with a Message body ("Import not found") when the record does not exist; this
+      description: Returns the file log entry, the ImportPro (staging) and RateLoad process instances and the counts of rates and curves produced. Returns 404 with a Message body ("Import not found") when the record does not exist; this
         is a deliberate exception to the 200/401/500 standard.
       parameters:
       - name: Woid
@@ -596,8 +596,16 @@ components:
           example: 0d41a44498814111bcce69d60f7a823a
         Status:
           type: string
-          description: 'Derived, not stored: Imported, Failed or Processing'
+          description: 'Derived, not stored: Staging, Staged, Importing, Imported or Failed. Staged means ImportPro has staged the file; Imported means the GenwoodDemo RateLoad process has also completed it to the target tables'
           example: Imported
+        Stage:
+          type: string
+          description: 'The process the status relates to: ImportPro (staging) or RateLoad (completing the import to the target tables). For Failed, the process that failed'
+          example: RateLoad
+        FailedStep:
+          type: string
+          description: 'Only returned when Status is Failed: the activity that failed, for example Validate, Transform or Import'
+          example: Validate
         IsCurrent:
           type: boolean
           example: true
@@ -636,8 +644,16 @@ components:
           example: 0d41a44498814111bcce69d60f7a823a
         Status:
           type: string
-          description: 'Derived, not stored: Imported, Failed or Processing'
+          description: 'Derived, not stored: Staging, Staged, Importing, Imported or Failed. Staged means ImportPro has staged the file; Imported means the GenwoodDemo RateLoad process has also completed it to the target tables'
           example: Imported
+        Stage:
+          type: string
+          description: 'The process the status relates to: ImportPro (staging) or RateLoad (completing the import to the target tables). For Failed, the process that failed'
+          example: RateLoad
+        FailedStep:
+          type: string
+          description: 'Only returned when Status is Failed: the activity that failed, for example Validate, Transform or Import'
+          example: Validate
         IsCurrent:
           type: boolean
           example: true
@@ -716,6 +732,18 @@ components:
         Failed:
           type: integer
           example: '3'
+        Staging:
+          type: integer
+          example: '1'
+        Staged:
+          type: integer
+          example: '2'
+        Importing:
+          type: integer
+          example: '1'
+        Imported:
+          type: integer
+          example: '113'
     CurvePointItem:
       type: object
       properties:
@@ -740,7 +768,7 @@ components:
           example: Spot
         Family:
           type: string
-          description: Nominal, Real or Inflation
+          description: Nominal, Real, Inflation or OIS
           example: Nominal
         Segment:
           type: string
@@ -1051,6 +1079,13 @@ components:
           $ref: '#/components/schemas/FileDetailRead'
         ProcessInstance:
           $ref: '#/components/schemas/ProcessInstanceDetailRead'
+          description: The RateLoad instance, or the ImportPro instance until RateLoad has picked the file up. Kept for existing clients; prefer StagingProcessInstance and RateLoadProcessInstance
+        StagingProcessInstance:
+          $ref: '#/components/schemas/ProcessInstanceDetailRead'
+          description: The ImportPro process instance that staged the file
+        RateLoadProcessInstance:
+          $ref: '#/components/schemas/ProcessInstanceDetailRead'
+          description: The GenwoodDemo RateLoad process instance that completed the import to the target tables. Not returned until RateLoad has picked the file up
         RatesCount:
           type: integer
           example: '200'

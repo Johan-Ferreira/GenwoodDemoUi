@@ -103,7 +103,9 @@ test.describe('Epic overview-and-yield-curves, Story 1: Overview headline cards'
       main.getByText('+2.1 bp vs prior day', { exact: true }),
     ).toBeVisible();
     await expect(
-      main.getByText('2 failed, 2 current', { exact: true }),
+      main.getByText('3 imported, 1 importing, 1 staged, 1 staging, 3 failed', {
+        exact: true,
+      }),
     ).toBeVisible();
 
     // Accessibility of the loaded headline-cards state (dev overlay excluded).

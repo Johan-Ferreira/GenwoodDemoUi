@@ -24,6 +24,8 @@ export function toFileRow(file: FileRead): FileRow {
     recordsInserted: parseNullableNumber(file.RecordsInserted),
     woid: file.Woid ?? '',
     status: file.Status ?? '',
+    stage: file.Stage ?? null,
+    failedStep: file.FailedStep ?? null,
     isCurrent: file.IsCurrent ?? false,
   };
 }

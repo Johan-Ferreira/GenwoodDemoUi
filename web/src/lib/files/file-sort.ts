@@ -7,7 +7,6 @@ export type FileSortKey =
   | 'fileName'
   | 'curveFamily'
   | 'receivedAt'
-  | 'sizeBytes'
   | 'recordsInserted'
   | 'woid'
   | 'status';
@@ -20,7 +19,7 @@ export function fileSortValue(row: FileRow, key: FileSortKey): SortValue {
 }
 
 /**
- * The rows sorted by the active column. Missing sizes / records inserted sort
+ * The rows sorted by the active column. Missing records inserted sort
  * last in both directions (BR4); ties keep the incoming (newest-first) order.
  */
 export function sortFileRows(

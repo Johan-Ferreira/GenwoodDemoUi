@@ -18,7 +18,7 @@ This epic delivers two screens in the signed-in shell: the **Workflow monitor** 
 
 Entities this epic reads (from `documentation/CurveData.yaml`, authoritative; the digest's inferred shapes are overridden where they differ). All fields arrive as strings unless noted; dates are `YYYY-MM-DD HH:MM:SS` UTC text.
 
-- **ProcessInstance** (list row, `ProcessInstanceRead`): `ProcessInstanceId`, `ProcessName`, `ContextId` (the WOID of the import), `CurrentStatus`, `CreatedAt`, `LastExecutedAt`, `FinishedAt`, `CancelledAt`, `FaultedAt`, `LastExecutedActivityName`. List envelope `ProcessInstanceReadList`: `ProcessInstances`, `TotalItems`, `Page` (1-based), `Size`.
+- **ProcessInstance** (list row, `ProcessInstanceRead`): `ProcessInstanceId`, `ProcessName`, `ContextId` (documented in the spec as the import WOID, but the live service does not return it; shown as "—" when absent), `CurrentStatus`, `CreatedAt`, `LastExecutedAt`, `FinishedAt`, `CancelledAt`, `FaultedAt`, `LastExecutedActivityName`. List envelope `ProcessInstanceReadList`: `ProcessInstances`, `TotalItems`, `Page` (1-based), `Size`.
 - **ProcessInstanceDetail** (`ProcessInstanceDetailRead`): the same fields plus `Steps[]`, each `{ Name, State }`.
 - **ExecutionLogEntry** (`ExecutionLogRead`): `Timestamp`, `ActivityName`, `EventName`, `Message` (optional). Envelope `ExecutionLogReadList`: `ExecutionLogs`.
 - **ImportTrace** (`ImportRead`, used to resolve a run to its file): `File` (`FileDetailRead`, includes `Id`, `FileName`, `Woid`, `Status`, `WorkflowInstanceId`, `ExceptionNote`), `ProcessInstance`, `RatesCount`, `CurvesCount`.
@@ -27,9 +27,9 @@ Entities this epic reads (from `documentation/CurveData.yaml`, authoritative; th
 
 Enumerations and observed vocabularies:
 
-- Process `CurrentStatus`: Idle, Running, Suspended, Finished, Cancelled, Faulted (requirements). The design only styles Finished, Faulted and Running; the others need a neutral badge (see Notes).
+- Process `CurrentStatus`: Idle, Running, Suspended, Finished, Cancelled, Faulted (requirements). The design only styles Finished, Faulted and Running; the others need a neutral badge (see Notes). The live service reports Idle, Running, Suspended, Finished and Cancelled only (never Faulted); a failed RateLoad run is Finished with last activity "Error", so the Status filter offers "Finished (Error)" in place of "Faulted".
 - Step `State`: Pending, Running, Completed, Faulted (requirements and spec example "Completed").
-- Log `EventName`: spec example "Completed"; the design shows Started / Completed / Faulted.
+- Log `EventName`: spec example "Completed"; the design shows Started / Completed / Faulted. The live service writes an "Executing" then an "Executed" entry for every activity (a still-running activity has only "Executing").
 
 ---
 
@@ -41,7 +41,7 @@ Enumerations and observed vocabularies:
 - **R4** The system shows the execution log of the selected process instance with time, activity, event and message per entry, oldest first. (F-14)
 - **R5** When the execution log has no entries, the system shows "No log entries exist" with a route back to the file details of the instance's file.
 - **R6** When the process instance does not exist (404 from the service), the system shows "Process instance not found" with a route back to the process instance list.
-- **R7** The user can move between a file and its run: from a file's details, "Open workflow" opens the Workflow monitor with that file's process instance selected (using the file's `WorkflowInstanceId`); from a selected process instance, "Open file log entry" opens the File log with that instance's file selected (resolved from `ContextId` as the WOID). The process instance view also offers a workflow monitoring link. (UI-10)
+- **R7** The user can move between a file and its run: from a file's details, "Open workflow" opens the Workflow monitor on the file's own import run (the ImportFile run whose ID is the file's `Woid`), with the Process instances table showing only that run; from a selected process instance, "Open file log entry" opens the File log with that instance's file selected (the run's `ProcessInstanceId` is looked up as the import WOID; runs with no import, such as LoadYieldCurves runs, show "Import not found"). The process instance view also offers a workflow monitoring link. (UI-10)
 - **R8** The process instance's audit history is visible: status, created / last executed / finished / cancelled / faulted timestamps, last executed activity, steps and execution logs. All history remains visible in the process instance list and details. (section 6.9)
 - **R9** The API reference screen offers a "Curve" choice (all 16 curves) and a "Valuation date" choice, shows an endpoints table (method and path) and an example request and response for the chosen curve and date. The endpoints and example address show the live service's paths (`/v1/...` under the service base address), not the prototype's example address.
 
@@ -53,7 +53,7 @@ Enumerations and observed vocabularies:
 
 - **BR1** A step that has not run yet is shown as Pending (source BR-12). Step names are rendered as supplied by the service.
 - **BR2** The execution log is always shown oldest first, regardless of any other sorting on the process instance list.
-- **BR3** A process instance is linked to its file by the WOID: `ProcessInstance.ContextId` equals `File.Woid`; a file is linked to its run by `File.WorkflowInstanceId`. If a link target cannot be resolved, the user sees the matching "not found" message with a route back, never a raw error.
+- **BR3** A process instance is linked to its file by the WOID: an ImportFile run's `ProcessInstanceId` equals `File.Woid` (the live service returns no `ContextId`); a file's `WorkflowInstanceId` points at the later LoadYieldCurves run, which has no link back to the file. If a link target cannot be resolved, the user sees the matching "not found" message with a route back, never a raw error.
 - **BR4** Process-instance status chips follow intent with a text label (Finished success, Faulted danger, Running info, others neutral) and colour is never the only cue (source UI-14).
 - **BR5** A failed or faulted run shows the failing activity's message in the log so the cause can be read (source flow "Follow a failed import to its cause").
 - **BR6** The API screen shows only the live service's operations, which are read-only (GET). It never presents the prototype's example address or its four-endpoint illustrative contract as the contract.

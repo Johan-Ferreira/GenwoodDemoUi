@@ -1,7 +1,13 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom/vitest';
 
+import { configure } from '@testing-library/react';
 import { vi } from 'vitest';
+
+// Under a full parallel run, page-level integration tests render slower than
+// RTL's 1 s default `findBy*`/`waitFor` timeout, giving false failures in
+// whichever suite happens to be starved. Per-test timeout is set in vitest.config.ts.
+configure({ asyncUtilTimeout: 5000 });
 
 // Accessibility is asserted in Playwright (real browser) via @axe-core/playwright,
 // not in jsdom — see testing-policy.md § Where each scenario belongs. So there is

@@ -15,6 +15,8 @@ export const SIGN_IN_PATH = '/sign-in';
 
 export const FILE_LOG_PATH = '/file-log';
 
+export const WORKFLOW_MONITOR_PATH = '/workflow-monitor';
+
 export interface NavItem {
   label: string;
   href: string;
@@ -44,7 +46,11 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Governance',
     items: [
-      { label: 'Workflow monitor', href: '/workflow-monitor', icon: Workflow },
+      {
+        label: 'Workflow monitor',
+        href: WORKFLOW_MONITOR_PATH,
+        icon: Workflow,
+      },
       // Not `/api`: Next.js reserves that prefix for route handlers by convention.
       { label: 'API', href: '/api-reference', icon: Code },
     ],

@@ -40,9 +40,17 @@ export interface FileRead {
    */
   Woid?: string;
   /**
-   * Derived, not stored: Imported, Failed or Processing
+   * Derived, not stored: Staging, Staged, Importing, Imported or Failed. Staged means ImportPro has staged the file; Imported means the GenwoodDemo RateLoad process has also completed it to the target tables
    */
   Status?: string;
+  /**
+   * The process the status relates to: ImportPro (staging) or RateLoad (completing the import to the target tables). For Failed, the process that failed
+   */
+  Stage?: string;
+  /**
+   * Only returned when Status is Failed: the activity that failed, for example Validate, Transform or Import
+   */
+  FailedStep?: string;
   IsCurrent?: boolean;
 }
 
@@ -71,9 +79,17 @@ export interface FileDetailRead {
    */
   Woid?: string;
   /**
-   * Derived, not stored: Imported, Failed or Processing
+   * Derived, not stored: Staging, Staged, Importing, Imported or Failed. Staged means ImportPro has staged the file; Imported means the GenwoodDemo RateLoad process has also completed it to the target tables
    */
   Status?: string;
+  /**
+   * The process the status relates to: ImportPro (staging) or RateLoad (completing the import to the target tables). For Failed, the process that failed
+   */
+  Stage?: string;
+  /**
+   * Only returned when Status is Failed: the activity that failed, for example Validate, Transform or Import
+   */
+  FailedStep?: string;
   IsCurrent?: boolean;
   /**
    * Sourced from RequestingWorkflowId
@@ -125,6 +141,10 @@ export interface FileCountsItem {
   Total?: number;
   Current?: number;
   Failed?: number;
+  Staging?: number;
+  Staged?: number;
+  Importing?: number;
+  Imported?: number;
 }
 
 /**
@@ -366,7 +386,18 @@ export interface ExecutionLogReadList {
  */
 export interface ImportRead {
   File?: FileDetailRead;
+  /**
+   * The RateLoad instance, or the ImportPro instance until RateLoad has picked the file up. Kept for existing clients; prefer StagingProcessInstance and RateLoadProcessInstance
+   */
   ProcessInstance?: ProcessInstanceDetailRead;
+  /**
+   * The ImportPro process instance that staged the file
+   */
+  StagingProcessInstance?: ProcessInstanceDetailRead;
+  /**
+   * The GenwoodDemo RateLoad process instance that completed the import to the target tables. Not returned until RateLoad has picked the file up
+   */
+  RateLoadProcessInstance?: ProcessInstanceDetailRead;
   RatesCount?: number;
   CurvesCount?: number;
 }
@@ -376,7 +407,7 @@ export interface ImportRead {
  */
 export interface FileListQueryParams {
   /**
-   * Filter by status: Imported, Failed or Processing
+   * Filter by status: Staging, Staged, Importing, Imported or Failed
    */
   Status?: string;
   /**

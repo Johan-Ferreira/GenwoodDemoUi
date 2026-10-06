@@ -18,7 +18,9 @@
  * - Three labelled sections (e.g. `<section aria-labelledby>` with a heading), so
  *   each exposes role="region" with an accessible name matching:
  *     /file log entry/i       — File: FileName, CurveFamily, ReceivedAt, Status
- *     /workflow instance/i    — ProcessName, CurrentStatus (StatusChip),
+ *     /staging run/i          — (was "Workflow instance"; split into "Staging run"
+ *                               and "Rate load run" by epic workflow-monitor-and-api
+ *                               story 6) ProcessName, CurrentStatus (StatusChip),
  *                               CreatedAt, LastExecutedAt, FinishedAt / FaultedAt /
  *                               CancelledAt only when present, LastExecutedActivityName
  *     /rates and curves/i     — RatesCount and CurvesCount, each next to its label
@@ -46,7 +48,7 @@ const mockGet = get as ReturnType<typeof vi.fn>;
 
 /** A failed import with distinct timestamps so each one is individually observable. */
 const failedImport = createFailedImport({
-  ProcessInstance: createFaultedProcessInstanceDetail({
+  StagingProcessInstance: createFaultedProcessInstanceDetail({
     CreatedAt: '2026-09-30 18:05:41',
     LastExecutedAt: '2026-09-30 18:05:43',
     FaultedAt: '2026-09-30 18:05:44',
@@ -98,8 +100,8 @@ describe('Epic file-log, Story 4: import trace', () => {
     ).toBeInTheDocument();
     expect(within(fileEntry).getByText('Failed')).toBeInTheDocument();
 
-    const workflow = screen.getByRole('region', { name: /workflow instance/i });
-    expect(within(workflow).getByText('ImportCurveFile')).toBeInTheDocument();
+    const workflow = screen.getByRole('region', { name: /staging run/i });
+    expect(within(workflow).getByText('ImportFile')).toBeInTheDocument();
     expect(within(workflow).getByText('Faulted')).toBeInTheDocument();
     expect(
       within(workflow).getByText('2026-09-30 18:05:41'),
@@ -132,13 +134,13 @@ describe('Epic file-log, Story 4: import trace', () => {
     expect(alert).toHaveTextContent(serviceError.description);
     expect(screen.queryByText('Import not found')).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('region', { name: /workflow instance/i }),
+      screen.queryByRole('region', { name: /staging run/i }),
     ).not.toBeInTheDocument();
 
     await user.click(within(alert).getByRole('button', { name: 'Retry' }));
 
     expect(
-      await screen.findByRole('region', { name: /workflow instance/i }),
+      await screen.findByRole('region', { name: /staging run/i }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
