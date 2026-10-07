@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "epic": {
+    "slug": "row-level-import-errors",
+    "name": "Row-level import errors",
+    "createdAt": "2026-10-07T07:18:42.611Z",
+    "dependsOn": [
+      "app-shell-and-sign-in",
+      "file-log"
+    ],
+    "introducesSharedSurface": false,
+    "unverifiedAssumptions": [],
+    "manualTestResults": []
+  },
+  "phase": "PLAN",
+  "stories": {},
+  "halt": null,
+  "lastUpdated": "2026-10-07T07:18:42.611Z"
+}
