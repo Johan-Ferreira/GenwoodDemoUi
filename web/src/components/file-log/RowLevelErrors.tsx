@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import {
   CELL_CLASS,
@@ -27,6 +27,7 @@ import {
   type ImportMessageSort,
   type ImportMessageSortKey,
 } from '@/lib/files/import-message-sort';
+import { revealElement } from '@/lib/utils/scroll-into-view';
 import { nextSort } from '@/lib/utils/sort';
 import type {
   ImportMessageRead,
@@ -112,8 +113,14 @@ function RowLevelErrorsTable({
  */
 export function RowLevelErrors({ woid }: { woid: string }) {
   const titleId = useId();
+  const sectionRef = useRef<HTMLElement>(null);
+  // Mounted only when the user opens it: bring the grid's section into view.
+  useEffect(() => {
+    revealElement(sectionRef.current, 'start');
+  }, []);
   return (
     <section
+      ref={sectionRef}
       aria-labelledby={titleId}
       className="flex flex-col gap-3 border-t border-border-subtle pt-4"
     >

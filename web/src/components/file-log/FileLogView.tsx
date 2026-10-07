@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { DataState } from '@/components/data-state/DataState';
 import { FileTable } from '@/components/files/FileTable';
@@ -128,6 +128,11 @@ export function FileLogView() {
   const { selection, select } = useSelectedFile();
   const selectedId = selection.kind === 'file' ? selection.id : null;
   const { onFiles, statuses } = useImportStatusNotices();
+  // The file the user just chose in the table: its details scroll into view
+  // once loaded, then the request is spent (deep links and background
+  // re-reads never scroll).
+  const [revealId, setRevealId] = useState<number | null>(null);
+  const clearReveal = useCallback(() => setRevealId(null), []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -156,7 +161,10 @@ export function FileLogView() {
                 setSort((current) => nextSort(current, key))
               }
               selectedId={selectedId}
-              onSelect={(row) => select(row.id)}
+              onSelect={(row) => {
+                setRevealId(row.id);
+                select(row.id);
+              }}
             />
           )
         }
@@ -168,6 +176,8 @@ export function FileLogView() {
           key={selection.id}
           fileId={selection.id}
           refreshKey={statuses.get(selection.id) ?? null}
+          revealOnLoad={revealId === selection.id}
+          onRevealed={clearReveal}
         />
       )}
       {selection.kind === 'invalid' && <FileNotFound />}

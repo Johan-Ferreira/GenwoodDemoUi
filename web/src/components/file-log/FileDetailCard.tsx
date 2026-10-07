@@ -8,7 +8,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { DataState } from '@/components/data-state/DataState';
 import { NotFoundMessage } from '@/components/data-state/NotFoundMessage';
@@ -30,6 +30,7 @@ import { getFile } from '@/lib/api/endpoints';
 import { lookUp } from '@/lib/api/not-found';
 import { parseNullableNumber } from '@/lib/api/nullable-number';
 import { isServiceError } from '@/lib/api/service-error';
+import { revealElement } from '@/lib/utils/scroll-into-view';
 import {
   fileStatusTone,
   formatCount,
@@ -191,11 +192,22 @@ function DownloadFailure({
 function FileDetails({
   detail,
   fileId,
+  revealOnLoad = false,
+  onRevealed,
 }: {
   detail: FileDetailRead;
   fileId: number;
+  revealOnLoad?: boolean;
+  onRevealed?: () => void;
 }) {
   const titleId = useId();
+  const sectionRef = useRef<HTMLElement>(null);
+  // Scroll the details into view once, when the user has just selected the file.
+  useEffect(() => {
+    if (!revealOnLoad) return;
+    revealElement(sectionRef.current, 'nearest');
+    onRevealed?.();
+  }, [revealOnLoad, onRevealed]);
   const { state: downloadState, download } = useOriginalDownload(
     fileId,
     detail.FileName,
@@ -215,6 +227,7 @@ function FileDetails({
 
   return (
     <section
+      ref={sectionRef}
       aria-labelledby={titleId}
       className="flex flex-col gap-4 rounded-xl border bg-card p-5 text-card-foreground shadow-sm"
     >
@@ -331,10 +344,16 @@ function FileDetails({
 export function FileDetailCard({
   fileId,
   refreshKey,
+  revealOnLoad,
+  onRevealed,
 }: {
   fileId: number;
   /** When this changes (e.g. the file's status in the list), re-read silently. */
   refreshKey?: string | number | null;
+  /** Scroll the loaded details into view (the user just selected the file). */
+  revealOnLoad?: boolean;
+  /** Called once the details have been scrolled into view. */
+  onRevealed?: () => void;
 }) {
   return (
     <DataState
@@ -344,7 +363,12 @@ export function FileDetailCard({
     >
       {(lookup) =>
         lookup.found ? (
-          <FileDetails detail={lookup.value} fileId={fileId} />
+          <FileDetails
+            detail={lookup.value}
+            fileId={fileId}
+            revealOnLoad={revealOnLoad}
+            onRevealed={onRevealed}
+          />
         ) : (
           <FileNotFound />
         )

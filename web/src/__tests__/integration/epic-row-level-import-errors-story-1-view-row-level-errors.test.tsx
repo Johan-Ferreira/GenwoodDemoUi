@@ -27,15 +27,27 @@
  * - Empty list → "No failed rows." replaces the grid. 404 → "Import not found"
  *   with a "Back to the file list" link to /file-log. Other failures → DataState's
  *   persistent role="alert" with the error description and a Retry button.
+ * - Choosing a file in the list scrolls its loaded details into view
+ *   (`scrollIntoView` on the details region) once; deep links and later
+ *   re-renders do not scroll. Opening row-level errors scrolls its region into
+ *   view; closing it does not.
  *
  * Mocks: only the API boundary (`@/lib/api/client`) and Next navigation hooks.
  * Payloads come from the shared project-wide factories in `@/mocks/data/`.
  *
  * These tests WILL FAIL until implemented (TDD red).
  */
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import FileLogPage from '@/app/(app)/file-log/page';
 import { ToastContainer } from '@/components/toast/ToastContainer';
@@ -62,9 +74,13 @@ vi.mock('@/lib/api/client', () => ({
 }));
 
 let currentSearch = '';
+/** Selecting a row pushes `?file=<Id>`; mirror it so a re-render sees it. */
+const pushUrl = vi.fn((url: string) => {
+  currentSearch = url.includes('?') ? url.slice(url.indexOf('?') + 1) : '';
+});
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: pushUrl,
     replace: vi.fn(),
     refresh: vi.fn(),
     back: vi.fn(),
@@ -116,14 +132,18 @@ function serve(detail: FileDetailRead, messages: MessagesResponse[] = []) {
   });
 }
 
-function renderFileLog(fileId: number | undefined) {
-  currentSearch = fileId === undefined ? '' : `file=${fileId}`;
-  return render(
+function fileLogTree() {
+  return (
     <ToastProvider>
       <FileLogPage />
       <ToastContainer />
-    </ToastProvider>,
+    </ToastProvider>
   );
+}
+
+function renderFileLog(fileId: number | undefined) {
+  currentSearch = fileId === undefined ? '' : `file=${fileId}`;
+  return render(fileLogTree());
 }
 
 /** Opens the row-level errors of the rendered Failed file and returns the region. */
@@ -313,5 +333,57 @@ describe('Epic row-level-import-errors, Story 1: view row-level errors', () => {
     const table = await within(errorRegion).findByRole('table');
     expect(within(table).getByText(rowMessage)).toBeInTheDocument();
     expect(within(errorRegion).queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  // Manual-test change request: what opens below scrolls into view.
+  describe('scrolling what opens into view', () => {
+    // jsdom has no scrollIntoView; record which element asked to be shown.
+    const scrollIntoView = vi.fn();
+    beforeAll(() => {
+      Element.prototype.scrollIntoView = scrollIntoView;
+    });
+    afterAll(() => {
+      Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+    });
+
+    it('scrolls a chosen file’s details into view, then the row-level errors when opened, but not on a re-render, on closing, or for a deep link', async () => {
+      const user = userEvent.setup();
+      serve(failedFile, [{ kind: 'ok', body: createImportMessageList() }]);
+      const view = renderFileLog(undefined);
+
+      await user.click(
+        await screen.findByRole('row', {
+          name: new RegExp(`^${failedFile.Id}\\b`),
+        }),
+      );
+      view.rerender(fileLogTree());
+
+      const details = await screen.findByRole('region', {
+        name: failedFile.FileName ?? '',
+      });
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
+      expect(scrollIntoView.mock.contexts[0]).toBe(details);
+
+      // A later render of the same selection (e.g. a background re-read) stays put.
+      view.rerender(fileLogTree());
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+      const region = await openRowLevelErrors(user);
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      expect(scrollIntoView.mock.contexts[1]).toBe(region);
+
+      await user.click(
+        screen.getByRole('button', { name: 'Hide row-level errors' }),
+      );
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+
+      view.unmount();
+      scrollIntoView.mockClear();
+      renderFileLog(failedFile.Id);
+      expect(
+        await screen.findByRole('region', { name: failedFile.FileName ?? '' }),
+      ).toBeInTheDocument();
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    });
   });
 });
