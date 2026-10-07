@@ -12,20 +12,22 @@
     "unverifiedAssumptions": [
       "Verify the right rows are found: the app asks for the failed rows using the file's staging instance ID (the WOID in the file details), not its rate load instance ID. If the service actually keys the messages by the other ID, every Failed file will show \"Import not found\" or \"No failed rows.\"",
       "Verify the row numbers line up: the app shows each row number exactly as returned, assuming it already counts the header rows. If the service counts from the first data row instead, every row number will point a few rows too high in the downloaded file.",
-      "Verify an import with no failed rows: the app expects an empty list and shows \"No failed rows.\" If the service returns a not-found error for these imports instead, you will see \"Import not found\" on a Failed file that does exist."
+      "Verify an import with no failed rows: the app expects an empty list and shows \"No failed rows.\" If the service returns a not-found error for these imports instead, you will see \"Import not found\" on a Failed file that does exist.",
+      "The new GET /v1/imports/{Woid}/messages endpoint has not been checked against the running data service. Open a Failed file and confirm the rows load, and that a Failed import with no bad rows shows \"No failed rows.\" rather than an error.",
+      "Confirm a listed row number points to the right line when you open the downloaded original (the helper text says row numbers count the header rows)."
     ],
     "manualTestResults": []
   },
   "phase": "BUILD",
   "stories": {
     "1": {
-      "status": "pending",
+      "status": "complete",
       "commit": null,
       "e2eStatus": "deferred",
-      "startedAt": null,
-      "completedAt": null
+      "startedAt": "2026-10-07T07:40:00.000Z",
+      "completedAt": "2026-10-07T07:33:30.466Z"
     }
   },
   "halt": null,
-  "lastUpdated": "2026-10-07T07:30:00.000Z"
+  "lastUpdated": "2026-10-07T07:33:30.467Z"
 }

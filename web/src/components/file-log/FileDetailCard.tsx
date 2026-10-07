@@ -1,6 +1,12 @@
 'use client';
 
-import { CircleAlert, Download, Route, Workflow } from 'lucide-react';
+import {
+  CircleAlert,
+  Download,
+  Route,
+  TableProperties,
+  Workflow,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useId, useState } from 'react';
 
@@ -10,6 +16,11 @@ import { toServiceErrorShape } from '@/components/data-state/useDataState';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  HIDE_ROW_LEVEL_ERRORS,
+  RowLevelErrors,
+  VIEW_ROW_LEVEL_ERRORS,
+} from '@/components/file-log/RowLevelErrors';
 import { StatusChip } from '@/components/status-chip/StatusChip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { workflowMonitorSelectionPath } from '@/components/workflow-monitor/useSelectedInstance';
@@ -198,6 +209,9 @@ function FileDetails({
   // present only once RateLoad has picked the file up.
   const woid = present(detail.Woid);
   const rateLoadRunId = present(detail.WorkflowInstanceId);
+  // Row-level errors: Failed files only, read with the full Woid (BR3, BR5).
+  const [rowLevelErrorsOpen, setRowLevelErrorsOpen] = useState(false);
+  const showRowLevelErrorsAction = failed && woid !== null;
 
   return (
     <section
@@ -294,7 +308,21 @@ function FileDetails({
             </Link>
           </Button>
         )}
+        {showRowLevelErrorsAction && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setRowLevelErrorsOpen((open) => !open)}
+          >
+            <TableProperties aria-hidden="true" />
+            {rowLevelErrorsOpen ? HIDE_ROW_LEVEL_ERRORS : VIEW_ROW_LEVEL_ERRORS}
+          </Button>
+        )}
       </div>
+
+      {showRowLevelErrorsAction && rowLevelErrorsOpen && (
+        <RowLevelErrors woid={woid} />
+      )}
     </section>
   );
 }

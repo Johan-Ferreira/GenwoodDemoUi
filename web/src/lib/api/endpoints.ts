@@ -22,6 +22,7 @@ import type {
   FileListQueryParams,
   FileReadList,
   ImportRead,
+  ImportMessageReadList,
   OverviewRead,
   ProcessInstanceDetailRead,
   ProcessInstanceListQueryParams,
@@ -184,4 +185,16 @@ export function getProcessInstanceExecutionLogs(
  */
 export function getImport(woid: string): Promise<ImportRead> {
   return get<ImportRead>(`/v1/imports/${woid}`);
+}
+
+/**
+ * Get the failed line messages of an import.
+ * Returns the rows of the staged source file that carry an error message, e.g. rows that failed validation or transformation.
+ * Each item gives the row position in the file (header rows counted), the observation date as staged, and the error message.
+ * Returns 404 with a Message body ("Import not found") when the record does not exist.
+ */
+export function getImportMessages(
+  woid: string,
+): Promise<ImportMessageReadList> {
+  return get<ImportMessageReadList>(`/v1/imports/${woid}/messages`);
 }
