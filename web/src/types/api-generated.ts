@@ -513,3 +513,29 @@ export interface CurveRatesQueryParams {
    */
   ObservationDate?: string;
 }
+
+/**
+ * Failed row message from an import (row-level error).
+ */
+export interface ImportMessageRead {
+  /**
+   * Position of the row in the staged source file, counting the header rows of the sheet.
+   * Use it with the original file download to find the row.
+   */
+  SourceRowNumber?: number;
+  /**
+   * Observation date as staged from the file. Not returned when the row has none.
+   */
+  ObservationDate?: string;
+  /**
+   * Why the line failed.
+   */
+  Message?: string;
+}
+
+/**
+ * List of failed row messages from an import.
+ */
+export interface ImportMessageReadList {
+  ImportMessages?: ImportMessageRead[];
+}

@@ -521,6 +521,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Message'
+  /v1/imports/{Woid}/messages:
+    get:
+      tags:
+      - Import
+      operationId: ImportMessageGetList
+      summary: Get the failed line messages of an import
+      description: Returns the rows of the staged source file of this import that carry an error Message, for example rows that failed validation or transformation, so the reason a line failed can be shown. Each item gives the row position in the file (header rows counted), the observation date as staged and the Message. Rows without a Message are not returned, so an import without failed lines returns an empty list. Returns 404 with a Message body ("Import not found") when the record does not exist; this is a deliberate exception to the 200/401/500 standard, as for ImportGetByWoid.
+      parameters:
+      - name: Woid
+        in: path
+        description: Work object Id (WOID) of the import
+        required: true
+        schema:
+          type: string
+          example: 0d41a44498814111bcce69d60f7a823a
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportMessageReadList'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
 components:
   parameters:
     Page:
@@ -1092,3 +1128,25 @@ components:
         CurvesCount:
           type: integer
           example: '5'
+    ImportMessageRead:
+      type: object
+      properties:
+        SourceRowNumber:
+          type: integer
+          description: Position of the row in the staged source file, counting the header rows of the sheet. Use it with the original file download to find the row
+          example: '12'
+        ObservationDate:
+          type: string
+          description: Observation date as staged from the file. Not returned when the row has none
+          example: '2026-09-30'
+        Message:
+          type: string
+          description: Why the line failed
+          example: One or more rates is not a valid decimal
+    ImportMessageReadList:
+      type: object
+      properties:
+        ImportMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportMessageRead'
