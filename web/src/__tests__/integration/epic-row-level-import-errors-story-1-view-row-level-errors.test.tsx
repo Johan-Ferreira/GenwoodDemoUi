@@ -337,10 +337,14 @@ describe('Epic row-level-import-errors, Story 1: view row-level errors', () => {
 
   // Manual-test change request: what opens below scrolls into view.
   describe('scrolling what opens into view', () => {
-    // jsdom has no scrollIntoView; record which element asked to be shown.
-    const scrollIntoView = vi.fn();
+    // jsdom has no scrollIntoView; record which elements were brought into view.
+    const scrolledTo: Element[] = [];
     beforeAll(() => {
-      Element.prototype.scrollIntoView = scrollIntoView;
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        this: Element,
+      ) {
+        scrolledTo.push(this);
+      };
     });
     afterAll(() => {
       Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
@@ -361,29 +365,27 @@ describe('Epic row-level-import-errors, Story 1: view row-level errors', () => {
       const details = await screen.findByRole('region', {
         name: failedFile.FileName ?? '',
       });
-      await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
-      expect(scrollIntoView.mock.contexts[0]).toBe(details);
+      await waitFor(() => expect(scrolledTo).toEqual([details]));
 
       // A later render of the same selection (e.g. a background re-read) stays put.
       view.rerender(fileLogTree());
-      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(scrolledTo).toEqual([details]);
 
       const region = await openRowLevelErrors(user);
-      expect(scrollIntoView).toHaveBeenCalledTimes(2);
-      expect(scrollIntoView.mock.contexts[1]).toBe(region);
+      expect(scrolledTo).toEqual([details, region]);
 
       await user.click(
         screen.getByRole('button', { name: 'Hide row-level errors' }),
       );
-      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      expect(scrolledTo).toEqual([details, region]);
 
       view.unmount();
-      scrollIntoView.mockClear();
+      scrolledTo.length = 0;
       renderFileLog(failedFile.Id);
       expect(
         await screen.findByRole('region', { name: failedFile.FileName ?? '' }),
       ).toBeInTheDocument();
-      expect(scrollIntoView).not.toHaveBeenCalled();
+      expect(scrolledTo).toEqual([]);
     });
   });
 });
